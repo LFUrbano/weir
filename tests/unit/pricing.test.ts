@@ -5,6 +5,7 @@ import {
   blendedPrice,
   breakEvenMonthlyTokens,
   clampMonthlyTokens,
+  compareMonthly,
   dedicatedMonthlyCost,
   replicasNeeded,
   serverlessMonthlyCost,
@@ -80,5 +81,92 @@ describe("pricing", () => {
       expect(Number.isFinite(dedicatedMonthlyCost(llama, v))).toBe(true);
     }
     expect(Number.isFinite(serverlessMonthlyCost(llama, NaN, -3))).toBe(true);
+  });
+
+  it("sizes replicas for a month of up to 100B input plus 100B output", () => {
+    // 200B tokens a month at twice the average rate needs 26 replicas of 6,000 tok/s.
+    expect(replicasNeeded(llama, 200e9)).toBe(26);
+    expect(replicasNeeded(llama, 1e30)).toBe(26);
+  });
+});
+
+describe("compareMonthly", () => {
+  it("prices the reference month on Llama 3.3 70B", () => {
+    const c = compareMonthly(llama, 100e6, 20e6);
+    expect(c.inputTokens).toBe(100e6);
+    expect(c.outputTokens).toBe(20e6);
+    expect(c.totalTokens).toBe(120e6);
+    expect(c.inputShare).toBeCloseTo(5 / 6, 10);
+    expect(c.blended).toBeCloseTo(0.57, 10);
+    expect(c.serverless).toBeCloseTo(68.4, 10);
+    expect(c.dedicated).toEqual({ replicas: 1, cost: expect.closeTo(3635.4, 6) });
+    // 3,635.40 / 0.57 per 1M, from the person's own mix.
+    expect(c.breakEven).toBeCloseTo(6_377_894_737, -3);
+    expect(c.cheaper).toBe("serverless");
+    expect(c.savings).toBeCloseTo(3567, 6);
+  });
+
+  it("names dedicated cheaper once one replica pays for itself", () => {
+    const c = compareMonthly(llama, 6e9, 1e9);
+    expect(c.serverless).toBeCloseTo(3960, 6);
+    expect(c.dedicated?.replicas).toBe(1);
+    expect(c.cheaper).toBe("dedicated");
+    expect(c.savings).toBeCloseTo(324.6, 6);
+  });
+
+  it("sizes dedicated on input plus output", () => {
+    const c = compareMonthly(llama, 100e9, 100e9);
+    expect(c.totalTokens).toBe(200e9);
+    expect(c.dedicated?.replicas).toBe(26);
+    expect(c.serverless).toBeCloseTo(126_000, 6);
+  });
+
+  it("assumes an even mix when there is no traffic", () => {
+    const c = compareMonthly(llama, 0, 0);
+    expect(c.inputShare).toBe(0.5);
+    expect(c.blended).toBeCloseTo(0.63, 10);
+    expect(c.serverless).toBe(0);
+    expect(c.dedicated?.replicas).toBe(1);
+    expect(c.breakEven).toBeCloseTo(5_770_476_190, -4);
+    expect(c.cheaper).toBe("serverless");
+  });
+
+  it("has no dedicated side for serverless-only models", () => {
+    const m = getModel("deepseek-r1-0528");
+    if (!m || !isTokenModel(m)) throw new Error("deepseek-r1-0528 must be a token model");
+    const c = compareMonthly(m, 100e6, 20e6);
+    expect(c.dedicated).toBeNull();
+    expect(c.breakEven).toBeNull();
+    expect(c.cheaper).toBe("serverless");
+    expect(c.savings).toBe(0);
+    expect(c.serverless).toBeCloseTo(100 * 0.7 + 20 * 2.4, 10);
+  });
+
+  it("stays finite and non-negative for hostile input", () => {
+    for (const [i, o] of [
+      ["abc", -5],
+      [NaN, Infinity],
+      ["", "1e30"],
+      [-Infinity, undefined],
+    ] as const) {
+      const c = compareMonthly(llama, i, o);
+      for (const v of [
+        c.inputTokens,
+        c.outputTokens,
+        c.totalTokens,
+        c.inputShare,
+        c.blended,
+        c.serverless,
+        c.savings,
+        c.dedicated?.cost ?? 0,
+        c.dedicated?.replicas ?? 0,
+        c.breakEven ?? 0,
+      ]) {
+        expect(Number.isFinite(v)).toBe(true);
+        expect(v).toBeGreaterThanOrEqual(0);
+      }
+      expect(c.inputTokens).toBeLessThanOrEqual(100e9);
+      expect(c.outputTokens).toBeLessThanOrEqual(100e9);
+    }
   });
 });
