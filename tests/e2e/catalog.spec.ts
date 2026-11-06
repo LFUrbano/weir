@@ -332,4 +332,21 @@ test.describe("error collector", () => {
     await page.goto("/models/");
     await expect.poll(() => errors.some((e) => e.includes(broken))).toBe(true);
   });
+
+  test("a prefetch of a mistyped internal link fails; unbuilt pages are listed", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "once is enough");
+    await page.goto("/models/");
+    const errors = collectErrors(page);
+    // fetch() from the page is how the router prefetches a route path.
+    // When /pricing/ is built (Task 8), swap it for a page still in NOT_YET_BUILT.
+    const statuses = await page.evaluate(async () =>
+      Promise.all(
+        ["/models/typo/", "/pricing/"].map(async (path) => (await fetch(path)).status),
+      ),
+    );
+    expect(statuses).toEqual([404, 404]);
+    await expect.poll(() => errors).toEqual([expect.stringContaining("/models/typo/")]);
+  });
 });

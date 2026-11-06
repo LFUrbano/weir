@@ -1,17 +1,28 @@
 import type { Page, Request } from "@playwright/test";
 
 /**
- * The only 404s tolerated are the Next router's own prefetches, which it makes
- * with fetch() and falls back from with a full navigation:
- * - segment payloads (`.txt`); in the static export some names, such as
- *   `/models/__next.models.__PAGE__.txt`, are never written (Task 11);
- * - route paths (`/pricing/`) of pages later tasks build (Ruling 1).
- * A script, stylesheet, font, image or document that 404s is never tolerated.
+ * Pages that the header, the footer and the model pages already link to but
+ * a later task builds. The Next router prefetches them with fetch() and gets
+ * a 404 until they exist. Tasks 8 to 10 remove each entry as its page lands:
+ * /pricing/ (Task 8), /enterprise/ (Task 9), /docs/quickstart/ (Task 10).
+ */
+export const NOT_YET_BUILT = ["/pricing/", "/enterprise/", "/docs/quickstart/"];
+
+/**
+ * The only 404s tolerated are the Next router's own fetch() prefetches:
+ * - segment payloads (`.txt`, or `_rsc`); in the static export some names, such
+ *   as `/models/__next.models.__PAGE__.txt`, are never written (Task 11);
+ * - the route paths in NOT_YET_BUILT (Ruling 1).
+ * Any other 404, including a prefetch of a mistyped internal link such as
+ * `/models/typo/`, and any script, stylesheet, font, image or document that
+ * 404s, is reported.
  */
 export function isTolerated404(request: Request): boolean {
   if (request.resourceType() !== "fetch") return false;
   const { pathname, searchParams } = new URL(request.url());
-  return pathname.endsWith(".txt") || pathname.endsWith("/") || searchParams.has("_rsc");
+  return (
+    pathname.endsWith(".txt") || searchParams.has("_rsc") || NOT_YET_BUILT.includes(pathname)
+  );
 }
 
 /** Uncaught errors, console errors and failed responses on the page. */
