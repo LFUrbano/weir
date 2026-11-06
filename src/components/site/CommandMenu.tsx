@@ -18,8 +18,10 @@ import { Kbd } from "./Kbd";
 
 const loadDialog = () => import("./CommandMenuDialog");
 
-// Not in the first load of any page: fetched when the browser is idle, when
-// the trigger is hovered or focused, or at the latest on the first open.
+// Not in the first load of any page: fetched on intent (the shortcut's
+// modifier key going down, the trigger hovered or focused) or at the latest on
+// the first open. Not on idle: right after load, that work would land in the
+// page's busiest second.
 const CommandMenuDialog = dynamic(() => loadDialog().then((m) => m.CommandMenuDialog), { ssr: false });
 
 type MenuState = { open: boolean; setOpen: (open: boolean) => void };
@@ -64,6 +66,8 @@ export function CommandMenuProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const apple = isApplePlatform();
     const onKeyDown = (e: KeyboardEvent) => {
+      // Ctrl or Cmd goes down before K: start fetching the menu now.
+      if (e.key === (apple ? "Meta" : "Control")) void loadDialog();
       const modifier = apple ? e.metaKey && !e.ctrlKey : e.ctrlKey && !e.metaKey;
       if (e.key.toLowerCase() !== "k" || !modifier || e.altKey || e.shiftKey) return;
       e.preventDefault();
@@ -74,12 +78,7 @@ export function CommandMenuProvider({ children }: { children: ReactNode }) {
       });
     };
     document.addEventListener("keydown", onKeyDown);
-    // Warm the chunk once the page is idle, so the first open is instant.
-    const idle = window.requestIdleCallback?.(() => void loadDialog(), { timeout: 5000 });
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      if (idle !== undefined) window.cancelIdleCallback(idle);
-    };
+    return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
   const value = useMemo(() => ({ open, setOpen }), [open, setOpen]);

@@ -286,6 +286,24 @@ test.describe("command menu", () => {
     });
   }
 
+  test("its code is fetched on intent, not with the page", async ({ page, request }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "hover and keyboard on desktop");
+    const scripts = new Set<string>();
+    page.on("request", (r) => {
+      if (r.resourceType() === "script") scripts.add(r.url());
+    });
+    const menuLoaded = async () => {
+      for (const url of scripts) if ((await (await request.get(url)).text()).includes("cmdk-list")) return true;
+      return false;
+    };
+    await page.goto("/pricing/");
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1500);
+    expect(await menuLoaded()).toBe(false);
+    await page.getByRole("banner").getByRole("button", { name: /Search/ }).hover();
+    await expect.poll(menuLoaded).toBe(true);
+  });
+
   test("Escape returns focus to the header button that opened it", async ({ page }) => {
     await page.goto("/");
     const trigger = page.getByRole("banner").getByRole("button", { name: /Search/ });
