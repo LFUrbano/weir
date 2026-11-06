@@ -81,6 +81,23 @@ test.describe("code panel", () => {
     );
   });
 
+  test("shows a visible focus ring on the keyboard-focusable panel", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("tab", { name: "curl" }).focus();
+    await page.keyboard.press("Tab"); // copy button
+    await expect(page.getByRole("button", { name: "Copy", exact: true })).toBeFocused();
+    await page.keyboard.press("Tab"); // the scrollable panel
+    const panel = page.getByRole("tabpanel");
+    await expect(panel).toBeFocused();
+    const outline = await panel.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return { style: s.outlineStyle, width: parseFloat(s.outlineWidth), color: s.outlineColor };
+    });
+    expect(outline.style).not.toBe("none");
+    expect(outline.width).toBeGreaterThanOrEqual(2);
+    expect(outline.color).toBe("rgb(255, 181, 71)");
+  });
+
   test("never makes the page scroll sideways", async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 740 });
     await page.goto("/");

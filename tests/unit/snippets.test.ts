@@ -39,6 +39,20 @@ describe("snippetsFor", () => {
     expect(s.node).toContain("embeddings.create");
   });
 
+  it("uses the Weir SDK, not another vendor's, in Python and Node", () => {
+    for (const m of models) {
+      const s = snippetsFor(m);
+      expect(s.python).toContain("from weir import Weir");
+      expect(s.python).toContain("Weir(");
+      expect(s.node).toContain('import Weir from "weir"');
+      expect(s.node).toContain("new Weir(");
+      for (const code of [s.python, s.node]) {
+        expect(code.toLowerCase()).toContain("weir");
+        expect(code.toLowerCase()).not.toContain("openai");
+      }
+    }
+  });
+
   it("covers every model in all three languages without secrets", () => {
     for (const m of models) {
       const s = snippetsFor(m);
