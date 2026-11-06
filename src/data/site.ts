@@ -9,6 +9,14 @@ export const siteNav: NavItem[] = [
   { label: "Docs", href: "/docs/quickstart/" },
 ];
 
+/** Pages the command menu (Cmd+K / Ctrl+K) lists, with the words it also matches. */
+export const commandPages: { label: string; href: SiteRoute; keywords: string[] }[] = [
+  { label: "Models", href: "/models/", keywords: ["catalog", "browse"] },
+  { label: "Pricing", href: "/pricing/", keywords: ["cost", "calculator", "dedicated"] },
+  { label: "Enterprise", href: "/enterprise/", keywords: ["sales", "contact", "sla", "security"] },
+  { label: "Quickstart", href: "/docs/quickstart/", keywords: ["docs", "api key", "sdk"] },
+];
+
 export const primaryCta = { label: "Get an API key", href: "/docs/quickstart/" } as const;
 
 export type FooterColumn = { title: string; links: { label: string; href: SiteRoute }[] };
