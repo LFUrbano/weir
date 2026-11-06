@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { numCell } from "@/components/models/table-styles";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableRowHeader,
+} from "@/components/ui/table";
 import { getGpu, gpuShortName, gpus, type Gpu } from "@/data/gpus";
 import { isDedicatedModel, isTokenModel, models, type Model } from "@/data/models";
 import { formatCount, formatPerImage, formatUsd } from "@/lib/format";
@@ -33,7 +41,7 @@ function ModelName({ model, sub }: { model: Model; sub?: string }) {
       </Link>
       <span className="mt-1 block text-small text-fg-2">{model.publisher}</span>
       {/* On phones the replica column folds in under the name. */}
-      {sub && <span className="mt-0.5 block font-mono text-[0.8125rem] text-fg-2 md:hidden">{sub}</span>}
+      {sub && <span className="mt-0.5 block font-mono text-meta text-fg-2 md:hidden">{sub}</span>}
     </>
   );
 }
@@ -87,13 +95,13 @@ export function ServerlessTable() {
           if (price.unit !== "tokens") return null;
           return (
             <TableRow key={m.slug} data-slug={m.slug} className="hover:bg-surface">
-              <TableCell className={nameCell}>
+              <TableRowHeader className={nameCell}>
                 <ModelName
                   model={m}
                   sub={isDedicatedModel(m) ? `${replicaLabel(m)} replica` : "serverless only"}
                 />
-              </TableCell>
-              <TableCell className="hidden font-mono text-[0.8125rem] text-fg-2 lg:table-cell">
+              </TableRowHeader>
+              <TableCell className="hidden font-mono text-meta text-fg-2 lg:table-cell">
                 {m.tasks.join(" · ")}
               </TableCell>
               <TableCell data-col="input" className={num}>
@@ -139,9 +147,9 @@ export function ImageTable() {
         {imageModels.map((m) =>
           m.pricing.unit === "image" ? (
             <TableRow key={m.slug} data-slug={m.slug} className="hover:bg-surface">
-              <TableCell className={nameCell}>
+              <TableRowHeader className={nameCell}>
                 <ModelName model={m} />
-              </TableCell>
+              </TableRowHeader>
               <TableCell className={cn(num, quiet)}>1024 × 1024</TableCell>
               <TableCell className={num}>{formatPerImage(m.pricing.perImage)}</TableCell>
             </TableRow>
@@ -184,7 +192,7 @@ export function GpuTable() {
       <TableBody>
         {gpus.map((g) => (
           <TableRow key={g.id} data-gpu={g.id} className="hover:bg-surface">
-            <TableCell className="py-4 pr-3 font-medium text-fg">{g.name}</TableCell>
+            <TableRowHeader className="py-4 pr-3 font-medium text-fg">{g.name}</TableRowHeader>
             <TableCell className={cn(num, quiet)}>{g.memoryGb} GB</TableCell>
             <TableCell className={cn(num, "max-md:pr-0")}>{perHour(g.hourly)}</TableCell>
             <TableCell className={cn(num, "hidden md:table-cell")}>
@@ -236,9 +244,9 @@ export function ReplicaTable() {
           const breakEven = breakEvenMonthlyTokens(m, 0.5);
           return (
             <TableRow key={m.slug} data-slug={m.slug} className="hover:bg-surface">
-              <TableCell className={nameCell}>
+              <TableRowHeader className={nameCell}>
                 <ModelName model={m} sub={replicaLabel(m)} />
-              </TableCell>
+              </TableRowHeader>
               <TableCell className={cn(num, "hidden md:table-cell")}>{replicaLabel(m)}</TableCell>
               <TableCell className={num}>{perHour(m.dedicated.gpusPerReplica * g.hourly)}</TableCell>
               <TableCell className={cn(num, "hidden md:table-cell")}>

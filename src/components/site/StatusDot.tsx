@@ -1,11 +1,12 @@
 import { cn } from "@/lib/utils";
 
-export type StatusState = "ok" | "live" | "degraded";
+/** ok: healthy. live: streaming right now. error: a failed request (the 404). */
+export type StatusState = "ok" | "live" | "error";
 
 const tone: Record<StatusState, string> = {
   ok: "bg-ok",
   live: "bg-amber",
-  degraded: "bg-err",
+  error: "bg-err",
 };
 
 /**

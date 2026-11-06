@@ -124,7 +124,6 @@ export function CatalogFilters({
               type="button"
               aria-pressed={active}
               disabled={inert}
-              aria-label={`${TASK_LABELS[t]}, ${counts[t]} ${counts[t] === 1 ? "model" : "models"}`}
               onClick={() => onTaskChange?.(t)}
               className={cn(
                 chip,
@@ -133,16 +132,18 @@ export function CatalogFilters({
                   : "border-line text-fg-2 hover:border-line-strong hover:text-fg",
               )}
             >
-              {TASK_LABELS[t]}
+              {/* The name is the visible text plus " models": "Chat 13 models".
+                  An aria-label that rewords it fails label-content-name-mismatch. */}
+              {TASK_LABELS[t]}{" "}
               <span
-                aria-hidden="true"
                 className={cn(
-                  "font-mono text-[0.75rem] tabular-nums",
+                  "font-mono text-caption tabular-nums",
                   active ? "text-fg" : "text-fg-2",
                 )}
               >
                 {counts[t]}
               </span>
+              <span className="sr-only">{counts[t] === 1 ? " model" : " models"}</span>
             </button>
           );
         })}

@@ -71,7 +71,7 @@ export function CatalogPreview() {
                 key={m.slug}
                 className="group relative border-b border-line transition-colors duration-150 hover:bg-surface"
               >
-                <td className="py-4 pr-3 md:py-5">
+                <th scope="row" className="py-4 pr-3 text-left font-normal md:py-5">
                   <Link
                     href={`/models/${m.slug}/`}
                     className="font-medium text-fg outline-offset-4 after:absolute after:inset-0 after:content-['']"
@@ -82,7 +82,7 @@ export function CatalogPreview() {
                     {m.publisher}
                     <span className="md:hidden"> · {m.tasks.join(" · ")}</span>
                   </span>
-                </td>
+                </th>
                 <td className="hidden px-3 font-mono text-small text-fg-2 md:table-cell">
                   {m.tasks.join(" · ")}
                 </td>

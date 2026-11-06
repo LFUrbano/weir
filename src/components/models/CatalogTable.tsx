@@ -1,6 +1,14 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableRowHeader,
+} from "@/components/ui/table";
 import type { Model, Task } from "@/data/models";
 import type { SortKey } from "@/lib/catalog";
 import { formatContext, formatLatency } from "@/lib/format";
@@ -132,7 +140,7 @@ function DesktopTable({ list, task, sort }: { list: Model[]; task: Task | "all";
             data-tasks={m.tasks.join(" ")}
             className="group relative hover:bg-surface"
           >
-            <TableCell className="py-4 pr-3">
+            <TableRowHeader className="py-4 pr-3">
               <Link
                 href={href(m)}
                 className="font-medium text-fg outline-offset-4 after:absolute after:inset-0 after:content-['']"
@@ -141,13 +149,13 @@ function DesktopTable({ list, task, sort }: { list: Model[]; task: Task | "all";
               </Link>
               <span className="mt-1 block text-small text-fg-2">
                 {m.publisher}
-                <span className="font-mono text-[0.8125rem] lg:hidden">
+                <span className="font-mono text-meta lg:hidden">
                   {" · "}
                   <Tasks model={m} active={task} />
                 </span>
               </span>
-            </TableCell>
-            <TableCell className="hidden font-mono text-[0.8125rem] text-fg-2 lg:table-cell">
+            </TableRowHeader>
+            <TableCell className="hidden font-mono text-meta text-fg-2 lg:table-cell">
               <Tasks model={m} active={task} />
             </TableCell>
             <TableCell className={cn(numCell, m.contextK === null && "text-fg-2")}>
@@ -209,7 +217,7 @@ function PhoneCards({ list, task }: { list: Model[]; task: Task | "all" }) {
                 </Link>
                 <p className="mt-1 text-small text-fg-2">
                   {m.publisher}
-                  <span className="font-mono text-[0.8125rem]">
+                  <span className="font-mono text-meta">
                     {" · "}
                     <Tasks model={m} active={task} />
                   </span>
