@@ -34,12 +34,12 @@ export function formatTokens(v: number): string {
   return `${scaled}${SUFFIXES[i].suffix}`;
 }
 
-/** "212 ms" below one second; seconds with up to two decimals from there ("1.34 s"). */
+/** "212 ms" below one second; seconds with one decimal from there ("5.6 s", "2 s"). */
 export function formatLatency(ms: number): string {
   if (!Number.isFinite(ms) || ms <= 0) return "0 ms";
   const rounded = Math.round(ms);
   if (rounded < 1000) return `${rounded} ms`;
-  return `${Number((ms / 1000).toFixed(2))} s`;
+  return `${Number((ms / 1000).toFixed(1))} s`;
 }
 
 /** Price per generated image, up to three decimals with trailing zeros stripped: "$0.025". */

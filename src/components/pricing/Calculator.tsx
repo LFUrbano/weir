@@ -77,7 +77,7 @@ function Volume({
         autoComplete="off"
         spellCheck={false}
         aria-describedby={hintId}
-        className="mt-2.5 h-11 font-mono tabular-nums md:text-[0.9375rem]"
+        className="mt-2.5 h-11 font-mono tabular-nums md:text-ui"
         value={draft ?? formatCount(value)}
         onChange={(e) => {
           setDraft(e.target.value);
@@ -102,13 +102,15 @@ function Volume({
       />
       {/* Ticks sit where those values fall on the log track (the thumb's centre
           travels 8 px in from each end). */}
-      <div aria-hidden="true" className="relative mt-1.5 h-4 font-mono text-[0.75rem] text-fg-2">
+      <div aria-hidden="true" className="relative mt-1.5 h-4 font-mono text-caption text-fg-2">
         {TICKS.map((t, i) => (
           <span
             key={t}
             className={cn(
               "absolute top-0",
               i === 0 ? "left-0" : i === TICKS.length - 1 ? "right-0" : "-translate-x-1/2",
+              // 10B and 100B sit a few pixels apart on phones: keep the end.
+              t === "10B" && "max-sm:hidden",
             )}
             style={
               i === 0 || i === TICKS.length - 1
@@ -150,15 +152,15 @@ function Option({
         className={cn(
           "mt-4 font-mono leading-none whitespace-nowrap tabular-nums",
           muted
-            ? "text-[1.25rem] text-fg-2"
-            : "text-[1.875rem] min-[400px]:text-[2.25rem] lg:text-[2rem] xl:text-[2.25rem] 2xl:text-[2.5rem]",
+            ? "text-figure-xs text-fg-2"
+            : "text-figure-sm min-[400px]:text-figure lg:text-h2-sm xl:text-figure 2xl:text-figure-lg",
           !muted && (cheaper ? "text-amber" : "text-fg"),
         )}
       >
         {value}
       </p>
-      <p className="mt-2 font-mono text-[0.75rem] text-fg-2">{muted ? " " : "per month"}</p>
-      <ul className="mt-5 space-y-1 border-t border-line pt-4 font-mono text-[0.8125rem] text-fg-2">
+      <p className="mt-2 font-mono text-caption text-fg-2">{muted ? " " : "per month"}</p>
+      <ul className="mt-5 space-y-1 border-t border-line pt-4 font-mono text-meta text-fg-2">
         {children}
       </ul>
     </div>
@@ -260,7 +262,7 @@ export function Calculator() {
             Model
           </label>
           <Select value={model.slug} onValueChange={setSlug}>
-            <SelectTrigger id="calc-model" className="mt-2.5 h-11 w-full text-[0.9375rem] data-[size=default]:h-11">
+            <SelectTrigger id="calc-model" className="mt-2.5 h-11 w-full text-ui data-[size=default]:h-11">
               <SelectValue />
             </SelectTrigger>
             <SelectContent position="popper" align="start">
@@ -276,7 +278,7 @@ export function Calculator() {
               ))}
             </SelectContent>
           </Select>
-          <p className="mt-2.5 font-mono text-[0.8125rem] text-fg-2">
+          <p className="mt-2.5 font-mono text-meta text-fg-2">
             {formatUsd(model.pricing.input)} in · {formatUsd(model.pricing.output)} out, per 1M
           </p>
         </div>
@@ -350,14 +352,14 @@ export function Calculator() {
         <p data-testid="calc-announcement" aria-live="polite" aria-atomic="true" className="sr-only">
           {announced}
         </p>
-        <p data-testid="verdict" className="mt-6 text-[1.0625rem] text-fg">
+        <p data-testid="verdict" className="mt-6 text-lede text-fg">
           {verdict(c)}
         </p>
         <p data-testid="break-even" className="mt-2 max-w-[36rem] text-small text-fg-2">
           <BreakEven model={model} c={c} />
         </p>
         <div className="mt-auto pt-6">
-          <p className="border-t border-line pt-4 font-mono text-[0.75rem] text-fg-2">
+          <p className="border-t border-line pt-4 font-mono text-caption text-fg-2">
             {formatTokens(c.totalTokens)} tokens a month. Estimates before taxes and the free credit.
           </p>
         </div>
