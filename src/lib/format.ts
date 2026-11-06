@@ -41,3 +41,16 @@ export function formatLatency(ms: number): string {
   if (rounded < 1000) return `${rounded} ms`;
   return `${Number((ms / 1000).toFixed(2))} s`;
 }
+
+/** Price per generated image, up to three decimals with trailing zeros stripped: "$0.025". */
+export function formatPerImage(v: number): string {
+  if (!Number.isFinite(v) || v <= 0) return "$0";
+  return `$${Number(v.toFixed(3))}`;
+}
+
+/** Context window from thousands of tokens: "128K", "1M", "10M"; "—" when there is none. */
+export function formatContext(k: number | null): string {
+  if (k === null || !Number.isFinite(k) || k <= 0) return "—";
+  if (k >= 1000) return `${Number((k / 1000).toPrecision(3))}M`;
+  return `${Math.round(k)}K`;
+}
