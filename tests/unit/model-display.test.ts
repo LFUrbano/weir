@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getModel, models, type Model } from "@/data/models";
-import { endpointFor, latencyName, modelKind, modelPrice, modelSpeed } from "@/lib/model-display";
+import { endpointFor, latencyName, modelKind, modelPrice, modelSpeed, shortModelName } from "@/lib/model-display";
 
 function model(slug: string): Model {
   const m = getModel(slug);
@@ -56,5 +56,12 @@ describe("modelKind, endpointFor and latencyName", () => {
     expect(modelKind(flux)).toBe("image");
     expect(endpointFor(flux)).toBe("POST /v1/images/generations");
     expect(latencyName(flux)).toBe("Response time");
+  });
+});
+
+describe("shortModelName", () => {
+  it("drops the Instruct suffix for use in a sentence", () => {
+    expect(shortModelName(getModel("llama-3-3-70b") as Model)).toBe("Llama 3.3 70B");
+    expect(shortModelName(getModel("deepseek-r1-0528") as Model)).toBe("DeepSeek R1 0528");
   });
 });

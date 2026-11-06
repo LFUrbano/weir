@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  formatCount,
   formatContext,
   formatLatency,
   formatPerImage,
@@ -87,5 +88,17 @@ describe("formatContext", () => {
     expect(formatContext(null)).toBe("—");
     expect(formatContext(NaN)).toBe("—");
     expect(formatContext(0)).toBe("—");
+  });
+});
+
+describe("formatCount", () => {
+  it("writes whole counts with separators", () => {
+    expect(formatCount(100e6)).toBe("100,000,000");
+    expect(formatCount(100e9)).toBe("100,000,000,000");
+    expect(formatCount(1.6)).toBe("2");
+  });
+
+  it("never prints NaN, Infinity or a negative", () => {
+    for (const v of [NaN, Infinity, -Infinity, -5, 0]) expect(formatCount(v)).toBe("0");
   });
 });

@@ -108,6 +108,8 @@ test.describe("pricing page", () => {
     await page.goto("/pricing/");
     await pickModel(page, "DeepSeek R1 0528");
     await expect(dedicatedCost(page)).toHaveText("Serverless only");
+    // Nothing to compare against, so nothing is marked cheaper.
+    await expect(calculator(page).getByText("Cheaper")).toHaveCount(0);
     await expectSaneResult(page);
   });
 

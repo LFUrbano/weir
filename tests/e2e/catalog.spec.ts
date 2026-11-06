@@ -340,10 +340,11 @@ test.describe("error collector", () => {
     await page.goto("/models/");
     const errors = collectErrors(page);
     // fetch() from the page is how the router prefetches a route path.
-    // When /pricing/ is built (Task 8), swap it for a page still in NOT_YET_BUILT.
+    // When /docs/quickstart/ is built (Task 10), swap it for a page still in NOT_YET_BUILT
+    // (or drop this half of the test once the list is empty).
     const statuses = await page.evaluate(async () =>
       Promise.all(
-        ["/models/typo/", "/pricing/"].map(async (path) => (await fetch(path)).status),
+        ["/models/typo/", "/docs/quickstart/"].map(async (path) => (await fetch(path)).status),
       ),
     );
     expect(statuses).toEqual([404, 404]);

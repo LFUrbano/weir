@@ -57,3 +57,8 @@ export function endpointFor(m: Model): string {
 export function latencyName(m: Model): "Time to first token" | "Response time" {
   return modelKind(m) === "chat" ? "Time to first token" : "Response time";
 }
+
+/** The name as it reads in a sentence: "Llama 3.3 70B Instruct" → "Llama 3.3 70B". */
+export function shortModelName(m: Model): string {
+  return m.name.replace(/ Instruct$/, "");
+}
