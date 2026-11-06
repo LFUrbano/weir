@@ -54,9 +54,15 @@ function replicaMonthlyCost(m: DedicatedModel): number {
  */
 const MAX_MONTHLY_TOTAL = 2 * MAX_MONTHLY_TOKENS;
 
+/** A month's total between 0 and MAX_MONTHLY_TOTAL: NaN and negatives are 0, Infinity is the max. */
+function clampMonthlyTotal(v: number): number {
+  if (Number.isNaN(v) || v <= 0) return 0;
+  return Math.min(v, MAX_MONTHLY_TOTAL);
+}
+
 /** Replicas needed to serve the monthly volume (input plus output) at peak; always at least 1. */
 export function replicasNeeded(m: DedicatedModel, monthlyTokens: number): number {
-  const tokens = Math.min(finiteOrZero(monthlyTokens), MAX_MONTHLY_TOTAL);
+  const tokens = clampMonthlyTotal(monthlyTokens);
   const peakTokensPerSec = (tokens / SECONDS_PER_MONTH) * PEAK_FACTOR;
   // The epsilon keeps an exact multiple (e.g. 2.0000000001) from adding a replica.
   const needed = Math.ceil(peakTokensPerSec / m.dedicated.replicaTokensPerSec - 1e-9);

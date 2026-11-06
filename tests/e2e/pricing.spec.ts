@@ -1,9 +1,10 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { dataRetention } from "../../src/data/company";
 import { gpus } from "../../src/data/gpus";
-import { isDedicatedModel, isTokenModel, models } from "../../src/data/models";
+import { getModel, isDedicatedModel, isTokenModel, models } from "../../src/data/models";
 import { formatPerImage } from "../../src/lib/format";
-import { modelPrice } from "../../src/lib/model-display";
+import { BREAK_EVEN_LABEL, formatBreakEven, modelPrice } from "../../src/lib/model-display";
+import { breakEvenMonthlyTokens } from "../../src/lib/pricing";
 import { collectErrors } from "./errors";
 
 const tokenModels = models.filter(isTokenModel);
@@ -113,6 +114,40 @@ test.describe("pricing page", () => {
     await expectSaneResult(page);
   });
 
+  test("one change makes one announcement, after the result settles", async ({ page }) => {
+    await page.goto("/pricing/");
+    const calc = calculator(page);
+    // The volume readouts are not live regions; only the summary is.
+    await expect(calc.locator("output")).toHaveCount(0);
+    await expect(calc.locator('[aria-live]:not([aria-live="off"]), [role="status"]')).toHaveCount(1);
+    const live = page.getByTestId("calc-announcement");
+    await expect(live).toHaveAttribute("aria-live", "polite");
+
+    await pickModel(page, "Llama 3.3 70B");
+    await type(inputField(page), "100000000");
+    await type(outputField(page), "20000000");
+    // The visible numbers update at once; the announcement waits for the input to settle.
+    await expect(serverlessCost(page)).toHaveText("$68.40");
+    await expect(live).toContainText("Serverless $68.40");
+    await expect(live).toContainText("dedicated $3,635.40");
+    await expect(live).toContainText("Serverless saves $3,567.00 a month");
+
+    // Holding an arrow key down: many steps, then one announcement for the last one.
+    await inputSlider(page).focus();
+    for (let i = 0; i < 5; i++) await page.keyboard.press("ArrowRight");
+    const settled = await serverlessCost(page).textContent();
+    await expect(live).toContainText(`Serverless ${settled}`);
+  });
+
+  test("volume fields offer a text keypad, so K, M and B can be typed", async ({ page }) => {
+    await page.goto("/pricing/");
+    for (const field of [inputField(page), outputField(page)]) {
+      await expect(field).toHaveAttribute("inputmode", "text");
+    }
+    await type(inputField(page), "250M");
+    await expect(inputField(page)).toHaveValue("250,000,000");
+  });
+
   test("Review Focus 1: empty, negative, huge and pasted text never break the result", async ({
     page,
   }) => {
@@ -217,5 +252,28 @@ test.describe("pricing page", () => {
       );
       expect(overflow, `${width}px`).toBeLessThanOrEqual(0);
     }
+  });
+});
+
+test.describe("break-even across pages", () => {
+  test("the model page and the pricing page make the same claim with the same number", async ({
+    page,
+  }) => {
+    const llama = getModel("llama-3-3-70b");
+    if (!llama) throw new Error("llama-3-3-70b must exist");
+    const value = formatBreakEven(breakEvenMonthlyTokens(llama, 0.5) ?? 0);
+    expect(value).toBe("5.77B tok/mo");
+
+    await page.goto(`/models/${llama.slug}/`);
+    const dedicated = page.locator("#dedicated");
+    await expect(dedicated).toContainText(BREAK_EVEN_LABEL);
+    await expect(dedicated).toContainText(value);
+    await expect(dedicated).not.toContainText(/pays off above/i);
+
+    await page.goto("/pricing/");
+    const table = page.getByTestId("replica-table");
+    await expect(table.locator("thead")).toContainText(BREAK_EVEN_LABEL);
+    await expect(table.locator(`tr[data-slug="${llama.slug}"]`)).toContainText(value);
+    await expect(page.getByRole("main")).not.toContainText(/pays off above/i);
   });
 });

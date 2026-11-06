@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -64,14 +64,17 @@ function Volume({
         <label htmlFor={id} className="label-mono text-fg-2">
           {label}
         </label>
-        <output htmlFor={id} data-testid={testId} className="font-mono text-small text-fg">
+        {/* A plain span, not <output>: that element is a live region, and the summary
+            below already announces each settled result once. */}
+        <span data-testid={testId} className="font-mono text-small text-fg">
           {formatTokens(value)}
-        </output>
+        </span>
       </div>
       <Input
         id={id}
         type="text"
-        inputMode="numeric"
+        // A text keypad on phones: the hint invites K, M and B suffixes.
+        inputMode="text"
         autoComplete="off"
         spellCheck={false}
         aria-describedby={hintId}
@@ -202,6 +205,28 @@ function BreakEven({ model, c }: { model: TokenModel; c: MonthlyComparison }) {
   );
 }
 
+/** How long the result must hold still before it is announced. */
+const ANNOUNCE_DELAY_MS = 500;
+
+/**
+ * The value, once it has stopped changing for `delay` ms. Dragging the slider
+ * or typing a number changes the result many times; a screen reader should
+ * hear only where it lands.
+ */
+function useSettled<T>(value: T, delay: number): T {
+  const [settled, setSettled] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setSettled(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return settled;
+}
+
+function announcement(c: MonthlyComparison): string {
+  const dedicated = c.dedicated ? `dedicated ${formatUsd(c.dedicated.cost)}` : "no dedicated replica";
+  return `Serverless ${formatUsd(c.serverless)}, ${dedicated} a month. ${verdict(c)}`;
+}
+
 function verdict(c: MonthlyComparison): string {
   if (!c.dedicated) return "Serverless only: billed per token on shared GPUs.";
   if (c.savings === 0) return "Both cost the same at this volume.";
@@ -220,6 +245,7 @@ export function Calculator() {
   const [output, setOutput] = useState(DEFAULT_OUTPUT);
   const model = CALC_MODELS.find((m) => m.slug === slug) ?? CALC_MODELS[0];
   const c = compareMonthly(model, input, output);
+  const announced = useSettled(announcement(c), ANNOUNCE_DELAY_MS);
   const spec = model.dedicated;
   const gpu = spec ? getGpu(spec.gpu) : null;
 
@@ -321,7 +347,11 @@ export function Calculator() {
           )}
         </div>
 
-        <p data-testid="verdict" aria-live="polite" className="mt-6 text-[1.0625rem] text-fg">
+        {/* The only live region in the calculator: one announcement per settled change. */}
+        <p data-testid="calc-announcement" aria-live="polite" aria-atomic="true" className="sr-only">
+          {announced}
+        </p>
+        <p data-testid="verdict" className="mt-6 text-[1.0625rem] text-fg">
           {verdict(c)}
         </p>
         <p data-testid="break-even" className="mt-2 max-w-[36rem] text-small text-fg-2">

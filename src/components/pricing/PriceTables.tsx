@@ -3,8 +3,8 @@ import { numCell } from "@/components/models/table-styles";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getGpu, gpus, type Gpu } from "@/data/gpus";
 import { isDedicatedModel, isTokenModel, models, type Model } from "@/data/models";
-import { formatCount, formatPerImage, formatTokens, formatUsd } from "@/lib/format";
-import { modelPrice } from "@/lib/model-display";
+import { formatCount, formatPerImage, formatUsd } from "@/lib/format";
+import { BREAK_EVEN_LABEL, formatBreakEven, modelPrice } from "@/lib/model-display";
 import { HOURS_PER_MONTH, breakEvenMonthlyTokens, dedicatedMonthlyCost } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
@@ -226,7 +226,7 @@ export function ReplicaTable() {
             Peak
           </TableHead>
           <TableHead scope="col" className="text-right">
-            Break-even
+            <Short phone="Break-even" full={BREAK_EVEN_LABEL} />
           </TableHead>
         </TableRow>
       </TableHeader>
@@ -248,7 +248,7 @@ export function ReplicaTable() {
                 {formatCount(m.dedicated.replicaTokensPerSec)} tok/s
               </TableCell>
               <TableCell className={cn(num, breakEven === null && quiet)}>
-                {breakEven === null ? "—" : `${formatTokens(breakEven)}/mo`}
+                {breakEven === null ? "—" : formatBreakEven(breakEven)}
               </TableCell>
             </TableRow>
           );

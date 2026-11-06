@@ -50,3 +50,25 @@ export function listAnd(items: readonly string[]): string {
   if (items.length <= 1) return items.join("");
   return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
 }
+
+/** "SOC 2 Type II, ISO 27001 and GDPR, with a DPA". */
+export const complianceLine = `${listAnd(company.certifications)}, with a DPA`;
+
+/**
+ * Billing and contract terms that Pricing and Enterprise both state, kept here
+ * so the two pages use the same words.
+ */
+export const billingTerms = {
+  /** How serverless usage turns into a bill. */
+  serverlessBilling:
+    "Usage is added up across your keys and charged monthly, with no minimums and no seat fees.",
+  /** What a contract changes about price. */
+  contractPricing: "Committed-volume rates on serverless and dedicated",
+  /** How a contract is billed. */
+  contractBilling: "Invoiced monthly in USD",
+  /** The data processing agreement. */
+  dpa: "A DPA with standard contractual clauses is available on every plan.",
+  /** Why dedicated has no request-rate cap. */
+  dedicatedLimits:
+    "Dedicated endpoints have no per-key request limit: throughput is set by the replicas you reserve.",
+} as const;

@@ -87,6 +87,13 @@ describe("pricing", () => {
     // 200B tokens a month at twice the average rate needs 26 replicas of 6,000 tok/s.
     expect(replicasNeeded(llama, 200e9)).toBe(26);
     expect(replicasNeeded(llama, 1e30)).toBe(26);
+    // Infinity is "as much as possible", not "nothing".
+    expect(replicasNeeded(llama, Infinity)).toBe(26);
+    expect(dedicatedMonthlyCost(llama, Infinity)).toBeCloseTo(26 * 3635.4, 6);
+    // NaN and negatives are no traffic: the one-replica minimum.
+    expect(replicasNeeded(llama, NaN)).toBe(1);
+    expect(replicasNeeded(llama, -1)).toBe(1);
+    expect(replicasNeeded(llama, -Infinity)).toBe(1);
   });
 });
 

@@ -13,9 +13,9 @@ import { buttonVariants } from "@/components/ui/button";
 import { company, pct } from "@/data/company";
 import { getGpu } from "@/data/gpus";
 import { getModel, isDedicatedModel, models, type Model } from "@/data/models";
-import { formatLatency, formatTokens, formatUsd } from "@/lib/format";
+import { formatLatency, formatUsd } from "@/lib/format";
 import { metricsSeries, percentile } from "@/lib/metrics";
-import { endpointFor, latencyName, modelPrice } from "@/lib/model-display";
+import { BREAK_EVEN_LABEL, endpointFor, formatBreakEven, latencyName, modelPrice } from "@/lib/model-display";
 import { breakEvenMonthlyTokens } from "@/lib/pricing";
 import { similarModels } from "@/lib/similar";
 import { cn } from "@/lib/utils";
@@ -185,7 +185,7 @@ function Dedicated({ model }: { model: Model }) {
     { label: "Replica", value: `${gpusPerReplica}× ${g.name.replace(/^NVIDIA /, "")}` },
     { label: "Replica rate", value: `${formatUsd(gpusPerReplica * g.hourly)} / hour` },
     { label: "Peak throughput", value: `${replicaTokensPerSec.toLocaleString("en-US")} tok/s` },
-    ...(breakEven !== null ? [{ label: "Pays off above", value: `${formatTokens(breakEven)} tok/mo` }] : []),
+    ...(breakEven !== null ? [{ label: BREAK_EVEN_LABEL, value: formatBreakEven(breakEven) }] : []),
   ];
   return (
     <div className="overflow-hidden rounded-panel border border-line bg-surface">
@@ -202,7 +202,7 @@ function Dedicated({ model }: { model: Model }) {
           Replicas reserved for you, billed {company.dedicatedBilling}, with a{" "}
           {pct(company.slaDedicatedPct)} monthly uptime SLA.
           {breakEven !== null &&
-            " The break-even point assumes half input and half output tokens."}
+            " Break-even is where one replica costs the same as serverless, at half input and half output tokens."}
         </p>
         <div className="flex shrink-0 flex-wrap gap-3">
           <Link href="/enterprise/" className={buttonVariants({ variant: "default", size: "lg" })}>

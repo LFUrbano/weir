@@ -1,7 +1,18 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { company, dataRetention, freeCreditLabel, listAnd, pct } from "@/data/company";
+import {
+  billingTerms,
+  company,
+  complianceLine,
+  dataRetention,
+  freeCreditLabel,
+  listAnd,
+  pct,
+} from "@/data/company";
+
+/** "Invoiced monthly in USD" → "invoiced monthly in USD", for use mid-sentence. */
+const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
 const link =
   "text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:decoration-fg";
@@ -21,9 +32,8 @@ const questions: Question[] = [
       <>
         <p>
           Serverless is billed per token. Input and output are priced separately per 1M tokens, and
-          image models per image. Usage is added up across your keys and charged monthly, with no
-          minimums and no seat fees. New accounts start with {freeCreditLabel} of credit, no card
-          required.
+          image models per image. {billingTerms.serverlessBilling} New accounts start with{" "}
+          {freeCreditLabel} of credit, no card required.
         </p>
         <p>
           Dedicated replicas are billed {company.dedicatedBilling} at the hourly rates above, from
@@ -38,9 +48,8 @@ const questions: Question[] = [
     a: (
       <p>
         A new key starts at {company.rateLimitRpm} requests a minute on serverless, and the limit
-        rises as your account spends. Dedicated endpoints have no per-key request limit: throughput
-        is set by the replicas you reserve, and each replica&rsquo;s peak is listed in the table
-        above.
+        rises as your account spends. {billingTerms.dedicatedLimits} Each replica&rsquo;s peak is
+        listed in the table above.
       </p>
     ),
   },
@@ -70,8 +79,7 @@ const questions: Question[] = [
           <span className="text-fg">{dataRetention.headline}.</span> <span>{dataRetention.detail}</span>
         </p>
         <p>
-          Weir is {listAnd(company.certifications)} compliant, and a DPA with standard contractual
-          clauses is available on every plan.
+          Compliance: {complianceLine}. {billingTerms.dpa}
         </p>
       </>
     ),
@@ -82,8 +90,9 @@ const questions: Question[] = [
     a: (
       <p>
         No. Serverless and dedicated are self-serve, with no minimum term: release a replica and its
-        billing stops. A contract is for teams that want committed-volume pricing, invoiced billing,
-        SSO with {listAnd(company.sso.protocols)}, and a security review with our reports under NDA.{" "}
+        billing stops. A contract adds {lowerFirst(billingTerms.contractPricing)}, billing{" "}
+        {lowerFirst(billingTerms.contractBilling)}, SSO with {listAnd(company.sso.protocols)}, and a
+        security review with our reports under NDA.{" "}
         <Link href="/enterprise/" className={link}>
           Talk to an engineer
         </Link>{" "}

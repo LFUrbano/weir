@@ -5,7 +5,7 @@ import { Faq } from "@/components/pricing/Faq";
 import { GpuTable, ImageTable, ReplicaTable, ServerlessTable } from "@/components/pricing/PriceTables";
 import { Section } from "@/components/site/Section";
 import { buttonVariants } from "@/components/ui/button";
-import { company, freeCreditLabel, listAnd, pct } from "@/data/company";
+import { billingTerms, company, complianceLine, freeCreditLabel, listAnd, pct } from "@/data/company";
 import { gpus } from "@/data/gpus";
 import { isTokenModel, models } from "@/data/models";
 import { formatUsd } from "@/lib/format";
@@ -60,11 +60,11 @@ function Arrow() {
 }
 
 const enterpriseTerms = [
-  { label: "Pricing", value: "Committed-volume rates on serverless and dedicated" },
-  { label: "Billing", value: "Invoiced monthly in USD" },
+  { label: "Pricing", value: billingTerms.contractPricing },
+  { label: "Billing", value: billingTerms.contractBilling },
   { label: "SLA", value: `${pct(company.slaDedicatedPct)} monthly uptime, with service credits` },
   { label: "Identity", value: `SSO with ${listAnd(company.sso.protocols)}, with audit logs` },
-  { label: "Compliance", value: `${company.certifications.join(", ")} DPA` },
+  { label: "Compliance", value: complianceLine },
   { label: "Support", value: "A named engineer and a shared Slack channel" },
 ];
 
