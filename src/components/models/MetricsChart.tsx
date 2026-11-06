@@ -103,8 +103,8 @@ function Panel({
         <p className="font-mono text-small text-fg-2 lg:mt-3">{panel.tailLabel} {panel.format(panel.tail)}</p>
       </div>
 
-      <div className="grid grid-cols-[2.75rem_minmax(0,1fr)]">
-        {/* Y axis: ticks from zero, the unit on the top one. */}
+      {/* Y axis, plot, and a right gutter for the median label so it never covers data. */}
+      <div className="grid grid-cols-[2.75rem_minmax(0,1fr)_2.25rem]">
         <div aria-hidden="true" className="relative">
           {ticks.map((v) => (
             <span
@@ -157,15 +157,6 @@ function Panel({
             />
           </svg>
 
-          {/* Median, labeled where its line meets the right edge. */}
-          <span
-            aria-hidden="true"
-            className="absolute right-0 -translate-y-[calc(100%+3px)] bg-canvas pl-1.5 font-mono text-[0.6875rem] leading-none text-fg-2"
-            style={{ top: `${yPct(panel.median)}%` }}
-          >
-            p50
-          </span>
-
           {point && (
             <>
               <span
@@ -181,6 +172,14 @@ function Panel({
             </>
           )}
           {tooltip}
+        </div>
+        <div aria-hidden="true" className="relative">
+          <span
+            className="absolute left-2 -translate-y-1/2 font-mono text-[0.6875rem] leading-none text-fg-2"
+            style={{ top: `${yPct(panel.median)}%` }}
+          >
+            p50
+          </span>
         </div>
       </div>
     </div>
@@ -198,6 +197,8 @@ export function MetricsChart({ times, panels: plain }: MetricsChartProps) {
   const panels: MetricPanel[] = plain.map((p) => ({ ...p, format: FORMAT[p.key], unit: UNIT[p.key], tick: TICK[p.key] }));
   const [active, setActive] = useState<number | null>(null);
   const [spoken, setSpoken] = useState("");
+  // Plot width when the readout opened; a narrow plot pins the tooltip to an edge.
+  const [plotWidth, setPlotWidth] = useState(0);
   const focused = useRef(false);
   const plotRef = useRef<HTMLDivElement>(null);
   const last = times.length - 1;
@@ -208,6 +209,7 @@ export function MetricsChart({ times, panels: plain }: MetricsChartProps) {
   function indexAt(clientX: number): number | null {
     const box = plotRef.current?.getBoundingClientRect();
     if (!box || box.width === 0) return null;
+    setPlotWidth(box.width);
     const share = (clientX - box.left) / box.width;
     if (share < -0.02 || share > 1.02) return null;
     const t = Math.min(1, Math.max(0, share)) * WINDOW;
@@ -229,6 +231,7 @@ export function MetricsChart({ times, panels: plain }: MetricsChartProps) {
 
   function step(to: number) {
     const i = Math.min(last, Math.max(0, to));
+    setPlotWidth(plotRef.current?.getBoundingClientRect().width ?? 0);
     setActive(i);
     setSpoken(readout(i));
   }
@@ -249,20 +252,30 @@ export function MetricsChart({ times, panels: plain }: MetricsChartProps) {
   }
 
   const tip = active === null ? null : xAt(times[active]) * 100;
+  // Wide plots: beside the crosshair, flipped to its left past the middle.
+  // Narrow plots (phones): pinned to the plot edge away from the crosshair,
+  // so the readout never runs past the plot and the page never scrolls sideways.
+  const tipStyle =
+    tip === null
+      ? undefined
+      : plotWidth > 0 && plotWidth < 480
+        ? tip > 50
+          ? { left: 0 }
+          : { right: 0 }
+        : { left: `${tip}%`, transform: tip > 55 ? "translateX(calc(-100% - 12px))" : "translateX(12px)" };
   const tooltip =
     active !== null && tip !== null ? (
       <div
         data-testid="metrics-tooltip"
         aria-hidden="true"
-        className="pointer-events-none absolute top-0 z-10 grid min-w-44 gap-1.5 rounded-md border border-line-strong bg-surface-2 px-3 py-2.5 font-mono text-[0.75rem]"
-        // Beside the crosshair, flipped to its left past the middle.
-        style={{ left: `${tip}%`, transform: tip > 55 ? "translateX(calc(-100% - 12px))" : "translateX(12px)" }}
+        className="pointer-events-none absolute top-0 z-10 grid min-w-40 gap-1.5 rounded-md whitespace-nowrap border border-line-strong bg-surface-2 px-3 py-2.5 font-mono text-[0.75rem]"
+        style={tipStyle}
       >
         <span className="text-fg-2">{minutesAgo(times[active])}</span>
         {panels.map((p) => (
           <span key={p.key} className="flex items-baseline justify-between gap-4">
             <span className="text-fg">{p.format(p.values[active])}</span>
-            <span className="text-fg-2">{p.key === "speed" ? "decode" : p.name.toLowerCase()}</span>
+            <span className="text-fg-2">{p.key === "speed" ? "decode" : p.name === "Time to first token" ? "first token" : "response"}</span>
           </span>
         ))}
       </div>
@@ -302,7 +315,7 @@ export function MetricsChart({ times, panels: plain }: MetricsChartProps) {
       {/* Shared time axis, under the last plot. */}
       <div aria-hidden="true" className="grid grid-cols-1 lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-x-8">
         <div className="hidden lg:block" />
-        <div className="grid grid-cols-[2.75rem_minmax(0,1fr)]">
+        <div className="grid grid-cols-[2.75rem_minmax(0,1fr)_2.25rem]">
           <div />
           <div className="relative mt-2.5 h-4 font-mono text-[0.6875rem] text-fg-2">
             {[0, 6, 12, 18, 24].map((h) => (

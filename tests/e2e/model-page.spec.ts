@@ -213,6 +213,24 @@ test.describe("model page", () => {
           () => document.documentElement.scrollWidth - window.innerWidth,
         );
         expect(overflow, `${slug} at ${width}`).toBeLessThanOrEqual(0);
+
+        // The chart readout stays inside the plot wherever it opens.
+        const plot = page.getByTestId("metrics-plot").first();
+        await plot.scrollIntoViewIfNeeded();
+        const box = await plot.boundingBox();
+        if (!box) throw new Error("plot has no box");
+        const tooltip = page.getByTestId("metrics-tooltip");
+        for (const share of [0.02, 0.3, 0.5, 0.7, 0.98]) {
+          await expect(async () => {
+            await page.mouse.move(box.x + box.width * share, box.y + box.height / 2);
+            await expect(tooltip).toBeVisible({ timeout: 500 });
+          }).toPass();
+          const tip = await tooltip.boundingBox();
+          expect(tip!.x, `${slug} at ${width}, ${share}`).toBeGreaterThanOrEqual(0);
+          expect(tip!.x + tip!.width, `${slug} at ${width}, ${share}`).toBeLessThanOrEqual(width);
+          const wide = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+          expect(wide, `${slug} at ${width}, readout at ${share}`).toBeLessThanOrEqual(0);
+        }
       }
     }
   });
