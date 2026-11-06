@@ -1,4 +1,15 @@
-export type SiteRoute = "/models/" | "/pricing/" | "/enterprise/" | "/docs/quickstart/";
+export type SiteRoute =
+  | "/models/"
+  | "/pricing/"
+  | "/enterprise/"
+  | "/enterprise/#contact"
+  | "/docs/quickstart/";
+
+/**
+ * Where every "Talk to an engineer" link goes: straight to the form on the
+ * Enterprise page. Links named "Enterprise" go to the top of the page.
+ */
+export const contactHref = "/enterprise/#contact" as const;
 
 export type NavItem = { label: string; href: SiteRoute };
 
@@ -34,7 +45,7 @@ export const footerColumns: FooterColumn[] = [
     title: "Company",
     links: [
       { label: "Enterprise", href: "/enterprise/" },
-      { label: "Talk to an engineer", href: "/enterprise/" },
+      { label: "Talk to an engineer", href: contactHref },
     ],
   },
 ];

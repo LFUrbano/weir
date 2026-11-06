@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { numCell } from "@/components/models/table-styles";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getGpu, gpus, type Gpu } from "@/data/gpus";
+import { getGpu, gpuShortName, gpus, type Gpu } from "@/data/gpus";
 import { isDedicatedModel, isTokenModel, models, type Model } from "@/data/models";
 import { formatCount, formatPerImage, formatUsd } from "@/lib/format";
 import { BREAK_EVEN_LABEL, formatBreakEven, modelPrice } from "@/lib/model-display";
@@ -14,13 +14,12 @@ import { cn } from "@/lib/utils";
  * pages, so the numbers cannot drift apart.
  */
 
-const gpuShort = (g: Gpu) => g.name.replace(/^NVIDIA /, "");
 const perHour = (v: number) => `${formatUsd(v)}/hr`;
 
 /** "2× H100", or "Serverless only" for models without a ready replica. */
 function replicaLabel(m: Model): string {
   if (!isDedicatedModel(m)) return "Serverless only";
-  return `${m.dedicated.gpusPerReplica}× ${gpuShort(getGpu(m.dedicated.gpu))}`;
+  return `${m.dedicated.gpusPerReplica}× ${gpuShortName(getGpu(m.dedicated.gpu))}`;
 }
 
 function ModelName({ model, sub }: { model: Model; sub?: string }) {
@@ -153,7 +152,8 @@ export function ImageTable() {
   );
 }
 
-function readyCount(g: Gpu): string {
+/** "3 models" with a ready replica on this GPU, or "On request". */
+export function readyCount(g: Gpu): string {
   const n = dedicatedModels.filter((m) => m.dedicated.gpu === g.id).length;
   if (n === 0) return "On request";
   return `${n} ${n === 1 ? "model" : "models"}`;

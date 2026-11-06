@@ -1,7 +1,16 @@
 import type { ReactNode } from "react";
 import { Section } from "@/components/site/Section";
 import { StatusDot } from "@/components/site/StatusDot";
-import { company, dataRetention, listAnd, pct } from "@/data/company";
+import {
+  billingTerms,
+  company,
+  dataRetention,
+  identityLine,
+  listAnd,
+  measuredUptimeLine,
+  pct,
+  trustNotes,
+} from "@/data/company";
 
 interface Row {
   label: string;
@@ -13,17 +22,17 @@ const rows: Row[] = [
   {
     label: "Compliance",
     value: company.certifications.join(" · "),
-    note: "Reports shared under NDA. DPA with standard contractual clauses.",
+    note: `${trustNotes.reports} ${billingTerms.dpa}`,
   },
   {
     label: "Identity",
-    value: `SSO with ${company.sso.protocols.join(" · ")}`,
-    note: `${listAnd(company.sso.idps)}. Audit logs for every key.`,
+    value: identityLine,
+    note: `Works with ${listAnd(company.sso.idps)}.`,
   },
   {
     label: "Uptime",
     value: `${pct(company.slaDedicatedPct)} SLA on dedicated endpoints`,
-    note: "Measured monthly, with service credits when we miss it.",
+    note: trustNotes.slaCredits,
   },
   {
     label: "Regions",
@@ -50,7 +59,7 @@ const rows: Row[] = [
         All systems normal
       </span>
     ),
-    note: `${pct(company.uptime90dPct)} API uptime over the last 90 days.`,
+    note: `${measuredUptimeLine}.`,
   },
 ];
 

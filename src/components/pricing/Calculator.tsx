@@ -13,7 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { getGpu } from "@/data/gpus";
+import { getGpu, gpuShortName } from "@/data/gpus";
+import { contactHref } from "@/data/site";
 import { isDedicatedModel, isTokenModel, models, type TokenModel } from "@/data/models";
 import { formatCount, formatTokens, formatUsd } from "@/lib/format";
 import { shortModelName } from "@/lib/model-display";
@@ -37,8 +38,6 @@ const DEFAULT_INPUT = 2e9;
 const DEFAULT_OUTPUT = 500e6;
 
 const TICKS = ["1M", "100M", "10B", "100B"];
-
-const gpuShort = (name: string) => name.replace(/^NVIDIA /, "");
 
 function Volume({
   id,
@@ -178,7 +177,7 @@ function BreakEven({ model, c }: { model: TokenModel; c: MonthlyComparison }) {
         There is no ready dedicated replica for {shortModelName(model)}. One can be set up on
         request:{" "}
         <Link
-          href="/enterprise/"
+          href={contactHref}
           className="text-fg underline decoration-line-strong underline-offset-4 hover:decoration-fg"
         >
           talk to an engineer
@@ -332,7 +331,7 @@ export function Calculator() {
             >
               <li>
                 {c.dedicated.replicas} {c.dedicated.replicas === 1 ? "replica" : "replicas"} ×{" "}
-                {spec.gpusPerReplica}× {gpuShort(gpu.name)}
+                {spec.gpusPerReplica}× {gpuShortName(gpu)}
               </li>
               <li>
                 {formatUsd(spec.gpusPerReplica * gpu.hourly)}/hr × {HOURS_PER_MONTH} h

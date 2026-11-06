@@ -8,11 +8,11 @@ import {
   dataRetention,
   freeCreditLabel,
   listAnd,
+  lowerFirst,
   pct,
+  slaCoverage,
 } from "@/data/company";
-
-/** "Invoiced monthly in USD" → "invoiced monthly in USD", for use mid-sentence. */
-const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
+import { contactHref } from "@/data/site";
 
 const link =
   "text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:decoration-fg";
@@ -90,10 +90,11 @@ const questions: Question[] = [
     a: (
       <p>
         No. Serverless and dedicated are self-serve, with no minimum term: release a replica and its
-        billing stops. A contract adds {lowerFirst(billingTerms.contractPricing)}, billing{" "}
+        billing stops. The {pct(company.slaDedicatedPct)} SLA comes with dedicated either way:{" "}
+        {lowerFirst(slaCoverage)} A contract adds {lowerFirst(billingTerms.contractPricing)}, billing{" "}
         {lowerFirst(billingTerms.contractBilling)}, SSO with {listAnd(company.sso.protocols)}, and a
         security review with our reports under NDA.{" "}
-        <Link href="/enterprise/" className={link}>
+        <Link href={contactHref} className={link}>
           Talk to an engineer
         </Link>{" "}
         to start one.

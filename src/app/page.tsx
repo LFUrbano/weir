@@ -31,7 +31,7 @@ function requestSteps(m: TokenModel): RequestStep[] {
       name: "Edge",
       stamp: "t+14 ms",
       sentence: `The closest of ${company.regions.length} regions ends TLS, checks the key and the rate limit, and turns bad requests away before they reach a GPU.`,
-      detail: ["TLS 1.3", "API key", "rate limit"],
+      detail: [company.tls, "API key", "rate limit"],
     },
     {
       name: "Router",

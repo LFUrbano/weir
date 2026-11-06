@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { freeCreditLabel } from "@/data/company";
-import { primaryCta } from "@/data/site";
+import { contactHref, primaryCta } from "@/data/site";
 import { cn } from "@/lib/utils";
 
 /**
@@ -21,7 +21,7 @@ export function DualCta({ className }: { className?: string }) {
         </p>
       </div>
       <div>
-        <Link href="/enterprise/" className={buttonVariants({ variant: "outline", size: "lg" })}>
+        <Link href={contactHref} className={buttonVariants({ variant: "outline", size: "lg" })}>
           Talk to an engineer
         </Link>
         <p className="mt-3 text-small text-fg-2">

@@ -11,8 +11,9 @@ import { StatusDot } from "@/components/site/StatusDot";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { company, pct } from "@/data/company";
-import { getGpu } from "@/data/gpus";
+import { getGpu, gpuShortName } from "@/data/gpus";
 import { getModel, isDedicatedModel, models, type Model } from "@/data/models";
+import { contactHref } from "@/data/site";
 import { formatLatency, formatUsd } from "@/lib/format";
 import { metricsSeries, percentile } from "@/lib/metrics";
 import { BREAK_EVEN_LABEL, endpointFor, formatBreakEven, latencyName, modelPrice } from "@/lib/model-display";
@@ -170,7 +171,7 @@ function Dedicated({ model }: { model: Model }) {
           request, with the same API and the same model ID.
         </p>
         <Link
-          href="/enterprise/"
+          href={contactHref}
           className={cn(buttonVariants({ variant: "outline", size: "lg" }), "self-start md:self-auto")}
         >
           Talk to an engineer
@@ -182,7 +183,7 @@ function Dedicated({ model }: { model: Model }) {
   const g = getGpu(gpu);
   const breakEven = breakEvenMonthlyTokens(model, 0.5);
   const facts = [
-    { label: "Replica", value: `${gpusPerReplica}× ${g.name.replace(/^NVIDIA /, "")}` },
+    { label: "Replica", value: `${gpusPerReplica}× ${gpuShortName(g)}` },
     { label: "Replica rate", value: `${formatUsd(gpusPerReplica * g.hourly)} / hour` },
     { label: "Peak throughput", value: `${replicaTokensPerSec.toLocaleString("en-US")} tok/s` },
     ...(breakEven !== null ? [{ label: BREAK_EVEN_LABEL, value: formatBreakEven(breakEven) }] : []),
@@ -205,7 +206,7 @@ function Dedicated({ model }: { model: Model }) {
             " Break-even is where one replica costs the same as serverless, at half input and half output tokens."}
         </p>
         <div className="flex shrink-0 flex-wrap gap-3">
-          <Link href="/enterprise/" className={buttonVariants({ variant: "default", size: "lg" })}>
+          <Link href="/enterprise/#capacity" className={buttonVariants({ variant: "default", size: "lg" })}>
             Run on dedicated GPUs
           </Link>
           <Link href="/pricing/" className={buttonVariants({ variant: "outline", size: "lg" })}>
