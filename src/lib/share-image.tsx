@@ -56,7 +56,21 @@ function Mark() {
   );
 }
 
-function Frame({ tag, children }: { tag: string; children: ReactNode }) {
+/**
+ * Status dot in the site's StatusDot colors: amber for "live" (a model being
+ * served), green for "ok" (all systems normal).
+ */
+const DOT = { live: C.amber, ok: C.ok } as const;
+
+function Frame({
+  tag,
+  state,
+  children,
+}: {
+  tag: string;
+  state: keyof typeof DOT;
+  children: ReactNode;
+}) {
   return (
     <div
       style={{
@@ -76,7 +90,7 @@ function Frame({ tag, children }: { tag: string; children: ReactNode }) {
           <span style={{ fontFamily: "Funnel Display", fontSize: 40, letterSpacing: "-0.035em" }}>weir</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12, ...label }}>
-          <div style={{ width: 12, height: 12, borderRadius: 6, background: C.ok }} />
+          <div style={{ width: 12, height: 12, borderRadius: 6, background: DOT[state] }} />
           {tag}
         </div>
       </div>
@@ -136,7 +150,7 @@ export async function modelShareImage(m: ModelShare): Promise<ImageResponse> {
   const long = m.name.length > 24;
   return new ImageResponse(
     (
-      <Frame tag="Live · serverless">
+      <Frame tag="Live · serverless" state="live">
         <div style={{ display: "flex", flexDirection: "column", marginTop: "auto" }}>
           <span style={label}>
             {m.publisher} · {m.tasks.join(" · ")}
@@ -185,7 +199,7 @@ export async function siteShareImage({
 }): Promise<ImageResponse> {
   return new ImageResponse(
     (
-      <Frame tag="All systems normal">
+      <Frame tag="All systems normal" state="ok">
         <div style={{ display: "flex", flexDirection: "column", marginTop: "auto" }}>
           <span style={{ fontFamily: "Funnel Display", fontSize: 80, lineHeight: 1.04, letterSpacing: "-0.03em" }}>
             {headline}
