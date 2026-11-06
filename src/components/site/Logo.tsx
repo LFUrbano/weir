@@ -20,11 +20,18 @@ export function LogoMark({ className }: { className?: string }) {
   );
 }
 
-export function Logo({ className }: { className?: string }) {
+export function Logo({
+  className,
+  onClick,
+}: {
+  className?: string;
+  onClick?: () => void;
+}) {
   return (
     <Link
       href="/"
       aria-label="Weir home"
+      onClick={onClick}
       className={cn(
         "group inline-flex items-center gap-2 rounded-sm text-fg outline-offset-4",
         className,
