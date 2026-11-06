@@ -175,6 +175,7 @@
   letter-spacing: var(--text-label--letter-spacing);
   text-transform: uppercase;
   font-weight: 450;
+  font-variant-ligatures: none;
 }
 
 @layer base {
@@ -207,6 +208,8 @@
   pre,
   samp {
     font-variant-numeric: tabular-nums;
+    /* Azeret Mono joins "fi" into one glyph that reads as "f1" in code. */
+    font-variant-ligatures: none;
   }
   :focus-visible {
     outline: 2px solid var(--color-amber);

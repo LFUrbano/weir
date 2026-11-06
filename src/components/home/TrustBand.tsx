@@ -5,7 +5,7 @@ import { StatusDot } from "@/components/site/StatusDot";
 interface Row {
   label: string;
   value: ReactNode;
-  note: string;
+  note: ReactNode;
 }
 
 const rows: Row[] = [
@@ -32,7 +32,12 @@ const rows: Row[] = [
         eu-west
       </span>
     ),
-    note: "Pin traffic to a region. EU requests can stay in eu-west.",
+    note: (
+      <>
+        Pin traffic to a region. EU requests can stay in{" "}
+        <span className="whitespace-nowrap">eu-west</span>.
+      </>
+    ),
   },
   {
     label: "Data",

@@ -88,11 +88,12 @@ test.describe("home", () => {
     await page.goto("/");
     const strip = page.getByTestId("logo-strip");
     for (const c of customers) {
-      await expect(strip.getByRole("img", { name: c.name, exact: true })).toHaveAttribute(
-        "src",
-        c.logo,
-      );
+      // Phones show six marks in two columns; the seventh joins from the sm breakpoint.
+      await expect(
+        strip.getByRole("img", { name: c.name, exact: true, includeHidden: true }),
+      ).toHaveAttribute("src", c.logo);
     }
+    expect(await strip.getByRole("img").count()).toBeGreaterThanOrEqual(6);
   });
 
   test("catalog preview: six token models, each linking to its page", async ({ page }) => {

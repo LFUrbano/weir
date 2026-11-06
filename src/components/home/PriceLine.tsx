@@ -6,7 +6,8 @@ import { blendedPrice } from "@/lib/pricing";
 
 /** Short display name: "Llama 3.3 70B Instruct" reads as "Llama 3.3 70B" in a sentence. */
 function shortName(m: TokenModel) {
-  return m.name.replace(/ Instruct$/, "");
+  // Non-breaking spaces keep the model name on one line when the heading wraps.
+  return m.name.replace(/ Instruct$/, "").replaceAll(" ", String.fromCharCode(0xa0));
 }
 
 /**
