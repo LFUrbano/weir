@@ -128,11 +128,11 @@ test.describe("model page", () => {
 
   test("title, description and share image", async ({ page, request }) => {
     await page.goto(`/models/${llama.slug}/`);
-    await expect(page).toHaveTitle(`${llama.name} — Weir`);
+    await expect(page).toHaveTitle(`${llama.name} · Weir`);
     await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", llama.summary);
     await expect(page.locator('meta[property="og:title"]')).toHaveAttribute(
       "content",
-      `${llama.name} — Weir`,
+      `${llama.name} · Weir`,
     );
     const og = page.locator('meta[property="og:image"]');
     await expect(og).toHaveCount(1);

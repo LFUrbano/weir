@@ -1,0 +1,2 @@
+# Netlify redirects. The docs have one page for now.
+/docs/ /docs/quickstart/ 301

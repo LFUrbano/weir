@@ -5,6 +5,7 @@ import { CommandMenuProvider } from "@/components/site/CommandMenu";
 import { Header } from "@/components/site/Header";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { siteUrl } from "@/data/site";
+import { SITE_NAME, pageTitle, siteDescription, siteShareImage } from "@/lib/metadata";
 import "./globals.css";
 
 const funnelDisplay = Funnel_Display({
@@ -25,20 +26,23 @@ const azeretMono = Azeret_Mono({
   display: "swap",
 });
 
+/**
+ * Defaults for pages without their own metadata (the 404). Every routed page
+ * sets its full set with pageMetadata(), canonical URL included.
+ */
 export const metadata: Metadata = {
   title: {
-    default: "Weir — Open models in production",
-    template: "%s · Weir",
+    default: pageTitle("Open models in production"),
+    template: pageTitle("%s"),
   },
-  description:
-    "Run open-weight models behind one API, billed by the token, and move to dedicated GPUs when your traffic outgrows shared capacity.",
+  description: siteDescription,
   metadataBase: siteUrl,
   openGraph: {
     type: "website",
-    siteName: "Weir",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Weir: open models in production" }],
+    siteName: SITE_NAME,
+    images: [{ ...siteShareImage, width: 1200, height: 630 }],
   },
-  twitter: { card: "summary_large_image", images: ["/og.png"] },
+  twitter: { card: "summary_large_image", images: [siteShareImage.url] },
 };
 
 export const viewport: Viewport = {

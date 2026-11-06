@@ -9,12 +9,14 @@ import { company, freeCreditLabel, listAnd, noCardRequired } from "@/data/compan
 import { contactHref } from "@/data/site";
 import { models } from "@/data/models";
 import { formatLatency, formatUsd } from "@/lib/format";
+import { pageMetadata, pageTitle } from "@/lib/metadata";
 
-export const metadata = {
-  title: "Quickstart",
+export const metadata = pageMetadata({
+  title: pageTitle("Quickstart"),
   description:
     "Get an API key, install the Weir SDK and stream your first response from Llama 3.3 70B in about five minutes.",
-};
+  path: "/docs/quickstart/",
+});
 
 <DocsShell eyebrow="Docs" toc={quickstartOutline}>
 

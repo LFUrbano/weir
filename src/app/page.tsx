@@ -11,6 +11,13 @@ import { heroDemo } from "@/components/home/hero-demo";
 import { company } from "@/data/company";
 import { getModel, isTokenModel, models, type TokenModel } from "@/data/models";
 import { formatLatency } from "@/lib/format";
+import { SITE_NAME, TITLE_SEPARATOR, pageMetadata, siteDescription } from "@/lib/metadata";
+
+export const metadata = pageMetadata({
+  title: `${SITE_NAME}${TITLE_SEPARATOR}Open models in production`,
+  description: siteDescription,
+  path: "/",
+});
 
 function referenceModel(): TokenModel {
   const m = getModel(heroDemo.modelSlug);
