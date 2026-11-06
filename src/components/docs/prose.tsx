@@ -22,7 +22,7 @@ export function InlineCode({ className, ...props }: ComponentProps<"code">) {
  */
 export function Lede({ children }: { children: ReactNode }) {
   return (
-    <div className="mt-6 [&_p]:max-w-[36rem] [&_p]:text-[1.0625rem] [&_p]:leading-relaxed [&_p]:text-fg-2">
+    <div className="mt-6 [&_p]:max-w-[35rem] [&_p]:text-[1.0625rem] [&_p]:leading-relaxed [&_p]:text-fg-2">
       {children}
     </div>
   );
@@ -31,7 +31,7 @@ export function Lede({ children }: { children: ReactNode }) {
 /** An aside inside a step: a rule that applies to everything above it. */
 export function Note({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <aside className="max-w-[38rem] rounded-panel border border-line bg-surface px-4 py-3.5 md:px-5">
+    <aside className="max-w-[35rem] rounded-panel border border-line bg-surface px-4 py-3.5 md:px-5">
       <p className="label-mono text-fg-2">{title}</p>
       <div className="mt-2 space-y-2 text-small leading-relaxed text-fg [&_p]:max-w-none [&_p]:text-small [&_p]:leading-relaxed">
         {children}

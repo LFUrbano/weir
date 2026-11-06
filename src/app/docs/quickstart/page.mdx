@@ -2,45 +2,18 @@ import { CodePanel } from "@/components/code/CodePanel";
 import { API_BASE_URL, snippetsFor } from "@/components/code/snippets";
 import { DocsShell } from "@/components/docs/DocsShell";
 import { quickstartOutline } from "@/components/docs/outline";
+import { customBaseUrl, firstCallCost, install, model, usage } from "@/components/docs/quickstart-data";
 import { InlineCode, Lede, LinkCards, Note } from "@/components/docs/prose";
 import { Step, Steps } from "@/components/docs/Steps";
-import { company, freeCreditLabel, listAnd } from "@/data/company";
+import { company, freeCreditLabel, listAnd, noCardRequired } from "@/data/company";
 import { contactHref } from "@/data/site";
-import { getModel, models } from "@/data/models";
+import { models } from "@/data/models";
 import { formatLatency, formatUsd } from "@/lib/format";
 
 export const metadata = {
   title: "Quickstart",
   description:
     "Get an API key, install the Weir SDK and stream your first response from Llama 3.3 70B in about five minutes.",
-};
-
-export const model = getModel("llama-3-3-70b");
-export const rates = model.pricing;
-export const usage = { prompt: 17, completion: 62 };
-export const firstCallCost = formatUsd(
-  (usage.prompt * rates.input + usage.completion * rates.output) / 1_000_000,
-);
-
-export const install = {
-  python: "pip install weir",
-  node: "npm install weir",
-};
-
-export const customBaseUrl = {
-  python: `import os
-from weir import Weir
-
-client = Weir(
-    api_key=os.environ["WEIR_API_KEY"],
-    base_url="http://localhost:8080/v1",
-)`,
-  node: `import Weir from "weir";
-
-const client = new Weir({
-  apiKey: process.env.WEIR_API_KEY,
-  baseURL: "http://localhost:8080/v1",
-});`,
 };
 
 <DocsShell eyebrow="Docs" toc={quickstartOutline}>
@@ -56,7 +29,7 @@ const client = new Weir({
 
 <Step id="create-a-key">
 
-Create a Weir account to get {freeCreditLabel} of credit. No card is required.
+Create a Weir account to get {freeCreditLabel} of credit. {noCardRequired}
 
 In the dashboard, open **API keys**, choose **Create key** and name it after the app that will use it. Weir shows the key once, so copy it before you close the dialog.
 
@@ -123,7 +96,7 @@ The response is JSON. The reply is in `choices[0].message.content`, and `usage` 
 }
 ```
 
-{model.name} costs {formatUsd(rates.input)} per 1M input tokens and {formatUsd(rates.output)} per 1M output tokens, so the {usage.prompt + usage.completion} tokens above cost about {firstCallCost}.
+{model.name} costs {formatUsd(model.pricing.input)} per 1M input tokens and {formatUsd(model.pricing.output)} per 1M output tokens, so the {usage.prompt + usage.completion} tokens above cost about {firstCallCost}.
 
 ### If the call fails
 

@@ -7,7 +7,7 @@ import { HOURS_PER_MONTH } from "@/lib/pricing";
  * one place. Model prices live in models.ts and GPU rates in gpus.ts.
  */
 export const company = {
-  /** Free credit for a new account, in USD. No card required. */
+  /** Free credit for a new account, in USD. */
   freeCreditUsd: 5,
   /** Requests per minute a new key starts with; raised as the account spends. */
   rateLimitRpm: 600,
@@ -31,6 +31,9 @@ export const company = {
   /** Billing granularity for dedicated GPUs (hourly rates, metered by the second). */
   dedicatedBilling: "by the second",
 } as const;
+
+/** What a new account needs to start: stated on the home, Pricing and Docs pages. */
+export const noCardRequired = "No card required.";
 
 /** "$5" (whole dollars, no cents). */
 export const freeCreditLabel = `$${company.freeCreditUsd}`;

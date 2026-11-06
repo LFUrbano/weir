@@ -9,13 +9,17 @@ import {
 } from "react";
 import { CodeBlock } from "@/components/code/CodeBlock";
 import type { SnippetLang } from "@/components/code/snippets";
-import { slugify } from "@/components/docs/outline";
+import { headingId } from "@/components/docs/outline";
 import { InlineCode } from "@/components/docs/prose";
 
-/** The text inside a heading, when it is plain text (it is, in every docs heading). */
+/** The text inside a heading, including text in inline code and emphasis. */
 function textOf(node: ReactNode): string {
   return Children.toArray(node)
-    .map((c) => (typeof c === "string" || typeof c === "number" ? String(c) : ""))
+    .map((c) => {
+      if (typeof c === "string" || typeof c === "number") return String(c);
+      if (isValidElement<{ children?: ReactNode }>(c)) return textOf(c.props.children);
+      return "";
+    })
     .join("");
 }
 
@@ -62,8 +66,8 @@ function A({ href = "", children, ...rest }: ComponentProps<"a">) {
 }
 
 /** A sub-heading that links to itself, like the step headings do. */
-function H3({ children }: ComponentProps<"h3">) {
-  const id = slugify(textOf(children));
+function H3({ children, id: explicitId }: ComponentProps<"h3">) {
+  const id = explicitId ?? headingId(textOf(children));
   return (
     <h3 id={id} className="group mt-10 text-[1.1875rem] leading-snug tracking-[-0.01em] text-fg">
       <a href={`#${id}`} className="decoration-line-strong underline-offset-4 hover:underline">
@@ -87,14 +91,14 @@ export const mdxComponents: MDXComponents = {
     />
   ),
   h3: H3,
-  p: (props) => <p className="max-w-[38rem] text-body leading-[1.7] text-fg" {...props} />,
+  p: (props) => <p className="max-w-[35rem] text-body leading-[1.7] text-fg" {...props} />,
   a: A,
   strong: (props) => <strong className="font-semibold text-fg" {...props} />,
   ul: (props) => (
-    <ul className="max-w-[38rem] list-disc space-y-2 pl-5 text-body leading-[1.7] text-fg marker:text-fg-2" {...props} />
+    <ul className="max-w-[35rem] list-disc space-y-2 pl-5 text-body leading-[1.7] text-fg marker:text-fg-2" {...props} />
   ),
   ol: (props) => (
-    <ol className="max-w-[38rem] list-decimal space-y-2 pl-5 text-body leading-[1.7] text-fg marker:font-mono marker:text-fg-2" {...props} />
+    <ol className="max-w-[35rem] list-decimal space-y-2 pl-5 text-body leading-[1.7] text-fg marker:font-mono marker:text-fg-2" {...props} />
   ),
   li: (props) => <li className="pl-1" {...props} />,
   code: InlineCode,

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { API_BASE_URL, snippetsFor } from "../../src/components/code/snippets";
-import { company, freeCreditLabel } from "../../src/data/company";
+import { company, freeCreditLabel, lowerFirst, noCardRequired } from "../../src/data/company";
 import { getModel } from "../../src/data/models";
 import { collectErrors } from "./errors";
 
@@ -47,6 +47,35 @@ test.describe("quickstart docs", () => {
     // Exactly five h2s: nothing else competes with the steps.
     await expect(article(page).getByRole("heading", { level: 2 })).toHaveCount(5);
     expect(errors).toEqual([]);
+  });
+
+  test("no two elements on the page share an id", async ({ page }) => {
+    await page.goto("/docs/quickstart/");
+    const dupes = await page.evaluate(() => {
+      const seen = new Map<string, number>();
+      for (const el of document.querySelectorAll("[id]")) {
+        seen.set(el.id, (seen.get(el.id) ?? 0) + 1);
+      }
+      return [...seen].filter(([, n]) => n > 1).map(([id]) => id);
+    });
+    expect(dupes).toEqual([]);
+  });
+
+  test("the no-card note is the company module's text on the docs, home and pricing pages", async ({
+    page,
+  }) => {
+    await page.goto("/docs/quickstart/");
+    await expect(step(page, 0)).toContainText(`${freeCreditLabel} of credit. ${noCardRequired}`);
+
+    await page.goto("/");
+    await expect(page.getByTestId("two-paths")).toContainText(`${freeCreditLabel} to start. ${noCardRequired}`);
+    // The home promises only what the docs have: a quickstart that covers streaming.
+    await expect(page.getByTestId("two-paths")).toContainText("Quickstart, with streaming.");
+    await expect(page.getByTestId("two-paths")).not.toContainText("model reference");
+
+    await page.goto("/pricing/");
+    await page.getByRole("button", { name: "How does billing work?" }).click();
+    await expect(page.getByRole("region").filter({ hasText: lowerFirst(noCardRequired) }).first()).toBeVisible();
   });
 
   test("every heading is an anchor link to itself", async ({ page }) => {
@@ -242,7 +271,7 @@ test.describe("quickstart docs", () => {
     const widest = await article(page)
       .locator("p:not(.label-mono)")
       .evaluateAll((ps) => Math.max(...ps.map((p) => p.getBoundingClientRect().width)));
-    // ~70 characters at 17px Funnel Sans is about 600px; allow some slack.
-    expect(widest).toBeLessThanOrEqual(680);
+    // ~70 characters of Funnel Sans at 16px is about 560px.
+    expect(widest).toBeLessThanOrEqual(570);
   });
 });
