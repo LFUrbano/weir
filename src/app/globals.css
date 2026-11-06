@@ -1,26 +1,213 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* The site has one theme (dark). `dark` sits on <html> so shadcn's dark: variants apply. */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Weir tokens. These literal values are the source of truth and are mirrored
+ * one to one in the Figma file (collections "Weir / Color" and "Weir / Tokens").
+ *
+ * Contrast on canvas (#0c0e0d): fg 16.1:1, fg-2 8.7:1, fg-3 4.2:1, amber 11.0:1,
+ * amber-ink on amber 10.6:1.
+ * fg-3 is below AA for body-size text, so it is for large text, disabled
+ * states and decoration only. Small labels use fg-2.
+ */
+@theme static {
+  --color-canvas: #0c0e0d;
+  --color-surface: #121513;
+  --color-surface-2: #171a18;
+  --color-line: #232825;
+  --color-line-strong: #333a36;
+  --color-fg: #e6ebe7;
+  --color-fg-2: #a7b0aa;
+  --color-fg-3: #6d7770;
+  --color-amber: #ffb547;
+  --color-amber-ink: #1a1204;
+  --color-ok: #5fbf8a;
+  --color-err: #e5675a;
+
+  --radius-sm: 6px;
+  --radius-md: 6px;
+  --radius-lg: 6px;
+  --radius-xl: 10px;
+  --radius-2xl: 10px;
+  --radius-3xl: 10px;
+  --radius-4xl: 10px;
+  --radius-panel: 10px;
+
+  /* Type scale (Figma text styles of the same names). */
+  --text-display: 4rem;
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.03em;
+  --text-h2: 2.5rem;
+  --text-h2--line-height: 1.08;
+  --text-h2--letter-spacing: -0.025em;
+  --text-h3: 1.5rem;
+  --text-h3--line-height: 1.25;
+  --text-h3--letter-spacing: -0.015em;
+  --text-body: 1rem;
+  --text-body--line-height: 1.5;
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.45;
+  --text-label: 0.6875rem;
+  --text-label--line-height: 1.3;
+  --text-label--letter-spacing: 0.06em;
+  --text-code: 0.8125rem;
+  --text-code--line-height: 1.6;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 @theme inline {
+  --font-display: var(--font-funnel-display), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-funnel-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-azeret-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-heading: var(--font-funnel-display), ui-sans-serif, system-ui, sans-serif;
+
+  /* shadcn semantic colors, mapped to the Weir tokens below. */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  color-scheme: dark;
+
+  --background: #0c0e0d;
+  --foreground: #e6ebe7;
+  --card: #121513;
+  --card-foreground: #e6ebe7;
+  --popover: #121513;
+  --popover-foreground: #e6ebe7;
+  --primary: #ffb547;
+  --primary-foreground: #1a1204;
+  --secondary: #171a18;
+  --secondary-foreground: #e6ebe7;
+  --muted: #171a18;
+  --muted-foreground: #a7b0aa;
+  --accent: #171a18;
+  --accent-foreground: #e6ebe7;
+  --destructive: #e5675a;
+  --border: #232825;
+  --input: #333a36;
+  --ring: #ffb547;
+  --chart-1: #ffb547;
+  --chart-2: #5fbf8a;
+  --chart-3: #a7b0aa;
+  --chart-4: #6d7770;
+  --chart-5: #e5675a;
+  --radius: 6px;
+  --sidebar: #121513;
+  --sidebar-foreground: #e6ebe7;
+  --sidebar-primary: #ffb547;
+  --sidebar-primary-foreground: #1a1204;
+  --sidebar-accent: #171a18;
+  --sidebar-accent-foreground: #e6ebe7;
+  --sidebar-border: #232825;
+  --sidebar-ring: #ffb547;
+
+  --header-h: 3.5rem;
+}
+
+/* Page container: 1240px of content, 20px gutters on phones, 32px from md. */
+@utility container-site {
+  width: 100%;
+  max-width: calc(1240px + 4rem);
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  @media (width >= 48rem) {
+    padding-inline: 2rem;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Mono label: what could come off a terminal or a server tag. */
+@utility label-mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  letter-spacing: var(--text-label--letter-spacing);
+  text-transform: uppercase;
+  font-weight: 450;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring;
+  }
+  html {
+    @apply bg-canvas font-sans;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--header-h) + 1rem);
+  }
+  body {
+    @apply bg-canvas text-fg;
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  .font-mono,
+  code,
+  kbd,
+  pre,
+  samp {
+    font-variant-numeric: tabular-nums;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-amber);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--color-amber) 32%, transparent);
+    color: var(--color-fg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
