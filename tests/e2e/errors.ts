@@ -4,9 +4,9 @@ import type { Page, Request } from "@playwright/test";
  * Pages that the header, the footer and the model pages already link to but
  * a later task builds. The Next router prefetches them with fetch() and gets
  * a 404 until they exist. Tasks 9 and 10 remove each entry as its page lands:
- * /enterprise/ (Task 9), /docs/quickstart/ (Task 10). /pricing/ landed in Task 8.
+ * /docs/quickstart/ (Task 10). /pricing/ landed in Task 8, /enterprise/ in Task 9.
  */
-export const NOT_YET_BUILT = ["/enterprise/", "/docs/quickstart/"];
+export const NOT_YET_BUILT = ["/docs/quickstart/"];
 
 /**
  * The only 404s tolerated are the Next router's own fetch() prefetches:
