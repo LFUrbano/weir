@@ -21,7 +21,7 @@ const HUMAN_PROMISE =
 const form = (page: Page) => page.getByTestId("contact-form");
 const email = (page: Page) => page.getByRole("textbox", { name: "Work email" });
 const companyField = (page: Page) => page.getByRole("textbox", { name: "Company" });
-const useCase = (page: Page) => page.getByRole("combobox", { name: "Use case" });
+const caseField = (page: Page) => page.getByRole("combobox", { name: "Use case" });
 const message = (page: Page) => page.getByRole("textbox", { name: /^Message/ });
 const submit = (page: Page) => page.getByRole("button", { name: /^(Send request|Sending)/ });
 const success = (page: Page) => page.getByTestId("contact-success");
@@ -30,9 +30,9 @@ async function fillValid(page: Page) {
   await email(page).fill("ana@acme.example");
   await companyField(page).fill("Acme");
   await page.getByRole("radio", { name: "10–100B" }).check();
-  await useCase(page).click();
+  await caseField(page).click();
   await page.getByRole("option", { name: /^Agents/ }).click();
-  await expect(useCase(page)).toContainText("Agents");
+  await expect(caseField(page)).toContainText("Agents");
   await message(page).fill("Moving a support agent off a closed model.");
 }
 
@@ -133,7 +133,7 @@ test.describe("contact form", () => {
     for (const label of ["Work email", "Company", "Monthly volume", "Use case", "Message"]) {
       await expect(form(page).getByText(label, { exact: true })).toBeVisible();
     }
-    for (const control of [email(page), companyField(page), useCase(page), submit(page)]) {
+    for (const control of [email(page), companyField(page), caseField(page), submit(page)]) {
       const box = await control.boundingBox();
       expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
     }
@@ -153,13 +153,17 @@ test.describe("contact form", () => {
     expect(await describedErrors(page, companyField(page))).toEqual([
       contactMessages.company.required,
     ]);
-    expect(await describedErrors(page, useCase(page))).toEqual([contactMessages.useCase]);
+    expect(await describedErrors(page, caseField(page))).toEqual([contactMessages.useCase]);
     expect(
       await describedErrors(page, page.getByRole("radio", { name: "<1B" })),
     ).toEqual([contactMessages.volume]);
     await expect(message(page)).toHaveAttribute("aria-invalid", "false");
+    await expect(page.getByRole("radiogroup", { name: "Monthly volume" })).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
 
-    for (const control of [email(page), companyField(page), useCase(page)]) {
+    for (const control of [email(page), companyField(page), caseField(page)]) {
       await expect(control).toHaveAttribute("aria-invalid", "true");
     }
     await expect(success(page)).toHaveCount(0);
@@ -266,10 +270,10 @@ test.describe("contact form", () => {
     await page.keyboard.press("ArrowRight");
     await expect(page.getByRole("radio", { name: "1–10B" })).toBeChecked();
     await page.keyboard.press("Tab");
-    await expect(useCase(page)).toBeFocused();
+    await expect(caseField(page)).toBeFocused();
     await page.keyboard.press("Enter");
     await page.getByRole("option", { name: /^Batch/ }).press("Enter");
-    await expect(useCase(page)).toContainText("Batch");
+    await expect(caseField(page)).toContainText("Batch");
     await page.keyboard.press("Tab");
     await expect(message(page)).toBeFocused();
     await page.keyboard.press("Tab");
