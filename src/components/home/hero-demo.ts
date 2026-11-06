@@ -9,7 +9,7 @@ import type { TokenModel } from "@/data/models";
 export const heroDemo = {
   modelSlug: "llama-3-3-70b",
   /** The snippet's one user message with the Llama 3 chat template around it. */
-  promptTokens: 21,
+  promptTokens: 17,
   response:
     "A KV cache keeps the attention keys and values already computed for earlier tokens, so the model does not recompute them every time it generates a new one. Each decoding step then reads stored state instead of reprocessing the whole sequence, which keeps long responses fast and cheap.",
 } as const;
@@ -83,6 +83,11 @@ function arrivalsFor(m: TokenModel): number[] {
     arrivalsCache.set(m.slug, a);
   }
   return a;
+}
+
+/** Ms from sending the request to the last token. */
+export function demoDuration(m: TokenModel): number {
+  return arrivalsFor(m).at(-1) ?? 0;
 }
 
 /** The state of the demo call `elapsedMs` after the request was sent. */

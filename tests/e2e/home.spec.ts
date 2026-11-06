@@ -74,6 +74,8 @@ test.describe("home", () => {
   }) => {
     await recordTerminalStates(page);
     await page.goto("/");
+    // The reply starts when it is on screen (already true on desktop; on a phone, scroll to it).
+    await page.getByTestId("hero-response").scrollIntoViewIfNeeded();
     await expectFinalTerminal(page, 6000);
     // It really streamed: waiting for the first token, then tokens, then done.
     const states = await terminalStates(page);

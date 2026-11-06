@@ -19,7 +19,7 @@ function kindOf(m: Model): Kind {
 }
 
 const PROMPTS: Record<Kind, string> = {
-  chat: "Explain what a KV cache does in two sentences.",
+  chat: "What does a KV cache do?",
   embeddings: "Where is my order?",
   image: "A lighthouse at dusk, flat illustration",
 };
@@ -124,9 +124,7 @@ client = Weir(api_key=os.environ["WEIR_API_KEY"])
 
 stream = client.chat.completions.create(
     model="${m.slug}",
-    messages=[
-        {"role": "user", "content": "${prompt}"},
-    ],
+    messages=[{"role": "user", "content": "${prompt}"}],
     stream=True,
 )
 for chunk in stream:
@@ -163,9 +161,7 @@ client = Weir(api_key=os.environ["WEIR_API_KEY"])
 
 response = client.chat.completions.create(
     model="${m.slug}",
-    messages=[
-        {"role": "user", "content": "${prompt}"},
-    ],
+    messages=[{"role": "user", "content": "${prompt}"}],
 )
 print(response.choices[0].message.content)`,
     node: `import Weir from "weir";
