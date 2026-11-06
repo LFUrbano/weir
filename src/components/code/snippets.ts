@@ -25,8 +25,8 @@ const PROMPTS: Record<Kind, string> = {
 };
 
 /**
- * Ready-to-run request examples for one model. The wire format follows the
- * OpenAI-compatible API, so the stock `openai` SDKs work with a new base URL.
+ * Ready-to-run request examples for one model. Python and Node use the Weir
+ * SDK, which defaults to the Weir API base URL; curl spells the URL out.
  */
 export function snippetsFor(m: Model): Snippets {
   const kind = kindOf(m);
@@ -42,24 +42,18 @@ export function snippetsFor(m: Model): Snippets {
     "input": "${prompt}"
   }'`,
       python: `import os
-from openai import OpenAI
+from weir import Weir
 
-client = OpenAI(
-    base_url="${BASE_URL}",
-    api_key=os.environ["WEIR_API_KEY"],
-)
+client = Weir(api_key=os.environ["WEIR_API_KEY"])
 
 response = client.embeddings.create(
     model="${m.slug}",
     input="${prompt}",
 )
 print(len(response.data[0].embedding))`,
-      node: `import OpenAI from "openai";
+      node: `import Weir from "weir";
 
-const client = new OpenAI({
-  baseURL: "${BASE_URL}",
-  apiKey: process.env.WEIR_API_KEY,
-});
+const client = new Weir({ apiKey: process.env.WEIR_API_KEY });
 
 const response = await client.embeddings.create({
   model: "${m.slug}",
@@ -80,12 +74,9 @@ console.log(response.data[0].embedding.length);`,
     "size": "1024x1024"
   }'`,
       python: `import os
-from openai import OpenAI
+from weir import Weir
 
-client = OpenAI(
-    base_url="${BASE_URL}",
-    api_key=os.environ["WEIR_API_KEY"],
-)
+client = Weir(api_key=os.environ["WEIR_API_KEY"])
 
 response = client.images.generate(
     model="${m.slug}",
@@ -93,12 +84,9 @@ response = client.images.generate(
     size="1024x1024",
 )
 print(response.data[0].url)`,
-      node: `import OpenAI from "openai";
+      node: `import Weir from "weir";
 
-const client = new OpenAI({
-  baseURL: "${BASE_URL}",
-  apiKey: process.env.WEIR_API_KEY,
-});
+const client = new Weir({ apiKey: process.env.WEIR_API_KEY });
 
 const response = await client.images.generate({
   model: "${m.slug}",
@@ -120,12 +108,9 @@ console.log(response.data[0].url);`,
     ]
   }'`,
     python: `import os
-from openai import OpenAI
+from weir import Weir
 
-client = OpenAI(
-    base_url="${BASE_URL}",
-    api_key=os.environ["WEIR_API_KEY"],
-)
+client = Weir(api_key=os.environ["WEIR_API_KEY"])
 
 response = client.chat.completions.create(
     model="${m.slug}",
@@ -134,12 +119,9 @@ response = client.chat.completions.create(
     ],
 )
 print(response.choices[0].message.content)`,
-    node: `import OpenAI from "openai";
+    node: `import Weir from "weir";
 
-const client = new OpenAI({
-  baseURL: "${BASE_URL}",
-  apiKey: process.env.WEIR_API_KEY,
-});
+const client = new Weir({ apiKey: process.env.WEIR_API_KEY });
 
 const response = await client.chat.completions.create({
   model: "${m.slug}",
