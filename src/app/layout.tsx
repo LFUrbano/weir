@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Azeret_Mono, Funnel_Display, Funnel_Sans } from "next/font/google";
 import { Footer } from "@/components/site/Footer";
+import { CommandMenuProvider } from "@/components/site/CommandMenu";
 import { Header } from "@/components/site/Header";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
@@ -51,11 +52,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Skip to content
         </a>
         <TooltipProvider>
-          <Header />
-          <main id="main" className="flex flex-1 flex-col">
-            {children}
-          </main>
-          <Footer />
+          <CommandMenuProvider>
+            <Header />
+            <main id="main" className="flex flex-1 flex-col">
+              {children}
+            </main>
+            <Footer />
+          </CommandMenuProvider>
         </TooltipProvider>
       </body>
     </html>

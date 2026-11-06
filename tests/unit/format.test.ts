@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { formatLatency, formatTokens, formatUsd } from "@/lib/format";
+import {
+  formatContext,
+  formatLatency,
+  formatPerImage,
+  formatTokens,
+  formatUsd,
+} from "@/lib/format";
 
 describe("formatUsd", () => {
   it("uses two decimals and thousands separators from one cent up", () => {
@@ -49,5 +55,37 @@ describe("formatLatency", () => {
     expect(formatLatency(4200)).toBe("4.2 s");
     expect(formatLatency(2000)).toBe("2 s");
     expect(formatLatency(999.7)).toBe("1 s");
+  });
+});
+
+describe("formatPerImage", () => {
+  it("uses up to three decimals with trailing zeros stripped", () => {
+    expect(formatPerImage(0.025)).toBe("$0.025");
+    expect(formatPerImage(0.003)).toBe("$0.003");
+    expect(formatPerImage(0.035)).toBe("$0.035");
+    expect(formatPerImage(0.1)).toBe("$0.1");
+    expect(formatPerImage(0.0304)).toBe("$0.03");
+    expect(formatPerImage(1.2)).toBe("$1.2");
+  });
+  it("never prints NaN, Infinity or a negative price", () => {
+    expect(formatPerImage(0)).toBe("$0");
+    expect(formatPerImage(NaN)).toBe("$0");
+    expect(formatPerImage(Infinity)).toBe("$0");
+    expect(formatPerImage(-0.02)).toBe("$0");
+  });
+});
+
+describe("formatContext", () => {
+  it("prints thousands of tokens as K and millions as M", () => {
+    expect(formatContext(128)).toBe("128K");
+    expect(formatContext(8)).toBe("8K");
+    expect(formatContext(1000)).toBe("1M");
+    expect(formatContext(10000)).toBe("10M");
+    expect(formatContext(1500)).toBe("1.5M");
+  });
+  it("prints a dash when the model has no context window", () => {
+    expect(formatContext(null)).toBe("—");
+    expect(formatContext(NaN)).toBe("—");
+    expect(formatContext(0)).toBe("—");
   });
 });

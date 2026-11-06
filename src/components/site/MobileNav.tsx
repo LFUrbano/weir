@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { primaryCta, siteNav } from "@/data/site";
+import { isActivePath } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import { Logo } from "./Logo";
 import { StatusDot } from "./StatusDot";
@@ -60,6 +61,7 @@ export function MobileNav() {
                 <Link
                   href={item.href}
                   onClick={close}
+                  aria-current={pathname && isActivePath(pathname, item.href) ? "page" : undefined}
                   className="group flex items-baseline justify-between py-5"
                 >
                   <span className="font-display text-[1.75rem] leading-none font-semibold tracking-[-0.025em] text-fg">

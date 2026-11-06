@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Section } from "@/components/site/Section";
 import { getModel, isTokenModel, models, type TokenModel } from "@/data/models";
-import { formatLatency, formatUsd } from "@/lib/format";
+import { headCell as th, numCell as num } from "@/components/models/table-styles";
+import { formatContext, formatLatency, formatUsd } from "@/lib/format";
 
 /** One per family and task, so the preview reads as range, not as a list of Llamas. */
 const PREVIEW = [
@@ -20,9 +21,6 @@ function previewModels(): TokenModel[] {
     return m;
   });
 }
-
-const th = "label-mono whitespace-nowrap px-3 pb-3 text-left font-[450] text-fg-2 first:pl-0 last:pr-0";
-const num = "px-3 text-right font-mono text-small text-fg tabular-nums";
 
 export function CatalogPreview() {
   const rows = previewModels();
@@ -88,7 +86,7 @@ export function CatalogPreview() {
                 <td className="hidden px-3 font-mono text-small text-fg-2 md:table-cell">
                   {m.tasks.join(" · ")}
                 </td>
-                <td className={`${num} hidden lg:table-cell`}>{m.contextK}K</td>
+                <td className={`${num} hidden lg:table-cell`}>{formatContext(m.contextK)}</td>
                 <td className={`${num} hidden md:table-cell`}>{formatUsd(m.pricing.input)}</td>
                 <td className={`${num} hidden md:table-cell`}>{formatUsd(m.pricing.output)}</td>
                 <td className={`${num} whitespace-nowrap md:hidden`}>

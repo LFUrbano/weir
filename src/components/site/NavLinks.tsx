@@ -3,19 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { siteNav } from "@/data/site";
+import { isActivePath } from "@/lib/nav";
 import { cn } from "@/lib/utils";
-
-function isActive(pathname: string, href: string) {
-  const section = href.split("/")[1];
-  return pathname === href || pathname.startsWith(`/${section}/`);
-}
 
 export function NavLinks({ className }: { className?: string }) {
   const pathname = usePathname() ?? "/";
   return (
     <ul className={cn("flex items-center gap-1", className)}>
       {siteNav.map((item) => {
-        const active = isActive(pathname, item.href);
+        const active = isActivePath(pathname, item.href);
         return (
           <li key={item.href}>
             <Link
