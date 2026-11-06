@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Section } from "@/components/site/Section";
 import { buttonVariants } from "@/components/ui/button";
+import { company, freeCreditLabel, listAnd, pct } from "@/data/company";
 import { gpus } from "@/data/gpus";
 import { formatUsd } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -15,16 +16,20 @@ interface Path {
 
 function paths(): Path[] {
   const cheapestGpu = Math.min(...gpus.map((g) => g.hourly));
+  const gpuNames = listAnd(gpus.map((g) => g.name.replace(/^NVIDIA /, "")));
   return [
     {
       audience: "Self-serve",
       title: "Start building",
       summary: "A key, an SDK and a credit balance. Your first streamed reply takes about five minutes.",
       items: [
-        { label: "Free credit", value: "$5 to start. No card required." },
-        { label: "SDKs", value: "Python and Node, or plain HTTP with curl." },
+        { label: "Free credit", value: `${freeCreditLabel} to start. No card required.` },
+        { label: "SDKs", value: `${listAnd(company.sdks)}, or plain HTTP with curl.` },
         { label: "Billing", value: "Per token, per model. No minimums." },
-        { label: "Rate limit", value: "600 requests a minute, raised as you spend." },
+        {
+          label: "Rate limit",
+          value: `${company.rateLimitRpm} requests a minute, raised as you spend.`,
+        },
         { label: "Docs", value: "Quickstart, streaming, model reference." },
       ],
       cta: { label: "Read the quickstart", href: "/docs/quickstart/" },
@@ -36,11 +41,11 @@ function paths(): Path[] {
       items: [
         {
           label: "Dedicated",
-          value: `H100, H200 and B200 replicas, from ${formatUsd(cheapestGpu)} per GPU-hour.`,
+          value: `${gpuNames} replicas, from ${formatUsd(cheapestGpu)} per GPU-hour.`,
         },
-        { label: "SLA", value: "99.95% monthly uptime, with service credits." },
-        { label: "SSO", value: "SAML 2.0 and SCIM, with audit logs." },
-        { label: "Compliance", value: "SOC 2 Type II, ISO 27001, GDPR DPA." },
+        { label: "SLA", value: `${pct(company.slaDedicatedPct)} monthly uptime, with service credits.` },
+        { label: "SSO", value: `${listAnd(company.sso.protocols)}, with audit logs.` },
+        { label: "Compliance", value: `${company.certifications.join(", ")} DPA.` },
         { label: "Support", value: "A named engineer and a shared Slack channel." },
       ],
       cta: { label: "Talk to an engineer", href: "/enterprise/" },

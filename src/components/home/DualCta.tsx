@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import { freeCreditLabel } from "@/data/company";
 import { primaryCta } from "@/data/site";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +17,7 @@ export function DualCta({ className }: { className?: string }) {
         </Link>
         <p className="mt-3 text-small text-fg-2">
           <span className="block text-fg">For developers</span>
-          $5 in credit, no card
+          {freeCreditLabel} in credit, no card
         </p>
       </div>
       <div>

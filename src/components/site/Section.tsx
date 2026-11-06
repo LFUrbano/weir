@@ -4,7 +4,14 @@ import { cn } from "@/lib/utils";
 /**
  * A page section on the 12-column grid. The heading block takes the first
  * eight columns; children get the full width below it.
+ *
+ * Vertical padding is half the gap between two sections, so consecutive
+ * sections sit 128 px apart on desktop (112 px on tablets, 80 px on phones),
+ * with the hairline in the middle. Home bands that are not a Section use the
+ * same `sectionY` classes.
  */
+export const sectionY = "py-10 md:py-14 lg:py-16";
+
 export function Section({
   eyebrow,
   title,
@@ -25,7 +32,7 @@ export function Section({
     <section
       id={id}
       aria-labelledby={headingId}
-      className={cn("border-t border-line py-24 md:py-32", className)}
+      className={cn("border-t border-line", sectionY, className)}
     >
       <div className="container-site">
         <div className="grid grid-cols-12 gap-x-6">

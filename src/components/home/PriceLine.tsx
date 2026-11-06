@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { sectionY } from "@/components/site/Section";
+import { company } from "@/data/company";
 import { getGpu } from "@/data/gpus";
 import type { TokenModel } from "@/data/models";
 import { formatUsd } from "@/lib/format";
@@ -22,7 +24,7 @@ export function PriceLine({ model }: { model: TokenModel }) {
     <section
       data-testid="price-section"
       aria-labelledby="price-title"
-      className="border-t border-line py-24 md:py-32"
+      className={`border-t border-line ${sectionY}`}
     >
       <div className="container-site">
         <div className="grid grid-cols-12 gap-x-6 gap-y-10 lg:items-end">
@@ -43,7 +45,7 @@ export function PriceLine({ model }: { model: TokenModel }) {
           <div className="col-span-12 lg:col-span-4 lg:border-l lg:border-line lg:pl-8">
             <p className="text-small text-fg-2">
               Dedicated {h100.name.replace("NVIDIA ", "")}s from {formatUsd(h100.hourly)} per
-              GPU-hour, billed by the second.
+              GPU-hour, billed {company.dedicatedBilling}.
             </p>
             <Link
               href="/pricing/"

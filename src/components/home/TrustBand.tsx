@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Section } from "@/components/site/Section";
 import { StatusDot } from "@/components/site/StatusDot";
+import { company, dataRetention, listAnd, pct } from "@/data/company";
 
 interface Row {
   label: string;
@@ -11,38 +12,35 @@ interface Row {
 const rows: Row[] = [
   {
     label: "Compliance",
-    value: "SOC 2 Type II · ISO 27001 · GDPR",
+    value: company.certifications.join(" · "),
     note: "Reports shared under NDA. DPA with standard contractual clauses.",
   },
   {
     label: "Identity",
-    value: "SSO with SAML 2.0 · SCIM",
-    note: "Okta, Microsoft Entra ID and Google Workspace. Audit logs for every key.",
+    value: `SSO with ${company.sso.protocols.join(" · ")}`,
+    note: `${listAnd(company.sso.idps)}. Audit logs for every key.`,
   },
   {
     label: "Uptime",
-    value: "99.95% SLA on dedicated endpoints",
+    value: `${pct(company.slaDedicatedPct)} SLA on dedicated endpoints`,
     note: "Measured monthly, with service credits when we miss it.",
   },
   {
     label: "Regions",
     value: (
-      <span className="font-mono">
-        us-east <span className="text-fg-2">·</span> us-west <span className="text-fg-2">·</span>{" "}
-        eu-west
-      </span>
+      <span className="font-mono">{company.regions.join(" · ")}</span>
     ),
     note: (
       <>
         Pin traffic to a region. EU requests can stay in{" "}
-        <span className="whitespace-nowrap">eu-west</span>.
+        <span className="whitespace-nowrap">{company.regions.find((r) => r.startsWith("eu"))}</span>.
       </>
     ),
   },
   {
     label: "Data",
-    value: "Prompts and outputs are not stored",
-    note: "Never used for training. Optional request logs, kept 30 days.",
+    value: dataRetention.headline,
+    note: dataRetention.detail,
   },
   {
     label: "Status",
@@ -52,7 +50,7 @@ const rows: Row[] = [
         All systems normal
       </span>
     ),
-    note: "99.99% API uptime over the last 90 days.",
+    note: `${pct(company.uptime90dPct)} API uptime over the last 90 days.`,
   },
 ];
 

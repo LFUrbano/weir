@@ -8,6 +8,7 @@ import { RequestDiagram, type RequestStep } from "@/components/home/RequestDiagr
 import { TrustBand } from "@/components/home/TrustBand";
 import { TwoPaths } from "@/components/home/TwoPaths";
 import { heroDemo } from "@/components/home/hero-demo";
+import { company } from "@/data/company";
 import { getModel, isTokenModel, models, type TokenModel } from "@/data/models";
 import { formatLatency } from "@/lib/format";
 
@@ -29,15 +30,14 @@ function requestSteps(m: TokenModel): RequestStep[] {
     {
       name: "Edge",
       stamp: "t+14 ms",
-      sentence:
-        "The closest of three regions ends TLS, checks the key and the rate limit, and turns bad requests away before they reach a GPU.",
+      sentence: `The closest of ${company.regions.length} regions ends TLS, checks the key and the rate limit, and turns bad requests away before they reach a GPU.`,
       detail: ["TLS 1.3", "API key", "rate limit"],
     },
     {
       name: "Router",
       stamp: "t+19 ms",
       sentence:
-        "Picks a region with free capacity, batches the request with others on the same model, and reuses cached prompt prefixes.",
+        "Sends the request to the region you pinned, or to the one with free capacity, batches it with others on the same model, and reuses cached prompt prefixes.",
       detail: ["region", "batching", "prefix cache"],
     },
     {

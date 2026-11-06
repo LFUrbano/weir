@@ -1,11 +1,10 @@
 import { codePanes } from "@/components/code/CodePanel";
 import { snippetsFor } from "@/components/code/snippets";
 import { StatusDot } from "@/components/site/StatusDot";
+import { company } from "@/data/company";
 import { models, type TokenModel } from "@/data/models";
 import { DualCta } from "./DualCta";
 import { HeroTerminal } from "./HeroTerminal";
-
-const REGIONS = ["us-east", "us-west", "eu-west"];
 
 export function Hero({ model }: { model: TokenModel }) {
   const snippets = snippetsFor(model, { stream: true });
@@ -13,7 +12,7 @@ export function Hero({ model }: { model: TokenModel }) {
   const codeLines = Math.max(...panes.map((p) => p.text.split("\n").length));
 
   return (
-    <section data-testid="hero" aria-labelledby="hero-title" className="pt-12 pb-20 md:pt-16 md:pb-28 lg:pt-16 lg:pb-24 2xl:pt-24 2xl:pb-32">
+    <section data-testid="hero" aria-labelledby="hero-title" className="pt-12 pb-12 md:pt-16 md:pb-16 2xl:pt-24">
       <div className="container-site">
         <div className="grid grid-cols-12 gap-x-6 gap-y-14 lg:items-center">
           <div className="col-span-12 lg:col-span-5">
@@ -21,8 +20,8 @@ export function Hero({ model }: { model: TokenModel }) {
               <StatusDot state="ok" />
               <span>
                 {models.length} models live in{" "}
-                <span className="hidden sm:inline">{REGIONS.join(", ")}</span>
-                <span className="sm:hidden">{REGIONS.length} regions</span>
+                <span className="hidden sm:inline">{company.regions.join(", ")}</span>
+                <span className="sm:hidden">{company.regions.length} regions</span>
               </span>
             </p>
             <h1

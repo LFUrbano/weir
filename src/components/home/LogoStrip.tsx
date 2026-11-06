@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 /** Customer wordmarks in one gray. Sizes come from each SVG's viewBox, scaled together. */
 export function LogoStrip() {
   return (
-    <section aria-labelledby="customers-title" className="border-t border-line py-12 md:py-14">
+    <section aria-labelledby="customers-title" className="border-t border-line py-10 md:py-12">
       <div className="container-site">
         <div className="grid grid-cols-12 items-center gap-x-6 gap-y-8">
           <h2 id="customers-title" className="label-mono col-span-12 text-fg-2 lg:col-span-2">

@@ -152,14 +152,17 @@ export function HeroTerminal({
               {state === "done" ? <StatusDot state="ok" /> : null}
               {state === "done" ? `${STATUS.done} · ${frame?.tokens} tokens` : STATUS[state]}
             </p>
-            {state === "done" && !reduced ? (
+            {/* Always mounted (and focusable) so a keyboard user who presses it keeps
+                focus; it is aria-disabled while the reply is playing. */}
+            {!reduced ? (
               <Button
                 type="button"
                 variant="ghost"
                 size="xs"
-                onClick={replay}
+                onClick={state === "done" ? replay : undefined}
+                aria-disabled={state !== "done"}
                 aria-label="Replay response"
-                className="-mr-2 ml-1 text-fg-2"
+                className="-mr-2 ml-1 text-fg-2 aria-disabled:cursor-default aria-disabled:opacity-40 aria-disabled:hover:bg-transparent aria-disabled:hover:text-fg-2"
               >
                 <RotateCcw aria-hidden="true" />
               </Button>

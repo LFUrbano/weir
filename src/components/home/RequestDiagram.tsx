@@ -30,7 +30,8 @@ export function RequestDiagram({ steps }: { steps: RequestStep[] }) {
 
   const scrolled = useSyncExternalStore(
     (onChange) => scrollYProgress.on("change", onChange),
-    () => scrollYProgress.get(),
+    // Quantized so React only re-renders when the path visibly moves.
+    () => Math.round(scrollYProgress.get() * 200) / 200,
     () => 1,
   );
   const progress = reduced ? 1 : Math.min(1, Math.max(0, scrolled));

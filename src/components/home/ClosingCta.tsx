@@ -1,3 +1,5 @@
+import { sectionY } from "@/components/site/Section";
+import { freeCreditLabel } from "@/data/company";
 import { DualCta } from "./DualCta";
 
 export function ClosingCta() {
@@ -5,7 +7,7 @@ export function ClosingCta() {
     <section
       data-testid="closing-cta"
       aria-labelledby="closing-title"
-      className="border-t border-line py-24 md:py-32"
+      className={`border-t border-line ${sectionY}`}
     >
       <div className="container-site">
         <div className="grid grid-cols-12 gap-x-6 gap-y-10 lg:items-end">
@@ -17,8 +19,8 @@ export function ClosingCta() {
               Your first streamed reply is five minutes away.
             </h2>
             <p className="mt-5 max-w-[34rem] text-[1.0625rem] leading-relaxed text-fg-2">
-              Start on shared GPUs with $5 in credit. When you need capacity of your own, an
-              engineer will size it with you.
+              Start on shared GPUs with {freeCreditLabel} in credit. When you need capacity of
+              your own, an engineer will size it with you.
             </p>
           </div>
           <div className="col-span-12 lg:col-span-5 lg:justify-self-end">
