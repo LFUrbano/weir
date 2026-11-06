@@ -1,0 +1,247 @@
+import Link from "next/link";
+import type { ComponentProps, ReactNode } from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import type { Model, Task } from "@/data/models";
+import type { SortKey } from "@/lib/catalog";
+import { formatContext, formatLatency } from "@/lib/format";
+import { modelPrice, modelSpeed } from "@/lib/model-display";
+import { cn } from "@/lib/utils";
+import { numCell } from "./table-styles";
+
+const href = (m: Model) => `/models/${m.slug}/` as const;
+
+/** Tasks as mono text; the one being filtered on reads brighter than the rest. */
+function Tasks({ model, active }: { model: Model; active: Task | "all" }) {
+  return (
+    <>
+      {model.tasks.map((t, i) => (
+        <span key={t}>
+          {i > 0 && <span aria-hidden="true"> · </span>}
+          <span className={t === active ? "text-fg" : undefined}>{t}</span>
+        </span>
+      ))}
+    </>
+  );
+}
+
+type AriaSort = ComponentProps<"th">["aria-sort"];
+
+/** Which header shows the sort, and how it is announced. Price sorts on a blend of two columns. */
+function sortState(sort: SortKey, column: "name" | "input" | "output" | "speed" | "context"): AriaSort {
+  if (sort === "name" && column === "name") return "ascending";
+  if (sort === "speed" && column === "speed") return "descending";
+  if (sort === "context" && column === "context") return "descending";
+  if (sort === "price" && (column === "input" || column === "output")) return "other";
+  return undefined;
+}
+
+function SortGlyph({ state }: { state: AriaSort }) {
+  if (!state) return null;
+  return (
+    <span aria-hidden="true" className="ml-1.5 text-fg">
+      {state === "descending" ? "↓" : "↑"}
+    </span>
+  );
+}
+
+const sticky = "sticky top-(--header-h) z-10 bg-canvas";
+
+function Head({
+  sort,
+  column,
+  className,
+  children,
+}: {
+  sort: SortKey;
+  column?: "name" | "input" | "output" | "speed" | "context";
+  className?: string;
+  children: ReactNode;
+}) {
+  const state = column ? sortState(sort, column) : undefined;
+  return (
+    <TableHead
+      scope="col"
+      aria-sort={state}
+      className={cn(sticky, state && "text-fg", className)}
+    >
+      {children}
+      <SortGlyph state={state} />
+    </TableHead>
+  );
+}
+
+function PriceCells({ model }: { model: Model }) {
+  const price = modelPrice(model);
+  if (price.unit === "image") {
+    return (
+      <TableCell colSpan={2} className={cn(numCell, "whitespace-nowrap")}>
+        {price.perImage}
+      </TableCell>
+    );
+  }
+  return (
+    <>
+      <TableCell className={numCell}>{price.input}</TableCell>
+      <TableCell className={cn(numCell, price.output === "—" && "text-fg-2")}>{price.output}</TableCell>
+    </>
+  );
+}
+
+function DesktopTable({ list, task, sort }: { list: Model[]; task: Task | "all"; sort: SortKey }) {
+  return (
+    <Table data-testid="catalog-table" className="hidden md:table">
+      <caption className="sr-only">
+        Models with price, context window, decode speed and median time to first token
+      </caption>
+      <TableHeader>
+        <TableRow>
+          <Head sort={sort} column="name">
+            Model
+          </Head>
+          <Head sort={sort} className="hidden lg:table-cell">
+            Task
+          </Head>
+          <Head sort={sort} column="context" className="text-right">
+            Context
+          </Head>
+          <Head sort={sort} column="input" className="text-right">
+            Input / 1M
+          </Head>
+          <Head sort={sort} column="output" className="text-right">
+            Output / 1M
+          </Head>
+          <Head sort={sort} column="speed" className="text-right">
+            Speed
+          </Head>
+          <Head sort={sort} className="text-right">
+            p50
+          </Head>
+          <Head sort={sort} className="hidden w-8 lg:table-cell">
+            <span className="sr-only">Open</span>
+          </Head>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {list.map((m) => (
+          <TableRow
+            key={m.slug}
+            data-slug={m.slug}
+            data-tasks={m.tasks.join(" ")}
+            className="group relative hover:bg-surface"
+          >
+            <TableCell className="py-4 pr-3">
+              <Link
+                href={href(m)}
+                className="font-medium text-fg outline-offset-4 after:absolute after:inset-0 after:content-['']"
+              >
+                {m.name}
+              </Link>
+              <span className="mt-1 block text-small text-fg-2">
+                {m.publisher}
+                <span className="font-mono text-[0.8125rem] lg:hidden">
+                  {" · "}
+                  <Tasks model={m} active={task} />
+                </span>
+              </span>
+            </TableCell>
+            <TableCell className="hidden font-mono text-[0.8125rem] text-fg-2 lg:table-cell">
+              <Tasks model={m} active={task} />
+            </TableCell>
+            <TableCell className={cn(numCell, m.contextK === null && "text-fg-2")}>
+              {formatContext(m.contextK)}
+            </TableCell>
+            <PriceCells model={m} />
+            <TableCell className={cn(numCell, "whitespace-nowrap", m.tokensPerSec === null && "text-fg-2")}>
+              {modelSpeed(m)}
+            </TableCell>
+            <TableCell className={cn(numCell, "whitespace-nowrap")}>{formatLatency(m.p50Ms)}</TableCell>
+            <TableCell
+              aria-hidden="true"
+              className="hidden pl-3 text-right font-mono text-fg-2 transition-[color,translate] duration-150 group-hover:translate-x-0.5 group-hover:text-fg lg:table-cell"
+            >
+              →
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+function Spec({ label, value, className }: { label: string; value: string; className?: string }) {
+  return (
+    <div className={className}>
+      <dt className="label-mono text-fg-2">{label}</dt>
+      <dd
+        className={cn(
+          "mt-1.5 font-mono text-small whitespace-nowrap tabular-nums",
+          value === "—" ? "text-fg-2" : "text-fg",
+        )}
+      >
+        {value}
+      </dd>
+    </div>
+  );
+}
+
+function PhoneCards({ list, task }: { list: Model[]; task: Task | "all" }) {
+  return (
+    <ul data-testid="catalog-cards" aria-label="Models" className="border-t border-line-strong md:hidden">
+      {list.map((m) => {
+        const price = modelPrice(m);
+        return (
+          <li
+            key={m.slug}
+            data-slug={m.slug}
+            data-tasks={m.tasks.join(" ")}
+            className="group relative border-b border-line py-5"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <Link
+                  href={href(m)}
+                  className="font-medium text-fg outline-offset-4 after:absolute after:inset-0 after:content-['']"
+                >
+                  {m.name}
+                </Link>
+                <p className="mt-1 text-small text-fg-2">
+                  {m.publisher}
+                  <span className="font-mono text-[0.8125rem]">
+                    {" · "}
+                    <Tasks model={m} active={task} />
+                  </span>
+                </p>
+              </div>
+              <span aria-hidden="true" className="font-mono text-fg-2">
+                →
+              </span>
+            </div>
+            <dl className="mt-4 grid grid-cols-3 gap-x-4 gap-y-4">
+              {price.unit === "image" ? (
+                <Spec label="Price" value={price.perImage} className="col-span-2" />
+              ) : (
+                <>
+                  <Spec label="Input / 1M" value={price.input} />
+                  <Spec label="Output / 1M" value={price.output} />
+                </>
+              )}
+              <Spec label="p50" value={formatLatency(m.p50Ms)} />
+              <Spec label="Context" value={formatContext(m.contextK)} />
+              <Spec label="Speed" value={modelSpeed(m)} />
+            </dl>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** The catalog list: a table from md up, one card per model on phones. */
+export function CatalogTable({ list, task, sort }: { list: Model[]; task: Task | "all"; sort: SortKey }) {
+  return (
+    <>
+      <DesktopTable list={list} task={task} sort={sort} />
+      <PhoneCards list={list} task={task} />
+    </>
+  );
+}
