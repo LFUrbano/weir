@@ -1,9 +1,8 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { useForm, useWatch, type Control, type ControllerRenderProps } from "react-hook-form";
+import { useForm, useWatch, type Control, type ControllerRenderProps, type Resolver } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -18,14 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  CONTACT_MESSAGE_MAX,
-  USE_CASES,
-  VOLUMES,
-  contactSchema,
-  useCaseLabels,
-  type ContactInput,
-} from "@/lib/contact-schema";
+import { CONTACT_MESSAGE_MAX, USE_CASES, VOLUMES, useCaseLabels } from "@/lib/contact-fields";
+import type { ContactInput } from "@/lib/contact-schema";
 import { formatCount } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -160,6 +153,23 @@ function Success({ data }: { data: ContactInput }) {
 }
 
 /**
+ * zod and the resolver (~50 KB gzipped) are not needed until the form first
+ * validates, far below the fold: fetch them then (or when the form gets
+ * focus) instead of on every load of the page.
+ */
+let zodResolverPromise: Promise<Resolver<ContactInput>> | null = null;
+
+function loadResolver(): Promise<Resolver<ContactInput>> {
+  zodResolverPromise ??= Promise.all([import("@hookform/resolvers/zod"), import("@/lib/contact-schema")]).then(
+    ([{ zodResolver }, { contactSchema }]) => zodResolver(contactSchema) as Resolver<ContactInput>,
+  );
+  return zodResolverPromise;
+}
+
+const lazyZodResolver: Resolver<ContactInput> = async (values, context, options) =>
+  (await loadResolver())(values, context, options);
+
+/**
  * "Talk to an engineer". Validates in the browser with the same zod schema the
  * unit tests check, focuses the first invalid field on submit, and ignores a
  * second submit while the first is "sending". A filled honeypot gets the same
@@ -167,7 +177,7 @@ function Success({ data }: { data: ContactInput }) {
  */
 export function ContactForm({ aside }: { aside?: ReactNode }) {
   const form = useForm<ContactInput>({
-    resolver: zodResolver(contactSchema),
+    resolver: lazyZodResolver,
     defaultValues: { email: "", company: "", message: "", website: "" },
     shouldFocusError: true,
   });
@@ -196,7 +206,13 @@ export function ContactForm({ aside }: { aside?: ReactNode }) {
 
   const formBody = (
     <Form {...form}>
-      <form data-testid="contact-form" noValidate onSubmit={onSubmit} className="relative grid gap-7">
+      <form
+        data-testid="contact-form"
+        noValidate
+        onSubmit={onSubmit}
+        onFocus={() => void loadResolver()}
+        className="relative grid gap-7"
+      >
         <div className="grid gap-7 sm:grid-cols-2 sm:gap-5">
           <FormField
             control={form.control}

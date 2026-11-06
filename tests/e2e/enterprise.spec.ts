@@ -158,6 +158,25 @@ test.describe("enterprise page", () => {
 });
 
 test.describe("contact form", () => {
+  test("zod is fetched when the form is first used, not on page load", async ({ page, request }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "once is enough");
+    const scripts = new Set<string>();
+    page.on("request", (r) => {
+      if (r.resourceType() === "script") scripts.add(r.url());
+    });
+    // Bodies are fetched again: the browser does not keep them for every script.
+    const zodLoaded = async () => {
+      for (const url of scripts) if ((await (await request.get(url)).text()).includes("$ZodType")) return true;
+      return false;
+    };
+    await page.goto("/enterprise/");
+    await page.waitForLoadState("networkidle");
+    expect(scripts.size).toBeGreaterThan(3);
+    expect(await zodLoaded()).toBe(false);
+    await email(page).focus();
+    await expect.poll(zodLoaded).toBe(true);
+  });
+
   test.beforeEach(async ({ page }) => {
     await page.goto("/enterprise/");
     await form(page).scrollIntoViewIfNeeded();
