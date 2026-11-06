@@ -6,7 +6,8 @@ Weir is a fictional AI-inference company based in San Francisco. This repository
 
 - Next.js (App Router), exported as a fully static site
 - React and TypeScript
-- Tailwind CSS
+- Tailwind CSS v4 and shadcn/ui (Base UI primitives), themed with the Weir tokens in `src/app/globals.css`
+- Fonts via `next/font`: Funnel Display, Funnel Sans, Azeret Mono
 - Vitest for unit tests, Playwright for end-to-end tests
 - GitHub Actions for CI
 
