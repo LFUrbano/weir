@@ -1,6 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 import { demoCost, heroDemo } from "../../src/components/home/hero-demo";
+import { company, dataRetention, freeCreditLabel, listAnd, pct } from "../../src/data/company";
 import { customers } from "../../src/data/customers";
+import { gpus } from "../../src/data/gpus";
 import { getModel, isTokenModel, models, type TokenModel } from "../../src/data/models";
 import { formatLatency, formatUsd } from "../../src/lib/format";
 import { blendedPrice } from "../../src/lib/pricing";
@@ -188,6 +190,71 @@ test.describe("home", () => {
     ).toHaveAttribute("href", "/#trust");
   });
 
+  test("company facts on the home come from src/data/company.ts", async ({ page }) => {
+    await page.goto("/");
+    const credit = `${freeCreditLabel} in credit`;
+    await expect(page.getByTestId("hero")).toContainText(credit);
+    await expect(page.getByTestId("hero")).toContainText(
+      `${models.length} models live in ${company.regions.join(", ")}`,
+    );
+    await expect(page.getByTestId("closing-cta")).toContainText(credit);
+
+    const paths = page.getByTestId("two-paths");
+    await expect(paths).toContainText(`${freeCreditLabel} to start`);
+    await expect(paths).toContainText(`${company.rateLimitRpm} requests a minute`);
+    await expect(paths).toContainText(listAnd(company.sdks));
+    await expect(paths).toContainText(listAnd(gpus.map((g) => g.name.replace("NVIDIA ", ""))));
+    await expect(paths).toContainText(pct(company.slaDedicatedPct));
+    await expect(paths).toContainText(listAnd(company.sso.protocols));
+    await expect(paths).toContainText(company.certifications.join(", "));
+
+    const trust = page.locator("#trust");
+    for (const c of company.certifications) await expect(trust).toContainText(c);
+    for (const p of company.sso.protocols) await expect(trust).toContainText(p);
+    await expect(trust).toContainText(listAnd(company.sso.idps));
+    await expect(trust).toContainText(`${pct(company.slaDedicatedPct)} SLA`);
+    await expect(trust).toContainText(`${pct(company.uptime90dPct)} API uptime`);
+    await expect(trust).toContainText(company.regions.join(" · "));
+
+    await expect(page.getByTestId("price-section")).toContainText(
+      `billed ${company.dedicatedBilling}`,
+    );
+  });
+
+  test("trust states one retention policy, without contradiction", async ({ page }) => {
+    await page.goto("/");
+    const trust = page.locator("#trust");
+    await expect(trust).toContainText(dataRetention.headline);
+    await expect(trust).toContainText(dataRetention.detail);
+    await expect(trust).not.toContainText("are not stored");
+  });
+
+  test("the router step respects a pinned region", async ({ page }) => {
+    await page.goto("/");
+    const router = page.getByTestId("diagram-step").nth(2);
+    await expect(router).toContainText("Router");
+    await expect(router.locator("p").first()).toContainText("region you pinned");
+  });
+
+  test("Replay keeps keyboard focus and plays the reply again", async ({ page }) => {
+    await page.goto("/");
+    const terminal = page.getByTestId("hero-terminal");
+    await page.getByTestId("hero-response").scrollIntoViewIfNeeded();
+    await expect(terminal).toHaveAttribute("data-state", "done", { timeout: 6000 });
+    const replay = terminal.getByRole("button", { name: "Replay response" });
+    await replay.focus();
+    await page.keyboard.press("Enter");
+    // It played again...
+    await expect(terminal).not.toHaveAttribute("data-state", "done");
+    // ...and focus stayed on the button, not on <body>.
+    expect(await page.evaluate(() => document.activeElement?.tagName)).not.toBe("BODY");
+    await expect(replay).toBeFocused();
+    await expect(replay).toHaveAttribute("aria-disabled", "true");
+    await expect(terminal).toHaveAttribute("data-state", "done", { timeout: 6000 });
+    await expect(replay).toBeFocused();
+    await expect(replay).toHaveAttribute("aria-disabled", "false");
+  });
+
   test("closing section repeats both calls to action", async ({ page }) => {
     await page.goto("/");
     const closing = page.getByTestId("closing-cta");
@@ -221,8 +288,10 @@ test.describe("home with reduced motion (Review Focus 4)", () => {
     await recordTerminalStates(page);
     await page.goto("/");
     await expectFinalTerminal(page, 1500);
-    // Never animated: it went straight to the final state.
-    expect(await terminalStates(page)).not.toContain("streaming");
+    // Never animated: from the server-rendered "idle" it went straight to "done".
+    const states = await terminalStates(page);
+    expect(states.filter((s) => s !== "idle")).toEqual(["done"]);
+    await expect(page.getByRole("button", { name: "Replay response" })).toHaveCount(0);
   });
 
   test("every diagram step is lit without scrolling through it", async ({ page }) => {
