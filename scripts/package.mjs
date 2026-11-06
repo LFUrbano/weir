@@ -37,7 +37,7 @@ function siteUrlOrExit() {
 const siteUrl = siteUrlOrExit();
 console.log(`Packaging for ${siteUrl}`);
 
-execSync("npx next build", { cwd: root, stdio: "inherit", env: { ...process.env, SITE_URL: siteUrl } });
+execSync("npm run build", { cwd: root, stdio: "inherit", env: { ...process.env, SITE_URL: siteUrl } });
 
 await mkdir(distDir, { recursive: true });
 await rm(zipPath, { force: true });

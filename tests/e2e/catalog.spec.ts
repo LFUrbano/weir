@@ -320,7 +320,7 @@ test.describe("header", () => {
 });
 
 test.describe("error collector", () => {
-  test("a missing script or font fails; only router prefetches may 404", async ({ page }, testInfo) => {
+  test("a missing script or font fails", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "once is enough");
     const errors = collectErrors(page);
     let broken = "";
@@ -346,5 +346,14 @@ test.describe("error collector", () => {
     // The built page answers; the mistyped one is the only failure reported.
     expect(statuses).toEqual([404, 200]);
     await expect.poll(() => errors).toEqual([expect.stringContaining("/models/typo/")]);
+  });
+
+  test("a missing segment file fails too (no .txt tolerance)", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "once is enough");
+    await page.goto("/models/");
+    const errors = collectErrors(page);
+    const status = await page.evaluate(async () => (await fetch("/models/__next.typo.__PAGE__.txt")).status);
+    expect(status).toBe(404);
+    await expect.poll(() => errors).toEqual([expect.stringContaining("__next.typo.__PAGE__.txt")]);
   });
 });
