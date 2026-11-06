@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Section } from "@/components/site/Section";
 import { buttonVariants } from "@/components/ui/button";
-import { company, freeCreditLabel, listAnd, pct } from "@/data/company";
+import { company, complianceLine, freeCreditLabel, listAnd, pct } from "@/data/company";
 import { gpus } from "@/data/gpus";
 import { formatUsd } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -45,7 +45,7 @@ function paths(): Path[] {
         },
         { label: "SLA", value: `${pct(company.slaDedicatedPct)} monthly uptime, with service credits.` },
         { label: "SSO", value: `${listAnd(company.sso.protocols)}, with audit logs.` },
-        { label: "Compliance", value: `${company.certifications.join(", ")} DPA.` },
+        { label: "Compliance", value: `${complianceLine}.` },
         { label: "Support", value: "A named engineer and a shared Slack channel." },
       ],
       cta: { label: "Talk to an engineer", href: "/enterprise/" },

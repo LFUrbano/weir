@@ -1,5 +1,5 @@
 import type { Model } from "@/data/models";
-import { formatPerImage, formatUsd } from "@/lib/format";
+import { formatPerImage, formatTokens, formatUsd } from "@/lib/format";
 
 /** Shown where a value does not apply (embedding output, image throughput). */
 export const NOT_APPLICABLE = "—";
@@ -56,4 +56,21 @@ export function endpointFor(m: Model): string {
  */
 export function latencyName(m: Model): "Time to first token" | "Response time" {
   return modelKind(m) === "chat" ? "Time to first token" : "Response time";
+}
+
+/** The name as it reads in a sentence: "Llama 3.3 70B Instruct" → "Llama 3.3 70B". */
+export function shortModelName(m: Model): string {
+  return m.name.replace(/ Instruct$/, "");
+}
+
+/**
+ * How every page names the break-even volume. With whole replicas, dedicated
+ * is not cheaper at every volume above it (a second replica starts a new
+ * step), so the claim is about one replica only.
+ */
+export const BREAK_EVEN_LABEL = "Break-even, 1 replica";
+
+/** "5.77B tok/mo". */
+export function formatBreakEven(tokens: number): string {
+  return `${formatTokens(tokens)} tok/mo`;
 }

@@ -54,3 +54,11 @@ export function formatContext(k: number | null): string {
   if (k >= 1000) return `${Number((k / 1000).toPrecision(3))}M`;
   return `${Math.round(k)}K`;
 }
+
+const count = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+
+/** A whole count with thousands separators: "100,000,000"; "0" for anything not a positive number. */
+export function formatCount(v: number): string {
+  if (!Number.isFinite(v) || v <= 0) return "0";
+  return count.format(Math.round(v));
+}

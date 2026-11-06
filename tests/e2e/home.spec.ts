@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { demoCost, heroDemo } from "../../src/components/home/hero-demo";
-import { company, dataRetention, freeCreditLabel, listAnd, pct } from "../../src/data/company";
+import { company, complianceLine, dataRetention, freeCreditLabel, listAnd, pct } from "../../src/data/company";
 import { customers } from "../../src/data/customers";
 import { gpus } from "../../src/data/gpus";
 import { getModel, isTokenModel, models, type TokenModel } from "../../src/data/models";
@@ -206,7 +206,8 @@ test.describe("home", () => {
     await expect(paths).toContainText(listAnd(gpus.map((g) => g.name.replace("NVIDIA ", ""))));
     await expect(paths).toContainText(pct(company.slaDedicatedPct));
     await expect(paths).toContainText(listAnd(company.sso.protocols));
-    await expect(paths).toContainText(company.certifications.join(", "));
+    // Certifications and the DPA are separate things, not one "GDPR DPA".
+    await expect(paths).toContainText(complianceLine);
 
     const trust = page.locator("#trust");
     for (const c of company.certifications) await expect(trust).toContainText(c);
