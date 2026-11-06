@@ -1,11 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
-import { snippetsFor } from "../../src/components/code/snippets";
+import { API_BASE_URL, snippetsFor } from "../../src/components/code/snippets";
 import { company, freeCreditLabel } from "../../src/data/company";
 import { getModel } from "../../src/data/models";
 import { collectErrors } from "./errors";
 
 const llama = getModel("llama-3-3-70b")!;
-const BASE_URL = "https://api.weir.example/v1";
 
 const STEPS = [
   { id: "create-a-key", title: "Create a key" },
@@ -40,9 +39,10 @@ test.describe("quickstart docs", () => {
     await expect(list.locator(":scope > li")).toHaveCount(STEPS.length);
     for (const [i, s] of STEPS.entries()) {
       const item = step(page, i);
-      await expect(item).toHaveAttribute("id", s.id);
       await expect(item.getByTestId("step-number")).toHaveText(String(i + 1));
-      await expect(item.getByRole("heading", { level: 2, name: s.title, exact: true })).toBeVisible();
+      const heading = item.getByRole("heading", { level: 2, name: s.title, exact: true });
+      await expect(heading).toBeVisible();
+      await expect(heading).toHaveAttribute("id", s.id);
     }
     // Exactly five h2s: nothing else competes with the steps.
     await expect(article(page).getByRole("heading", { level: 2 })).toHaveCount(5);
@@ -91,7 +91,6 @@ test.describe("quickstart docs", () => {
       "aria-current",
       "location",
     );
-    await page.locator("#stream-the-response").scrollIntoViewIfNeeded();
     await page.evaluate(() => document.getElementById("stream-the-response")!.scrollIntoView());
     await expect(toc.getByRole("link", { name: "Stream the response" })).toHaveAttribute(
       "aria-current",
@@ -115,7 +114,7 @@ test.describe("quickstart docs", () => {
     expect(text).toContain(`${company.rateLimitRpm} requests a minute`);
     expect(text).toContain("WEIR_API_KEY");
     // The SDKs point at the Weir API without being told to.
-    await expect(step(page, 1)).toContainText(`${BASE_URL} by default`);
+    await expect(step(page, 1)).toContainText(`${API_BASE_URL} by default`);
     // "Sign in" is not a destination on this site: no link may go to a dashboard.
     for (const href of await article(page).getByRole("link").evaluateAll((els) => els.map((e) => e.getAttribute("href")))) {
       expect(href).not.toMatch(/dashboard|sign-?in|login|^https?:\/\/(?!api\.weir\.example)/i);
@@ -127,7 +126,7 @@ test.describe("quickstart docs", () => {
     await page.goto("/docs/quickstart/");
 
     // Install: Python and Node tabs.
-    const install = step(page, 1);
+    const install = step(page, 1).getByTestId("code-panel").first();
     await expect(install.getByRole("tab")).toHaveText(["Python", "Node"]);
     await expect(install.getByRole("tabpanel").locator("pre")).toHaveText("pip install weir");
     await install.getByRole("tab", { name: "Node" }).click();
@@ -135,7 +134,7 @@ test.describe("quickstart docs", () => {
 
     // First call: the same request the model page and the hero show.
     const first = snippetsFor(llama);
-    const call = step(page, 2);
+    const call = step(page, 2).getByTestId("code-panel").first();
     await expect(call.getByRole("tab")).toHaveText(["curl", "Python", "Node"]);
     for (const [name, key] of [
       ["curl", "curl"],
@@ -143,18 +142,18 @@ test.describe("quickstart docs", () => {
       ["Node", "node"],
     ] as const) {
       await call.getByRole("tab", { name, exact: true }).click();
-      await expect(call.getByRole("tabpanel").locator("pre").first()).toHaveText(first[key]);
+      await expect(call.getByRole("tabpanel").locator("pre")).toHaveText(first[key]);
     }
 
     // Streaming: the stream variant, with stream turned on.
     const streamed = snippetsFor(llama, { stream: true });
-    const streaming = step(page, 3);
+    const streaming = step(page, 3).getByTestId("code-panel").first();
     await streaming.getByRole("tab", { name: "curl", exact: true }).click();
-    await expect(streaming.getByRole("tabpanel").locator("pre").first()).toHaveText(streamed.curl);
+    await expect(streaming.getByRole("tabpanel").locator("pre")).toHaveText(streamed.curl);
     expect(streamed.curl).toContain('"stream": true');
 
     // Copy puts the visible snippet on the clipboard.
-    await streaming.getByRole("button", { name: "Copy", exact: true }).first().click();
+    await streaming.getByRole("button", { name: "Copy", exact: true }).click();
     await expect(streaming.getByRole("button", { name: "Copied", exact: true })).toBeVisible();
     const copied = await page.evaluate(() => navigator.clipboard.readText());
     expect(copied.split(/\r?\n/).join("\n")).toBe(streamed.curl);
@@ -162,12 +161,12 @@ test.describe("quickstart docs", () => {
 
   test("a language picked in one block is kept in the others", async ({ page }) => {
     await page.goto("/docs/quickstart/");
-    await step(page, 2).getByRole("tab", { name: "Node", exact: true }).click();
-    await expect(step(page, 1).getByRole("tab", { name: "Node" })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-    await expect(step(page, 3).getByRole("tab", { name: "Node", exact: true })).toHaveAttribute(
+    await step(page, 2).getByRole("tab", { name: "Node", exact: true }).first().click();
+    // Both panels in the install step (install, override) follow the pick.
+    for (const tab of await step(page, 1).getByRole("tab", { name: "Node" }).all()) {
+      await expect(tab).toHaveAttribute("aria-selected", "true");
+    }
+    await expect(step(page, 3).getByRole("tab", { name: "Node", exact: true }).first()).toHaveAttribute(
       "aria-selected",
       "true",
     );
@@ -188,13 +187,15 @@ test.describe("quickstart docs", () => {
   test("the SDK default base URL is shown with its override", async ({ page }) => {
     await page.goto("/docs/quickstart/");
     const install = step(page, 1);
-    await expect(install).toContainText("base_url");
-    await expect(install).toContainText("baseURL");
+    const override = install.getByTestId("code-panel").nth(1);
+    await expect(override.getByRole("tabpanel")).toContainText("base_url");
+    await override.getByRole("tab", { name: "Node" }).click();
+    await expect(override.getByRole("tabpanel")).toContainText("baseURL");
   });
 
   test("every Next steps link answers 200", async ({ page, request }) => {
     await page.goto("/docs/quickstart/");
-    const links = step(page, 4).getByRole("link");
+    const links = step(page, 4).getByRole("list").getByRole("link");
     const hrefs = await links.evaluateAll((els) => els.map((e) => e.getAttribute("href") ?? ""));
     expect(hrefs.length).toBeGreaterThanOrEqual(4);
     expect(hrefs).toEqual(
@@ -239,7 +240,7 @@ test.describe("quickstart docs", () => {
     test.skip(testInfo.project.name !== "desktop", "wide viewport");
     await page.goto("/docs/quickstart/");
     const widest = await article(page)
-      .locator("p")
+      .locator("p:not(.label-mono)")
       .evaluateAll((ps) => Math.max(...ps.map((p) => p.getBoundingClientRect().width)));
     // ~70 characters at 17px Funnel Sans is about 600px; allow some slack.
     expect(widest).toBeLessThanOrEqual(680);
