@@ -234,6 +234,7 @@ test.describe("model catalog", () => {
     // Command menu "Models" page item.
     await typeLlama();
     await page.keyboard.press("Control+k");
+    await expect(page.getByRole("combobox", { name: "Search models and pages" })).toBeFocused();
     await page.keyboard.type("models");
     await page.getByRole("dialog", { name: "Search Weir" }).getByRole("option", { name: /^Models/ }).click();
     await expectReset();
@@ -253,18 +254,37 @@ test.describe("model catalog", () => {
 });
 
 test.describe("command menu", () => {
-  for (const shortcut of ["Control+k", "Meta+k"]) {
-    test(`${shortcut} opens it on any page`, async ({ page }) => {
+  for (const { platform, shortcut, other } of [
+    { platform: "Win32", shortcut: "Control+k", other: "Meta+k" },
+    { platform: "MacIntel", shortcut: "Meta+k", other: "Control+k" },
+  ]) {
+    test(`${shortcut} opens it on any page (${platform}), ${other} does not`, async ({ page }) => {
+      await page.addInitScript((p) => {
+        Object.defineProperty(Navigator.prototype, "platform", { get: () => p });
+      }, platform);
       for (const path of ["/", "/models/"]) {
         await page.goto(path);
-        await page.keyboard.press(shortcut);
         const menu = page.getByRole("dialog", { name: "Search Weir" });
+        // On a Mac, Ctrl+K deletes to the end of the line in text fields; it must not open the menu.
+        await page.keyboard.press(other);
+        await page.waitForTimeout(300);
+        await expect(menu).toBeHidden();
+        await page.keyboard.press(shortcut);
         await expect(menu).toBeVisible();
         await page.keyboard.press("Escape");
         await expect(menu).toBeHidden();
       }
     });
   }
+
+  test("Escape returns focus to the header button that opened it", async ({ page }) => {
+    await page.goto("/");
+    const trigger = page.getByRole("banner").getByRole("button", { name: /Search/ });
+    await trigger.click();
+    await expect(page.getByRole("dialog", { name: "Search Weir" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(trigger).toBeFocused();
+  });
 
   test("typing a model name and Enter opens its page", async ({ page }) => {
     await page.goto("/");

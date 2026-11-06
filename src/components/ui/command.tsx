@@ -35,12 +35,14 @@ function CommandDialog({
   children,
   className,
   showCloseButton = false,
+  onCloseAutoFocus,
   ...props
 }: React.ComponentProps<typeof Dialog> & {
   title?: string
   description?: string
   className?: string
   showCloseButton?: boolean
+  onCloseAutoFocus?: React.ComponentProps<typeof DialogContent>["onCloseAutoFocus"]
 }) {
   return (
     <Dialog {...props}>
@@ -50,6 +52,7 @@ function CommandDialog({
           className
         )}
         showCloseButton={showCloseButton}
+        onCloseAutoFocus={onCloseAutoFocus}
       >
         <DialogHeader className="sr-only">
           <DialogTitle>{title}</DialogTitle>
@@ -79,7 +82,7 @@ function CommandInput({
       <CommandPrimitive.Input
         data-slot="command-input"
         className={cn(
-          "h-10 w-full rounded-md bg-surface-2 pr-3 pl-9 text-[0.9375rem] text-fg placeholder:text-fg-2 focus-visible:outline-offset-0 disabled:cursor-not-allowed disabled:opacity-50",
+          "h-10 w-full rounded-md bg-surface-2 pr-3 pl-9 text-ui text-fg placeholder:text-fg-2 focus-visible:outline-offset-0 disabled:cursor-not-allowed disabled:opacity-50",
           className
         )}
         {...props}
@@ -172,7 +175,7 @@ function CommandShortcut({
     <span
       data-slot="command-shortcut"
       className={cn(
-        "ml-auto font-mono text-[0.75rem] text-fg-2 group-data-selected/command-item:text-fg",
+        "ml-auto font-mono text-caption text-fg-2 group-data-selected/command-item:text-fg",
         className
       )}
       {...props}
