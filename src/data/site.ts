@@ -11,7 +11,7 @@ export const siteNav: NavItem[] = [
 
 export const primaryCta = { label: "Get an API key", href: "/docs/quickstart/" } as const;
 
-export type FooterColumn = { title: string; links: { label: string; href: SiteRoute | "/" }[] };
+export type FooterColumn = { title: string; links: { label: string; href: SiteRoute }[] };
 
 export const footerColumns: FooterColumn[] = [
   {
@@ -25,8 +25,8 @@ export const footerColumns: FooterColumn[] = [
   {
     title: "Company",
     links: [
-      { label: "Home", href: "/" },
       { label: "Enterprise", href: "/enterprise/" },
+      { label: "Talk to an engineer", href: "/enterprise/" },
     ],
   },
 ];
