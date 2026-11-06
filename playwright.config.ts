@@ -17,11 +17,15 @@ export default defineConfig({
   projects: [
     {
       name: "desktop",
-      use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } },
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+        permissions: ["clipboard-read", "clipboard-write"],
+      },
     },
     {
       name: "mobile",
-      use: { ...devices["Pixel 7"] },
+      use: { ...devices["Pixel 7"], permissions: ["clipboard-read", "clipboard-write"] },
     },
   ],
 });

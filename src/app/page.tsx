@@ -1,6 +1,11 @@
+import { CodePanel } from "@/components/code/CodePanel";
+import { snippetsFor } from "@/components/code/snippets";
+import { getModel } from "@/data/models";
+
 // Placeholder home. The full home page (hero terminal, catalog preview,
 // request diagram) replaces this in a later change.
 export default function Home() {
+  const model = getModel("llama-3-3-70b");
   return (
     <div className="container-site py-24 md:py-36">
       <div className="grid grid-cols-12 gap-x-6">
@@ -14,6 +19,14 @@ export default function Home() {
             shared capacity, without changing a line of code.
           </p>
         </div>
+        {model && model.pricing.unit === "tokens" ? (
+          <div className="col-span-12 mt-14 lg:col-span-7">
+            <CodePanel
+              snippets={snippetsFor(model)}
+              footer={`${model.slug} · $${model.pricing.input.toFixed(2)} in / $${model.pricing.output.toFixed(2)} out per 1M tokens`}
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   );

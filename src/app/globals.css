@@ -28,6 +28,10 @@
   --color-ok: #5fbf8a;
   --color-err: #e5675a;
 
+  /* Code panel syntax. Keys and keywords reuse amber; comments reuse fg-2.
+     On surface (#121513): string green 10.4:1, amber 10.5:1, fg-2 8.3:1. */
+  --color-syntax-string: #8fd1a8;
+
   --radius-sm: 6px;
   --radius-md: 6px;
   --radius-lg: 6px;
