@@ -109,7 +109,7 @@ function PricePanel({ model }: { model: Model }) {
             <dd className="mt-2.5">
               <span
                 className={cn(
-                  "block font-mono text-[1.625rem] leading-none",
+                  "block font-mono text-price leading-none",
                   r.value === "—" ? "text-fg-2" : "text-fg",
                 )}
               >
@@ -194,7 +194,7 @@ function Dedicated({ model }: { model: Model }) {
         {facts.map((f) => (
           <div key={f.label} className="bg-surface px-5 py-5">
             <dt className="label-mono text-fg-2">{f.label}</dt>
-            <dd className="mt-2 font-mono text-[0.9375rem] text-fg">{f.value}</dd>
+            <dd className="mt-2 font-mono text-ui text-fg">{f.value}</dd>
           </div>
         ))}
       </dl>
@@ -237,10 +237,10 @@ function Similar({ model }: { model: Model }) {
               </Link>
               <p className="mt-1 text-small text-fg-2">
                 {s.publisher}
-                <span className="font-mono text-[0.8125rem]"> · {s.tasks.join(" · ")}</span>
+                <span className="font-mono text-meta"> · {s.tasks.join(" · ")}</span>
               </p>
             </div>
-            <p className="font-mono text-[0.8125rem] whitespace-nowrap text-fg">
+            <p className="font-mono text-meta whitespace-nowrap text-fg">
               {price.unit === "image" ? (
                 price.perImage
               ) : (
@@ -250,7 +250,7 @@ function Similar({ model }: { model: Model }) {
                 </>
               )}
             </p>
-            <p className="flex items-center justify-between gap-4 font-mono text-[0.8125rem] whitespace-nowrap text-fg-2">
+            <p className="flex items-center justify-between gap-4 font-mono text-meta whitespace-nowrap text-fg-2">
               <span>p50 {formatLatency(s.p50Ms)}</span>
               <span
                 aria-hidden="true"
@@ -276,7 +276,7 @@ export default async function ModelPage({ params }: PageProps<"/models/[slug]">)
       <section aria-labelledby="model-title" className="pt-8 pb-12 md:pt-10 md:pb-16">
         <div className="container-site">
           <nav aria-label="Breadcrumb">
-            <ol className="flex min-w-0 items-center gap-2 font-mono text-[0.8125rem] text-fg-2">
+            <ol className="flex min-w-0 items-center gap-2 font-mono text-meta text-fg-2">
               <li>
                 <Link
                   href="/models/"
@@ -300,12 +300,12 @@ export default async function ModelPage({ params }: PageProps<"/models/[slug]">)
               </p>
               <h1
                 id="model-title"
-                className="mt-6 text-[2.5rem] leading-[1.04] tracking-[-0.03em] text-fg sm:text-[3.25rem]"
+                className="mt-6 text-h2 leading-[1.04] tracking-[-0.03em] text-fg sm:text-title"
               >
                 {m.name}
               </h1>
               <p className="mt-4 font-mono text-small text-fg-2">by {m.publisher}</p>
-              <p className="mt-6 max-w-[36rem] text-[1.0625rem] leading-relaxed text-fg-2">{m.summary}</p>
+              <p className="mt-6 max-w-[36rem] text-lede leading-relaxed text-fg-2">{m.summary}</p>
               <ul aria-label="Tags" className="mt-6 flex flex-wrap gap-2">
                 {m.tasks.map((t) => (
                   <li key={t}>

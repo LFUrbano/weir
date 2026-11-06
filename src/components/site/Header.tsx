@@ -17,7 +17,7 @@ export function Header() {
         <div className="ml-auto flex items-center gap-2 md:gap-5">
           <CommandMenuTrigger />
           {/* A concept site has no accounts, so "Sign in" stays plain text. */}
-          <span className="hidden cursor-default text-[0.875rem] text-fg-2 select-none md:inline">
+          <span className="hidden cursor-default text-small text-fg-2 select-none md:inline">
             Sign in
           </span>
           <Link href={primaryCta.href} className={buttonVariants({ size: "sm" })}>

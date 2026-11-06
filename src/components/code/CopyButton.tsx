@@ -70,7 +70,7 @@ export function CopyButton({
         onClick={onClick}
         aria-label={what && state === "idle" ? `${label} ${what}` : undefined}
         className={cn(
-          "font-mono text-[0.8125rem]",
+          "font-mono text-meta",
           state === "copied" && "text-ok hover:text-ok",
           state === "failed" && "text-err hover:text-err",
           className,

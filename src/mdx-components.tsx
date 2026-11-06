@@ -69,7 +69,7 @@ function A({ href = "", children, ...rest }: ComponentProps<"a">) {
 function H3({ children, id: explicitId }: ComponentProps<"h3">) {
   const id = explicitId ?? headingId(textOf(children));
   return (
-    <h3 id={id} className="group mt-10 text-[1.1875rem] leading-snug tracking-[-0.01em] text-fg">
+    <h3 id={id} className="group mt-10 text-h4 leading-snug tracking-[-0.01em] text-fg">
       <a href={`#${id}`} className="decoration-line-strong underline-offset-4 hover:underline">
         {children}
         <span
@@ -86,7 +86,7 @@ function H3({ children, id: explicitId }: ComponentProps<"h3">) {
 export const mdxComponents: MDXComponents = {
   h1: (props) => (
     <h1
-      className="max-w-[40rem] text-[2.5rem] leading-[1.04] tracking-[-0.03em] text-fg sm:text-[3.25rem]"
+      className="max-w-[40rem] text-h2 leading-[1.04] tracking-[-0.03em] text-fg sm:text-title"
       {...props}
     />
   ),

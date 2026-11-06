@@ -57,7 +57,7 @@ export function ModelSpecs({ model }: { model: Model }) {
           className="grid min-h-13 grid-cols-1 items-center gap-1 border-b border-line py-2.5 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:gap-4"
         >
           <dt className="label-mono text-fg-2">{r.label}</dt>
-          <dd className="flex min-w-0 items-center justify-between gap-3 font-mono text-[0.8125rem] text-fg">
+          <dd className="flex min-w-0 items-center justify-between gap-3 font-mono text-meta text-fg">
             <span className="min-w-0 break-words">
               {r.value}
               {r.note && <span className="ml-2 text-fg-2">{r.note}</span>}

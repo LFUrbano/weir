@@ -52,7 +52,7 @@ function EmptyState({ params, onClear }: { params: CatalogParams; onClear?: () =
           {active.map((f) => (
             <li
               key={f.key}
-              className="max-w-full truncate rounded-md border border-line-strong px-2 py-1 font-mono text-[0.75rem] text-fg-2"
+              className="max-w-full truncate rounded-md border border-line-strong px-2 py-1 font-mono text-caption text-fg-2"
             >
               {f.key}: <span className="text-fg">{f.value}</span>
             </li>
@@ -98,7 +98,7 @@ function CatalogView({ params, query, onQueryChange, onTaskChange, onSortChange,
       <p
         data-testid="catalog-count"
         aria-live="polite"
-        className="font-mono text-[0.8125rem] text-fg-2 tabular-nums"
+        className="font-mono text-meta text-fg-2 tabular-nums"
       >
         {shown === models.length ? (
           <>All {models.length} models</>

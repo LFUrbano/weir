@@ -88,11 +88,11 @@ export default function PricingPage() {
           <p className="label-mono text-fg-2">Pricing</p>
           <h1
             id="pricing-title"
-            className="mt-6 max-w-[48rem] text-[2.5rem] leading-[1.04] tracking-[-0.03em] text-fg sm:text-[3.25rem]"
+            className="mt-6 max-w-[48rem] text-h2 leading-[1.04] tracking-[-0.03em] text-fg sm:text-title"
           >
             Pay per token until reserved GPUs cost less.
           </h1>
-          <p className="mt-6 max-w-[38rem] text-[1.0625rem] leading-relaxed text-fg-2">
+          <p className="mt-6 max-w-[38rem] text-lede leading-relaxed text-fg-2">
             Serverless bills each token on shared GPUs. Dedicated reserves replicas by the GPU-hour.
             Same API, same model IDs, so the switch is a billing decision, not a rewrite.
           </p>
@@ -104,8 +104,8 @@ export default function PricingPage() {
             {modes.map((m) => (
               <li key={m.id} className="flex flex-col bg-surface p-5 md:p-6">
                 <p className="label-mono text-fg-2">{m.name}</p>
-                <p className="mt-4 font-mono text-[1.375rem] leading-none text-fg">{m.price}</p>
-                <p className="mt-2 font-mono text-[0.75rem] text-fg-2">{m.unit}</p>
+                <p className="mt-4 font-mono text-stat leading-none text-fg">{m.price}</p>
+                <p className="mt-2 font-mono text-caption text-fg-2">{m.unit}</p>
                 <p className="mt-4 max-w-[22rem] text-small text-fg-2">{m.summary}</p>
                 <div className="mt-auto pt-5">
                   {m.link.href.startsWith("#") ? (

@@ -68,7 +68,7 @@ function VolumeChoice({ field: f }: { field: ControllerRenderProps<ContactInput,
               key={v}
               htmlFor={id}
               className={cn(
-                "relative flex h-11 cursor-pointer items-center justify-center rounded-md border border-line-strong bg-surface font-mono text-[0.875rem] text-fg-2 transition-colors duration-150",
+                "relative flex h-11 cursor-pointer items-center justify-center rounded-md border border-line-strong bg-surface font-mono text-small text-fg-2 transition-colors duration-150",
                 "hover:border-[color-mix(in_oklab,var(--color-line-strong),white_10%)] hover:text-fg",
                 "has-checked:border-amber has-checked:bg-surface-2 has-checked:text-fg",
                 "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-amber",
@@ -101,7 +101,7 @@ function MessageCount({ control }: { control: Control<ContactInput> }) {
   const length = (useWatch({ control, name: "message" }) ?? "").trim().length;
   const over = length > CONTACT_MESSAGE_MAX;
   return (
-    <span data-testid="message-count" className={cn("font-mono text-[0.75rem]", over ? "text-err" : "text-fg-2")}>
+    <span data-testid="message-count" className={cn("font-mono text-caption", over ? "text-err" : "text-fg-2")}>
       {formatCount(length)} / {formatCount(CONTACT_MESSAGE_MAX)}
     </span>
   );

@@ -128,11 +128,11 @@ export default function EnterprisePage() {
           <p className="label-mono text-fg-2">Enterprise</p>
           <h1
             id="enterprise-title"
-            className="mt-6 max-w-[50rem] text-[2.5rem] leading-[1.04] tracking-[-0.03em] text-fg sm:text-[3.25rem]"
+            className="mt-6 max-w-[50rem] text-h2 leading-[1.04] tracking-[-0.03em] text-fg sm:text-title"
           >
             GPUs reserved for you, <span className="text-fg-2">on terms procurement can sign.</span>
           </h1>
-          <p className="mt-6 max-w-[40rem] text-[1.0625rem] leading-relaxed text-fg-2">
+          <p className="mt-6 max-w-[40rem] text-lede leading-relaxed text-fg-2">
             The same API and model IDs you call today, on replicas reserved for you and pinned to a
             region: {gpuRegionLine}. A {slaPct} uptime SLA, SSO, and <ComplianceText />.
           </p>
@@ -152,7 +152,7 @@ export default function EnterprisePage() {
             {facts.map((f) => (
               <div key={f.label} className="flex flex-col bg-surface p-5 md:p-6">
                 <dt className="label-mono text-fg-2">{f.label}</dt>
-                <dd className="mt-4 font-mono text-[0.9375rem] leading-snug text-fg">
+                <dd className="mt-4 font-mono text-ui leading-snug text-fg">
                   {/* Each item stays whole ("eu-west" never breaks at its hyphen), and a line never starts with "·". */}
                   {f.value.map((v, i) => (
                     <span key={v}>

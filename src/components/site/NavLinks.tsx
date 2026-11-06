@@ -18,7 +18,7 @@ export function NavLinks({ className }: { className?: string }) {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "relative inline-flex h-8 items-center rounded-md px-3 text-[0.875rem] transition-colors duration-150",
+                "relative inline-flex h-8 items-center rounded-md px-3 text-small transition-colors duration-150",
                 "text-fg-2 hover:text-fg aria-[current=page]:text-fg",
                 "after:absolute after:inset-x-3 after:-bottom-3 after:h-px after:bg-fg after:opacity-0 aria-[current=page]:after:opacity-100",
               )}

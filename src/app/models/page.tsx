@@ -33,11 +33,11 @@ export default function ModelsPage() {
               </p>
               <h1
                 id="catalog-title"
-                className="mt-6 text-[2.75rem] leading-[1.02] tracking-[-0.03em] text-fg sm:text-[3.25rem]"
+                className="mt-6 text-title-sm leading-[1.02] tracking-[-0.03em] text-fg sm:text-title"
               >
                 Models
               </h1>
-              <p className="mt-6 max-w-[36rem] text-[1.0625rem] leading-relaxed text-fg-2">
+              <p className="mt-6 max-w-[36rem] text-lede leading-relaxed text-fg-2">
                 Open-weight models for chat, reasoning, code, embeddings, vision and images, all
                 behind the same request format. Switching models is a one-string change.
               </p>
@@ -49,7 +49,7 @@ export default function ModelsPage() {
                   className="flex items-baseline justify-between gap-6 border-b border-line py-3"
                 >
                   <dt className="label-mono shrink-0 text-fg-2">{f.label}</dt>
-                  <dd className="text-right font-mono text-[0.8125rem] whitespace-nowrap text-fg">{f.value}</dd>
+                  <dd className="text-right font-mono text-meta whitespace-nowrap text-fg">{f.value}</dd>
                 </div>
               ))}
             </dl>

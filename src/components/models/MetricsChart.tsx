@@ -95,7 +95,7 @@ function Panel({
             {panel.name}
             <span className="normal-case"> · {panel.unit(top)}</span>
           </p>
-          <p className="mt-2 font-mono text-[1.375rem] leading-none text-fg">
+          <p className="mt-2 font-mono text-stat leading-none text-fg">
             {panel.format(panel.median)}
             <span className="ml-2 text-small text-fg-2">median</span>
           </p>
@@ -109,7 +109,7 @@ function Panel({
           {ticks.map((v) => (
             <span
               key={v}
-              className="absolute right-3 -translate-y-1/2 font-mono text-[0.6875rem] whitespace-nowrap text-fg-2"
+              className="absolute right-3 -translate-y-1/2 font-mono text-micro whitespace-nowrap text-fg-2"
               style={{ top: `${yPct(v)}%` }}
             >
               {panel.tick(v, top)}
@@ -175,7 +175,7 @@ function Panel({
         </div>
         <div aria-hidden="true" className="relative">
           <span
-            className="absolute left-2 -translate-y-1/2 font-mono text-[0.6875rem] leading-none text-fg-2"
+            className="absolute left-2 -translate-y-1/2 font-mono text-micro leading-none text-fg-2"
             style={{ top: `${yPct(panel.median)}%` }}
           >
             p50
@@ -268,7 +268,7 @@ export function MetricsChart({ times, panels: plain }: MetricsChartProps) {
       <div
         data-testid="metrics-tooltip"
         aria-hidden="true"
-        className="pointer-events-none absolute top-0 z-10 grid min-w-40 gap-1.5 rounded-md whitespace-nowrap border border-line-strong bg-surface-2 px-3 py-2.5 font-mono text-[0.75rem]"
+        className="pointer-events-none absolute top-0 z-10 grid min-w-40 gap-1.5 rounded-md whitespace-nowrap border border-line-strong bg-surface-2 px-3 py-2.5 font-mono text-caption"
         style={tipStyle}
       >
         <span className="text-fg-2">{minutesAgo(times[active])}</span>
@@ -317,7 +317,7 @@ export function MetricsChart({ times, panels: plain }: MetricsChartProps) {
         <div className="hidden lg:block" />
         <div className="grid grid-cols-[2.75rem_minmax(0,1fr)_2.25rem]">
           <div />
-          <div className="relative mt-2.5 h-4 font-mono text-[0.6875rem] text-fg-2">
+          <div className="relative mt-2.5 h-4 font-mono text-micro text-fg-2">
             {[0, 6, 12, 18, 24].map((h) => (
               <span
                 key={h}

@@ -38,7 +38,7 @@ export function Logo({
       )}
     >
       <LogoMark className="transition-transform duration-300 ease-out-quart group-hover:translate-y-px" />
-      <span className="font-display text-[1.3125rem] leading-none font-semibold tracking-[-0.035em]">
+      <span className="font-display text-logo leading-none font-semibold tracking-[-0.035em]">
         weir
       </span>
     </Link>
