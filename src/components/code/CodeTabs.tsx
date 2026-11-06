@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CopyButton } from "@/components/code/CopyButton";
+import { useSharedLang } from "@/components/code/lang-store";
 import type { SnippetLang } from "@/components/code/snippets";
 
 export interface CodePane {
@@ -19,17 +20,29 @@ export function CodeTabs({
   panes,
   defaultTab,
   footer,
+  syncLanguage = false,
 }: {
   panes: CodePane[];
   defaultTab: SnippetLang;
   footer?: ReactNode;
+  /** Follow the language picked in the other synced panels on the page, and share this pick with them. */
+  syncLanguage?: boolean;
 }) {
-  const [active, setActive] = useState<SnippetLang>(defaultTab);
-  const current = panes.find((p) => p.lang === active) ?? panes[0];
+  const [own, setOwn] = useState<SnippetLang>(defaultTab);
+  const [shared, setShared] = useSharedLang();
+  const wanted = syncLanguage && shared ? shared : own;
+  // A panel without the wanted language (install has no curl tab) shows its first one.
+  const current = panes.find((p) => p.lang === wanted) ?? panes[0];
 
   return (
-    <div className="overflow-hidden rounded-panel border border-line bg-surface">
-      <Tabs value={active} onValueChange={(v) => setActive(v as SnippetLang)}>
+    <div data-testid="code-panel" className="overflow-hidden rounded-panel border border-line bg-surface">
+      <Tabs
+        value={current.lang}
+        onValueChange={(v) => {
+          setOwn(v as SnippetLang);
+          if (syncLanguage) setShared(v as SnippetLang);
+        }}
+      >
         <div className="flex items-center justify-between gap-2 border-b border-line bg-surface-2 pr-2">
           <TabsList aria-label="Language">
             {panes.map((p) => (
