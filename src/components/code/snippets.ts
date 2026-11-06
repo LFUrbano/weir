@@ -9,7 +9,8 @@ export interface Snippets {
 
 export type SnippetLang = keyof Snippets;
 
-const BASE_URL = "https://api.weir.example/v1";
+/** Where the Weir SDKs point by default; curl examples spell it out. */
+export const API_BASE_URL = "https://api.weir.example/v1";
 
 type Kind = ModelKind;
 
@@ -37,7 +38,7 @@ export function snippetsFor(m: Model, { stream = false }: SnippetOptions = {}): 
 
   if (kind === "embeddings") {
     return {
-      curl: `curl ${BASE_URL}/embeddings \\
+      curl: `curl ${API_BASE_URL}/embeddings \\
   -H "Authorization: Bearer $WEIR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -68,7 +69,7 @@ console.log(response.data[0].embedding.length);`,
 
   if (kind === "image") {
     return {
-      curl: `curl ${BASE_URL}/images/generations \\
+      curl: `curl ${API_BASE_URL}/images/generations \\
   -H "Authorization: Bearer $WEIR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -102,7 +103,7 @@ console.log(response.data[0].url);`,
 
   if (stream) {
     return {
-      curl: `curl -N ${BASE_URL}/chat/completions \\
+      curl: `curl -N ${API_BASE_URL}/chat/completions \\
   -H "Authorization: Bearer $WEIR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -140,7 +141,7 @@ for await (const chunk of stream) {
   }
 
   return {
-    curl: `curl ${BASE_URL}/chat/completions \\
+    curl: `curl ${API_BASE_URL}/chat/completions \\
   -H "Authorization: Bearer $WEIR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{

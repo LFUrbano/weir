@@ -9,6 +9,7 @@ import {
   freeCreditLabel,
   listAnd,
   lowerFirst,
+  noCardRequired,
   pct,
   slaCoverage,
 } from "@/data/company";
@@ -33,7 +34,7 @@ const questions: Question[] = [
         <p>
           Serverless is billed per token. Input and output are priced separately per 1M tokens, and
           image models per image. {billingTerms.serverlessBilling} New accounts start with{" "}
-          {freeCreditLabel} of credit, no card required.
+          {freeCreditLabel} of credit, {lowerFirst(noCardRequired)}
         </p>
         <p>
           Dedicated replicas are billed {company.dedicatedBilling} at the hourly rates above, from

@@ -333,21 +333,18 @@ test.describe("error collector", () => {
     await expect.poll(() => errors.some((e) => e.includes(broken))).toBe(true);
   });
 
-  test("a prefetch of a mistyped internal link fails; unbuilt pages are listed", async ({
-    page,
-  }, testInfo) => {
+  test("a prefetch of a mistyped internal link fails", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "once is enough");
     await page.goto("/models/");
     const errors = collectErrors(page);
     // fetch() from the page is how the router prefetches a route path.
-    // When /docs/quickstart/ is built (Task 10), swap it for a page still in NOT_YET_BUILT
-    // (or drop this half of the test once the list is empty).
     const statuses = await page.evaluate(async () =>
       Promise.all(
         ["/models/typo/", "/docs/quickstart/"].map(async (path) => (await fetch(path)).status),
       ),
     );
-    expect(statuses).toEqual([404, 404]);
+    // The built page answers; the mistyped one is the only failure reported.
+    expect(statuses).toEqual([404, 200]);
     await expect.poll(() => errors).toEqual([expect.stringContaining("/models/typo/")]);
   });
 });

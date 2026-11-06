@@ -17,7 +17,7 @@ const TOKEN_CLASS: Record<Exclude<Token["type"], "plain">, string> = {
 };
 
 /** Highlighting happens here, on the server, so the client gets plain spans. */
-function Code({ text, lang }: { text: string; lang: SnippetLang }) {
+export function Code({ text, lang }: { text: string; lang: SnippetLang }) {
   return (
     <pre className="m-0 w-max min-w-full px-4 py-4 font-mono text-code whitespace-pre text-fg md:px-5 md:py-5">
       <code>
@@ -39,13 +39,12 @@ function Code({ text, lang }: { text: string; lang: SnippetLang }) {
  * The three highlighted panes (curl, Python, Node). Exported so other client
  * shells, like the hero terminal, get the same server-rendered code.
  */
-export function codePanes(snippets: Snippets): CodePane[] {
-  return (["curl", "python", "node"] as const).map((lang) => ({
-    lang,
-    label: LABELS[lang],
-    text: snippets[lang],
-    content: <Code text={snippets[lang]} lang={lang} />,
-  }));
+export function codePanes(snippets: Partial<Snippets>): CodePane[] {
+  return (["curl", "python", "node"] as const).flatMap((lang) => {
+    const text = snippets[lang];
+    if (text === undefined) return [];
+    return [{ lang, label: LABELS[lang], text, content: <Code text={text} lang={lang} /> }];
+  });
 }
 
 /**
@@ -57,10 +56,21 @@ export function CodePanel({
   snippets,
   footer,
   defaultTab = "curl",
+  syncLanguage = false,
 }: {
-  snippets: Snippets;
+  /** Only the languages given get a tab (an install command has no curl). */
+  snippets: Partial<Snippets>;
   footer?: ReactNode;
   defaultTab?: SnippetLang;
+  /** Docs pages: keep every synced panel on the language the reader last picked. */
+  syncLanguage?: boolean;
 }) {
-  return <CodeTabs panes={codePanes(snippets)} defaultTab={defaultTab} footer={footer} />;
+  return (
+    <CodeTabs
+      panes={codePanes(snippets)}
+      defaultTab={defaultTab}
+      footer={footer}
+      syncLanguage={syncLanguage}
+    />
+  );
 }

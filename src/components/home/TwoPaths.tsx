@@ -7,6 +7,7 @@ import {
   freeCreditLabel,
   identityLine,
   listAnd,
+  noCardRequired,
   slaLine,
   supportLine,
 } from "@/data/company";
@@ -32,14 +33,14 @@ function paths(): Path[] {
       title: "Start building",
       summary: "A key, an SDK and a credit balance. Your first streamed reply takes about five minutes.",
       items: [
-        { label: "Free credit", value: `${freeCreditLabel} to start. No card required.` },
+        { label: "Free credit", value: `${freeCreditLabel} to start. ${noCardRequired}` },
         { label: "SDKs", value: `${listAnd(company.sdks)}, or plain HTTP with curl.` },
         { label: "Billing", value: "Per token, per model. No minimums." },
         {
           label: "Rate limit",
           value: `${company.rateLimitRpm} requests a minute, raised as you spend.`,
         },
-        { label: "Docs", value: "Quickstart, streaming, model reference." },
+        { label: "Docs", value: "Quickstart, with streaming." },
       ],
       cta: { label: "Read the quickstart", href: "/docs/quickstart/" },
     },

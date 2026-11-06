@@ -1,0 +1,168 @@
+import { CodePanel } from "@/components/code/CodePanel";
+import { API_BASE_URL, snippetsFor } from "@/components/code/snippets";
+import { DocsShell } from "@/components/docs/DocsShell";
+import { quickstartOutline } from "@/components/docs/outline";
+import { customBaseUrl, firstCallCost, install, model, usage } from "@/components/docs/quickstart-data";
+import { InlineCode, Lede, LinkCards, Note } from "@/components/docs/prose";
+import { Step, Steps } from "@/components/docs/Steps";
+import { company, freeCreditLabel, listAnd, noCardRequired } from "@/data/company";
+import { contactHref } from "@/data/site";
+import { models } from "@/data/models";
+import { formatLatency, formatUsd } from "@/lib/format";
+
+export const metadata = {
+  title: "Quickstart",
+  description:
+    "Get an API key, install the Weir SDK and stream your first response from Llama 3.3 70B in about five minutes.",
+};
+
+<DocsShell eyebrow="Docs" toc={quickstartOutline}>
+
+# Quickstart
+
+<Lede>
+  Get an API key, install an SDK and stream a reply from {model.name}. It takes about five
+  minutes, and a new account starts with {freeCreditLabel} of credit.
+</Lede>
+
+<Steps>
+
+<Step id="create-a-key">
+
+Create a Weir account to get {freeCreditLabel} of credit. {noCardRequired}
+
+In the dashboard, open **API keys**, choose **Create key** and name it after the app that will use it. Weir shows the key once, so copy it before you close the dialog.
+
+Keep the key in an environment variable instead of in your code. Every example on this page reads `WEIR_API_KEY`:
+
+```sh
+export WEIR_API_KEY="paste-your-key-here"
+```
+
+On Windows PowerShell, the same line is `$env:WEIR_API_KEY = "paste-your-key-here"`.
+
+<Note title="Keep the key on your server">
+  Anyone with the key can spend your credit, so keep it out of browser code and out of your
+  repository. A new key starts at {company.rateLimitRpm} requests a minute on serverless, and the
+  limit rises as your account spends.
+</Note>
+
+</Step>
+
+<Step id="install-the-sdk">
+
+Weir has SDKs for {listAnd(company.sdks)}. Install the one that matches your project:
+
+<CodePanel snippets={install} defaultTab="python" syncLanguage />
+
+Both SDKs point at <InlineCode>{API_BASE_URL}</InlineCode> by default, so there is nothing to configure. Using curl or another HTTP client instead? Send the same requests to that address.
+
+### Override the base URL
+
+To send requests somewhere else, such as a local mock or a proxy, set the base URL when you create the client:
+
+<CodePanel snippets={customBaseUrl} defaultTab="python" syncLanguage />
+
+</Step>
+
+<Step id="make-your-first-call">
+
+Send one chat message to {model.name}. The model ID is <InlineCode>{model.slug}</InlineCode>. To use a different model, change that one string; every model page lists its ID.
+
+<CodePanel snippets={snippetsFor(model)} defaultTab="python" syncLanguage />
+
+The response is JSON. The reply is in `choices[0].message.content`, and `usage` counts the tokens you are billed for:
+
+```json
+{
+  "id": "cmpl_8f3a1c",
+  "object": "chat.completion",
+  "model": "llama-3-3-70b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "A KV cache keeps the attention keys and values of tokens the model has already read, so each new token reuses them instead of recomputing the whole prompt."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 17,
+    "completion_tokens": 62,
+    "total_tokens": 79
+  }
+}
+```
+
+{model.name} costs {formatUsd(model.pricing.input)} per 1M input tokens and {formatUsd(model.pricing.output)} per 1M output tokens, so the {usage.prompt + usage.completion} tokens above cost about {firstCallCost}.
+
+### If the call fails
+
+| Status | What it means | What to do |
+| --- | --- | --- |
+| `401` | The key is missing or wrong. | Check that `WEIR_API_KEY` is set in the shell that runs your code. |
+| `404` | There is no model with that ID. | Copy the ID from the model's page. |
+| `429` | You went over your request limit. | Wait for the number of seconds in the `Retry-After` header, then retry. |
+
+</Step>
+
+<Step id="stream-the-response">
+
+A chat reply can take a few seconds to finish. With streaming, tokens arrive as they are generated, so your app can start showing text right away. {model.name} has a median time to first token of {formatLatency(model.p50Ms)}.
+
+Set `stream` to true. The SDKs give you an iterator of chunks; each chunk carries the next piece of text in `choices[0].delta.content`.
+
+<CodePanel snippets={snippetsFor(model, { stream: true })} defaultTab="python" syncLanguage />
+
+With curl, the `-N` flag turns off output buffering so you see the chunks as they come in. The response is a stream of server-sent events: one `data:` line per chunk with a blank line after it, and `data: [DONE]` at the end. The last chunk before it has an empty `delta` and a `finish_reason`. Shortened to three chunks, it looks like this:
+
+```sse
+data: {"id":"cmpl_8f3a1c","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"role":"assistant","content":"A KV"}}]}
+
+data: {"id":"cmpl_8f3a1c","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":" cache"}}]}
+
+data: {"id":"cmpl_8f3a1c","object":"chat.completion.chunk","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+
+data: [DONE]
+```
+
+Embedding and image models do not stream; they return in one piece.
+
+</Step>
+
+<Step id="next-steps">
+
+You have a key, an SDK and a streamed reply. From here:
+
+<LinkCards
+  items={[
+    {
+      href: "/models/",
+      title: "Browse models",
+      text: `Compare all ${models.length} models by price, speed and context window.`,
+    },
+    {
+      href: `/models/${model.slug}/`,
+      title: model.name,
+      text: "Specs, latency over the last 24 hours and the request you just ran.",
+    },
+    {
+      href: "/pricing/",
+      title: "Pricing",
+      text: "Prices per token, and a calculator for when reserved GPUs cost less.",
+    },
+    {
+      href: contactHref,
+      title: "Talk to an engineer",
+      text: "Reserved GPUs, SSO or a security review: tell us what you are running.",
+    },
+  ]}
+/>
+
+</Step>
+
+</Steps>
+
+</DocsShell>
