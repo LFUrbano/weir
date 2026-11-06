@@ -19,16 +19,24 @@ function kindOf(m: Model): Kind {
 }
 
 const PROMPTS: Record<Kind, string> = {
-  chat: "Summarize this ticket in two lines.",
+  chat: "Explain what a KV cache does in two sentences.",
   embeddings: "Where is my order?",
   image: "A lighthouse at dusk, flat illustration",
 };
+
+export interface SnippetOptions {
+  /**
+   * Stream the response as server-sent events. Applies to chat models only;
+   * embeddings and images return in one piece.
+   */
+  stream?: boolean;
+}
 
 /**
  * Ready-to-run request examples for one model. Python and Node use the Weir
  * SDK, which defaults to the Weir API base URL; curl spells the URL out.
  */
-export function snippetsFor(m: Model): Snippets {
+export function snippetsFor(m: Model, { stream = false }: SnippetOptions = {}): Snippets {
   const kind = kindOf(m);
   const prompt = PROMPTS[kind];
 
@@ -94,6 +102,47 @@ const response = await client.images.generate({
   size: "1024x1024",
 });
 console.log(response.data[0].url);`,
+    };
+  }
+
+  if (stream) {
+    return {
+      curl: `curl -N ${BASE_URL}/chat/completions \\
+  -H "Authorization: Bearer $WEIR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "model": "${m.slug}",
+    "stream": true,
+    "messages": [
+      { "role": "user", "content": "${prompt}" }
+    ]
+  }'`,
+      python: `import os
+from weir import Weir
+
+client = Weir(api_key=os.environ["WEIR_API_KEY"])
+
+stream = client.chat.completions.create(
+    model="${m.slug}",
+    messages=[
+        {"role": "user", "content": "${prompt}"},
+    ],
+    stream=True,
+)
+for chunk in stream:
+    print(chunk.choices[0].delta.content or "", end="")`,
+      node: `import Weir from "weir";
+
+const client = new Weir({ apiKey: process.env.WEIR_API_KEY });
+
+const stream = await client.chat.completions.create({
+  model: "${m.slug}",
+  messages: [{ role: "user", content: "${prompt}" }],
+  stream: true,
+});
+for await (const chunk of stream) {
+  process.stdout.write(chunk.choices[0].delta.content ?? "");
+}`,
     };
   }
 
