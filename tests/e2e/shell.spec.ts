@@ -44,6 +44,26 @@ test.describe("site shell", () => {
     await expect(sheet).toBeHidden();
   });
 
+  test("mobile nav closes on navigation", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile", "mobile navigation only");
+
+    // From another page: the logo inside the sheet navigates home, and the
+    // sheet (which lives in the root layout) must not survive the navigation.
+    await page.goto("/nao-existe/");
+    await page.getByRole("banner").getByRole("button", { name: "Menu" }).click();
+    const sheet = page.getByRole("dialog");
+    await expect(sheet).toBeVisible();
+    await sheet.getByRole("link", { name: "Weir home" }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(sheet).toBeHidden();
+
+    // Same page: tapping the logo while already home also closes the sheet.
+    await page.getByRole("banner").getByRole("button", { name: "Menu" }).click();
+    await expect(sheet).toBeVisible();
+    await sheet.getByRole("link", { name: "Weir home" }).click();
+    await expect(sheet).toBeHidden();
+  });
+
   test("footer note", async ({ page }) => {
     await page.goto("/");
     const footer = page.getByRole("contentinfo");

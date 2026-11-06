@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -18,23 +19,37 @@ function MenuGlyph() {
 }
 
 export function MobileNav() {
+  // The header lives in the root layout, so the open state survives client
+  // navigation. Close the sheet whenever the route changes, whatever link
+  // caused it (nav links, the logo, links added later). This is React's
+  // "reset state when a value changes" pattern: compare during render instead
+  // of setting state in an effect.
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [lastPathname, setLastPathname] = useState(pathname);
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
+    setOpen(false);
+  }
+  // Same-page taps (e.g. the logo while already home) do not change the path.
   const close = () => setOpen(false);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger
-        render={<Button variant="ghost" size="sm" className="-mr-2 gap-2 text-fg md:hidden" />}
-      >
-        <MenuGlyph />
-        Menu
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="sm" className="-mr-2 gap-2 text-fg md:hidden">
+          <MenuGlyph />
+          Menu
+        </Button>
       </SheetTrigger>
       <SheetContent side="right" showCloseButton={false} className="gap-0 md:hidden">
         <div className="flex h-(--header-h) shrink-0 items-center justify-between border-b border-line px-5">
           <SheetTitle className="sr-only">Site navigation</SheetTitle>
-          <Logo />
-          <SheetClose render={<Button variant="ghost" size="sm" className="-mr-2 text-fg" />}>
-            Close
+          <Logo onClick={close} />
+          <SheetClose asChild>
+            <Button variant="ghost" size="sm" className="-mr-2 text-fg">
+              Close
+            </Button>
           </SheetClose>
         </div>
 
