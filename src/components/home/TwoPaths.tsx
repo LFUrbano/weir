@@ -1,8 +1,16 @@
 import Link from "next/link";
 import { Section } from "@/components/site/Section";
 import { buttonVariants } from "@/components/ui/button";
-import { company, complianceLine, freeCreditLabel, listAnd, pct } from "@/data/company";
-import { gpus } from "@/data/gpus";
+import {
+  company,
+  complianceLine,
+  freeCreditLabel,
+  identityLine,
+  listAnd,
+  slaLine,
+  supportLine,
+} from "@/data/company";
+import { gpuShortName, gpus } from "@/data/gpus";
 import { formatUsd } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +24,7 @@ interface Path {
 
 function paths(): Path[] {
   const cheapestGpu = Math.min(...gpus.map((g) => g.hourly));
-  const gpuNames = listAnd(gpus.map((g) => g.name.replace(/^NVIDIA /, "")));
+  const gpuNames = listAnd(gpus.map(gpuShortName));
   return [
     {
       audience: "Self-serve",
@@ -43,10 +51,10 @@ function paths(): Path[] {
           label: "Dedicated",
           value: `${gpuNames} replicas, from ${formatUsd(cheapestGpu)} per GPU-hour.`,
         },
-        { label: "SLA", value: `${pct(company.slaDedicatedPct)} monthly uptime, with service credits.` },
-        { label: "SSO", value: `${listAnd(company.sso.protocols)}, with audit logs.` },
+        { label: "SLA", value: `${slaLine}.` },
+        { label: "Identity", value: `${identityLine}.` },
         { label: "Compliance", value: `${complianceLine}.` },
-        { label: "Support", value: "A named engineer and a shared Slack channel." },
+        { label: "Support", value: `${supportLine}.` },
       ],
       cta: { label: "Talk to an engineer", href: "/enterprise/" },
     },

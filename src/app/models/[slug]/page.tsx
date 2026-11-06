@@ -11,7 +11,7 @@ import { StatusDot } from "@/components/site/StatusDot";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { company, pct } from "@/data/company";
-import { getGpu } from "@/data/gpus";
+import { getGpu, gpuShortName } from "@/data/gpus";
 import { getModel, isDedicatedModel, models, type Model } from "@/data/models";
 import { formatLatency, formatUsd } from "@/lib/format";
 import { metricsSeries, percentile } from "@/lib/metrics";
@@ -182,7 +182,7 @@ function Dedicated({ model }: { model: Model }) {
   const g = getGpu(gpu);
   const breakEven = breakEvenMonthlyTokens(model, 0.5);
   const facts = [
-    { label: "Replica", value: `${gpusPerReplica}× ${g.name.replace(/^NVIDIA /, "")}` },
+    { label: "Replica", value: `${gpusPerReplica}× ${gpuShortName(g)}` },
     { label: "Replica rate", value: `${formatUsd(gpusPerReplica * g.hourly)} / hour` },
     { label: "Peak throughput", value: `${replicaTokensPerSec.toLocaleString("en-US")} tok/s` },
     ...(breakEven !== null ? [{ label: BREAK_EVEN_LABEL, value: formatBreakEven(breakEven) }] : []),

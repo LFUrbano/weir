@@ -8,11 +8,9 @@ import {
   dataRetention,
   freeCreditLabel,
   listAnd,
+  lowerFirst,
   pct,
 } from "@/data/company";
-
-/** "Invoiced monthly in USD" → "invoiced monthly in USD", for use mid-sentence. */
-const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
 const link =
   "text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:decoration-fg";

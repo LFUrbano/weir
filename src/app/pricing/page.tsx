@@ -5,14 +5,24 @@ import { Faq } from "@/components/pricing/Faq";
 import { GpuTable, ImageTable, ReplicaTable, ServerlessTable } from "@/components/pricing/PriceTables";
 import { Section } from "@/components/site/Section";
 import { buttonVariants } from "@/components/ui/button";
-import { billingTerms, company, complianceLine, freeCreditLabel, listAnd, pct } from "@/data/company";
-import { gpus } from "@/data/gpus";
+import {
+  billingTerms,
+  company,
+  complianceLine,
+  freeCreditLabel,
+  identityLine,
+  listAnd,
+  pct,
+  slaLine,
+  supportLine,
+} from "@/data/company";
+import { gpuShortName, gpus } from "@/data/gpus";
 import { isTokenModel, models } from "@/data/models";
 import { formatUsd } from "@/lib/format";
 import { PEAK_FACTOR } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
-const gpuNames = listAnd(gpus.map((g) => g.name.replace(/^NVIDIA /, "")));
+const gpuNames = listAnd(gpus.map(gpuShortName));
 const cheapestGpu = Math.min(...gpus.map((g) => g.hourly));
 const cheapestToken = Math.min(...models.filter(isTokenModel).map((m) => m.pricing.input));
 
@@ -62,10 +72,10 @@ function Arrow() {
 const enterpriseTerms = [
   { label: "Pricing", value: billingTerms.contractPricing },
   { label: "Billing", value: billingTerms.contractBilling },
-  { label: "SLA", value: `${pct(company.slaDedicatedPct)} monthly uptime, with service credits` },
-  { label: "Identity", value: `SSO with ${listAnd(company.sso.protocols)}, with audit logs` },
+  { label: "SLA", value: slaLine },
+  { label: "Identity", value: identityLine },
   { label: "Compliance", value: complianceLine },
-  { label: "Support", value: "A named engineer and a shared Slack channel" },
+  { label: "Support", value: supportLine },
 ];
 
 export default function PricingPage() {
@@ -147,7 +157,7 @@ export default function PricingPage() {
         id="dedicated"
         eyebrow="Dedicated"
         title={`GPU-hours, billed ${company.dedicatedBilling}`}
-        lede={`Replicas reserved for you, with the same API and model IDs as serverless, and a ${pct(company.slaDedicatedPct)} monthly uptime SLA. Models without a ready replica are set up on request.`}
+        lede={`Replicas reserved for you, with the same API and model IDs as serverless, and a ${pct(company.slaDedicatedPct)} monthly uptime SLA. ${billingTerms.readyReplicas}`}
       >
         <GpuTable />
         <div className="mt-14 md:mt-16">
