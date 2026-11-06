@@ -84,10 +84,16 @@ test.describe("model page", () => {
     const tooltip = page.getByTestId("metrics-tooltip");
     await expect(tooltip).toBeHidden();
 
+    await plot.scrollIntoViewIfNeeded();
     const box = await plot.boundingBox();
     if (!box) throw new Error("plot has no box");
-    await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5);
-    await expect(tooltip).toBeVisible();
+    // The chart hydrates after the static HTML paints: keep moving until it answers.
+    let dx = 0;
+    await expect(async () => {
+      dx = (dx + 1) % 4;
+      await page.mouse.move(box.x + box.width * 0.5 + dx, box.y + box.height * 0.5);
+      await expect(tooltip).toBeVisible({ timeout: 500 });
+    }).toPass();
     await expect(tooltip).toContainText(/\d+ ms/);
     await expect(tooltip).toContainText(/\d+ tok\/s/);
     await page.mouse.move(box.x + box.width * 0.5, box.y - 200);
@@ -158,7 +164,9 @@ test.describe("model page", () => {
     await expect(page.getByRole("tabpanel")).toContainText("/v1/images/generations");
     // No dedicated option for this model: the CTA says so instead.
     await expect(page.getByRole("link", { name: "Run on dedicated GPUs" })).toHaveCount(0);
-    await expect(page.getByRole("link", { name: "Talk to an engineer" }).last()).toHaveAttribute(
+    await expect(
+      page.getByRole("main").getByRole("link", { name: "Talk to an engineer" }),
+    ).toHaveAttribute(
       "href",
       "/enterprise/",
     );

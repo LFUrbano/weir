@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getModel, models, type Model } from "@/data/models";
-import { modelPrice, modelSpeed } from "@/lib/model-display";
+import { endpointFor, latencyName, modelKind, modelPrice, modelSpeed } from "@/lib/model-display";
 
 function model(slug: string): Model {
   const m = getModel(slug);
@@ -37,5 +37,24 @@ describe("modelSpeed", () => {
   it("prints a dash for embeddings and image models", () => {
     expect(modelSpeed(model("bge-m3"))).toBe("—");
     expect(modelSpeed(model("flux-1-dev"))).toBe("—");
+  });
+});
+
+describe("modelKind, endpointFor and latencyName", () => {
+  it("names what one request does for each kind of model", () => {
+    const llama = model("llama-3-3-70b");
+    expect(modelKind(llama)).toBe("chat");
+    expect(endpointFor(llama)).toBe("POST /v1/chat/completions");
+    expect(latencyName(llama)).toBe("Time to first token");
+
+    const bge = model("bge-m3");
+    expect(modelKind(bge)).toBe("embeddings");
+    expect(endpointFor(bge)).toBe("POST /v1/embeddings");
+    expect(latencyName(bge)).toBe("Response time");
+
+    const flux = model("flux-1-dev");
+    expect(modelKind(flux)).toBe("image");
+    expect(endpointFor(flux)).toBe("POST /v1/images/generations");
+    expect(latencyName(flux)).toBe("Response time");
   });
 });

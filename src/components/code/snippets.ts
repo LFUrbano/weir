@@ -1,4 +1,5 @@
 import type { Model } from "@/data/models";
+import { modelKind, type ModelKind } from "@/lib/model-display";
 
 export interface Snippets {
   curl: string;
@@ -10,13 +11,7 @@ export type SnippetLang = keyof Snippets;
 
 const BASE_URL = "https://api.weir.example/v1";
 
-type Kind = "chat" | "embeddings" | "image";
-
-function kindOf(m: Model): Kind {
-  if (m.pricing.unit === "image") return "image";
-  if (m.tasks.includes("embeddings")) return "embeddings";
-  return "chat";
-}
+type Kind = ModelKind;
 
 const PROMPTS: Record<Kind, string> = {
   chat: "What does a KV cache do?",
@@ -37,7 +32,7 @@ export interface SnippetOptions {
  * SDK, which defaults to the Weir API base URL; curl spells the URL out.
  */
 export function snippetsFor(m: Model, { stream = false }: SnippetOptions = {}): Snippets {
-  const kind = kindOf(m);
+  const kind = modelKind(m);
   const prompt = PROMPTS[kind];
 
   if (kind === "embeddings") {
