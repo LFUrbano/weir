@@ -134,7 +134,7 @@ function CommandMenu({ open, onOpenChange }: { open: boolean; onOpenChange: (ope
       title="Search Weir"
       description="Jump to a page or a model. Use the arrow keys to move and Enter to open."
     >
-      <Command loop>
+      <Command loop label="Search models and pages">
         <CommandInput
           value={search}
           onValueChange={setSearch}

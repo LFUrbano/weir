@@ -26,12 +26,16 @@ function Tasks({ model, active }: { model: Model; active: Task | "all" }) {
 
 type AriaSort = ComponentProps<"th">["aria-sort"];
 
-/** Which header shows the sort, and how it is announced. Price sorts on a blend of two columns. */
+/**
+ * The one header that shows the sort, and how it is announced. Price order is
+ * a 50/50 blend of input and output, so it sits on the input column as "other"
+ * (sorted, but not by that column's value alone).
+ */
 function sortState(sort: SortKey, column: "name" | "input" | "output" | "speed" | "context"): AriaSort {
   if (sort === "name" && column === "name") return "ascending";
   if (sort === "speed" && column === "speed") return "descending";
   if (sort === "context" && column === "context") return "descending";
-  if (sort === "price" && (column === "input" || column === "output")) return "other";
+  if (sort === "price" && column === "input") return "other";
   return undefined;
 }
 
@@ -116,9 +120,8 @@ function DesktopTable({ list, task, sort }: { list: Model[]; task: Task | "all";
           <Head sort={sort} className="text-right">
             p50
           </Head>
-          <Head sort={sort} className="hidden w-8 lg:table-cell">
-            <span className="sr-only">Open</span>
-          </Head>
+          {/* The arrow column is decoration (each row's link is the model name). */}
+          <TableHead aria-hidden="true" className={cn(sticky, "hidden w-8 lg:table-cell")} />
         </TableRow>
       </TableHeader>
       <TableBody>

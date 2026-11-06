@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { models, type Task } from "@/data/models";
 import {
@@ -133,19 +133,25 @@ export function CatalogFallback() {
  * one, so Back steps through them. URLs are written with the native History
  * API, which Next.js syncs into useSearchParams: router.replace would fetch the
  * page's RSC payload again on every keystroke, for a page whose data is already
- * in the browser. The search box keeps its own text (the URL trims spaces) and
- * takes the URL's value only when the reader moves through history.
+ * in the browser.
+ *
+ * The search box keeps its own text, because the URL trims spaces ("llama "
+ * is stored as "llama"). Whenever the URL changes, the box takes the URL's
+ * query unless the two already agree once trimmed: that covers Back and
+ * Forward, links to /models/ (header, footer, command menu) and Clear filters,
+ * without undoing a trailing space the reader just typed.
  */
 export function CatalogClient() {
   const searchParams = useSearchParams();
-  const params = parseCatalogParams(new URLSearchParams(searchParams.toString()));
+  const search = searchParams.toString();
+  const params = parseCatalogParams(new URLSearchParams(search));
   const [query, setQuery] = useState(params.q);
-
-  useEffect(() => {
-    const onPop = () => setQuery(parseCatalogParams(new URLSearchParams(window.location.search)).q);
-    window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
-  }, []);
+  // "Reset state when a value changes", compared during render (no effect).
+  const [lastSearch, setLastSearch] = useState(search);
+  if (search !== lastSearch) {
+    setLastSearch(search);
+    if (normalizeQuery(query) !== params.q) setQuery(params.q);
+  }
 
   const current = (): CatalogParams => ({ ...params, q: normalizeQuery(query) });
   const replace = (p: CatalogParams) =>

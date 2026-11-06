@@ -202,6 +202,68 @@ test.describe("model catalog", () => {
     await expect(page.getByTestId("catalog-table")).toBeVisible();
     await expect(page.getByTestId("catalog-cards")).toBeHidden();
   });
+
+  test("one header carries the sort; the arrow column is not announced", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "desktop table only");
+    const table = page.getByTestId("catalog-table");
+    const sorted = table.locator("th[aria-sort]");
+    const cases = [
+      { sort: "", header: /^Model/, state: "ascending" },
+      { sort: "price", header: /^Input \/ 1M/, state: "other" },
+      { sort: "speed", header: /^Speed/, state: "descending" },
+      { sort: "context", header: /^Context/, state: "descending" },
+    ];
+    for (const c of cases) {
+      await page.goto(c.sort ? `/models/?sort=${c.sort}` : "/models/");
+      await expect(sorted).toHaveCount(1);
+      await expect(sorted).toHaveText(c.header);
+      await expect(sorted).toHaveAttribute("aria-sort", c.state);
+    }
+    // Model, Task, Context, Input, Output, Speed, p50; the arrow column is hidden.
+    await expect(table.getByRole("columnheader")).toHaveCount(7);
+  });
+
+  test("links to /models/ reset the search box and the list", async ({ page }, testInfo) => {
+    const search = page.getByRole("searchbox", { name: "Search models" });
+    const typeLlama = async () => {
+      await page.goto("/models/?task=chat");
+      await expect(search).toBeEditable();
+      await search.fill("llama");
+      await expect(page).toHaveURL(/[?&]q=llama\b/);
+    };
+    const expectReset = async () => {
+      await expect(page).toHaveURL(/\/models\/$/);
+      await expect(search).toHaveValue("");
+      await expect(rows(page)).toHaveCount(models.length);
+      await expect(taskFilter(page, "All")).toHaveAttribute("aria-pressed", "true");
+    };
+
+    // Footer link (both layouts).
+    await typeLlama();
+    await page.getByRole("contentinfo").getByRole("link", { name: "Models", exact: true }).click();
+    await expectReset();
+
+    // Command menu "Models" page item.
+    await typeLlama();
+    await page.keyboard.press("Control+k");
+    await page.keyboard.type("models");
+    await page.getByRole("dialog", { name: "Search Weir" }).getByRole("option", { name: /^Models/ }).click();
+    await expectReset();
+
+    // Header link (desktop navigation).
+    if (testInfo.project.name === "desktop") {
+      await typeLlama();
+      await page.getByRole("banner").getByRole("link", { name: "Models", exact: true }).click();
+      await expectReset();
+    }
+
+    // Back still restores the typed search.
+    await page.goBack();
+    await expect(page).toHaveURL(/[?&]q=llama\b/);
+    await expect(search).toHaveValue("llama");
+  });
 });
 
 test.describe("command menu", () => {
@@ -223,6 +285,7 @@ test.describe("command menu", () => {
     await page.keyboard.press("Control+k");
     const menu = page.getByRole("dialog", { name: "Search Weir" });
     await expect(menu).toBeVisible();
+    await expect(menu.getByRole("combobox", { name: "Search models and pages" })).toBeFocused();
     await page.keyboard.type("qwen");
     await expect(menu.getByRole("option").first()).toContainText("Qwen");
     await page.keyboard.press("Enter");
