@@ -2,11 +2,12 @@ import { expect, test, type Page } from "@playwright/test";
 import { snippetsFor } from "../../src/components/code/snippets";
 import { getModel } from "../../src/data/models";
 
+// The home hero hosts the code panel: the Llama 3.3 70B request, streamed.
 const llama = getModel("llama-3-3-70b")!;
-const snippets = snippetsFor(llama);
+const snippets = snippetsFor(llama, { stream: true });
 
 async function visibleSnippet(page: Page) {
-  const panel = page.getByRole("tabpanel");
+  const panel = page.getByTestId("hero-terminal").getByRole("tabpanel");
   await expect(panel).toHaveCount(1);
   return (await panel.locator("pre").textContent()) ?? "";
 }
