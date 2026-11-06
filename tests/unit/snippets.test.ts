@@ -53,14 +53,40 @@ describe("snippetsFor", () => {
     }
   });
 
+  it("streams the chat response when asked, in all three languages", () => {
+    const m = model("llama-3-3-70b");
+    const s = snippetsFor(m, { stream: true });
+    expect(s.curl).toContain("curl -N ");
+    expect(s.curl).toContain('"stream": true');
+    expect(s.python).toContain("stream=True");
+    expect(s.python).toContain("for chunk in stream:");
+    expect(s.python).toContain("chunk.choices[0].delta.content");
+    expect(s.node).toContain("stream: true");
+    expect(s.node).toContain("for await (const chunk of stream)");
+    expect(s.node).toContain("chunk.choices[0].delta.content");
+    // The streamed variant keeps the same model, endpoint and prompt.
+    const plain = snippetsFor(m);
+    expect(s.curl).toContain("https://api.weir.example/v1/chat/completions");
+    expect(plain.curl).not.toContain('"stream"');
+    expect(plain.python).not.toContain("stream=True");
+  });
+
+  it("ignores the stream option for embeddings and images", () => {
+    for (const slug of ["bge-m3", "flux-1-dev"]) {
+      const m = model(slug);
+      expect(snippetsFor(m, { stream: true })).toEqual(snippetsFor(m));
+    }
+  });
+
   it("covers every model in all three languages without secrets", () => {
     for (const m of models) {
-      const s = snippetsFor(m);
-      for (const code of [s.curl, s.python, s.node]) {
-        expect(code).toContain(m.slug);
-        expect(code).toContain("WEIR_API_KEY");
-        expect(code.endsWith("\n")).toBe(false);
-        expect(code).not.toMatch(/sk-|Bearer [A-Za-z0-9]{10,}/);
+      for (const s of [snippetsFor(m), snippetsFor(m, { stream: true })]) {
+        for (const code of [s.curl, s.python, s.node]) {
+          expect(code).toContain(m.slug);
+          expect(code).toContain("WEIR_API_KEY");
+          expect(code.endsWith("\n")).toBe(false);
+          expect(code).not.toMatch(/sk-|Bearer [A-Za-z0-9]{10,}/);
+        }
       }
     }
   });
@@ -73,10 +99,11 @@ const find = (tokens: Token[], type: Token["type"], text: string) =>
 describe("highlight", () => {
   it("never changes the text", () => {
     for (const m of models) {
-      const s = snippetsFor(m);
-      expect(join(highlight(s.curl, "curl"))).toBe(s.curl);
-      expect(join(highlight(s.python, "python"))).toBe(s.python);
-      expect(join(highlight(s.node, "node"))).toBe(s.node);
+      for (const s of [snippetsFor(m), snippetsFor(m, { stream: true })]) {
+        expect(join(highlight(s.curl, "curl"))).toBe(s.curl);
+        expect(join(highlight(s.python, "python"))).toBe(s.python);
+        expect(join(highlight(s.node, "node"))).toBe(s.node);
+      }
     }
   });
 

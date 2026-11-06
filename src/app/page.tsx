@@ -1,33 +1,81 @@
-import { CodePanel } from "@/components/code/CodePanel";
-import { snippetsFor } from "@/components/code/snippets";
-import { getModel } from "@/data/models";
+import { Section } from "@/components/site/Section";
+import { CatalogPreview } from "@/components/home/CatalogPreview";
+import { ClosingCta } from "@/components/home/ClosingCta";
+import { Hero } from "@/components/home/Hero";
+import { LogoStrip } from "@/components/home/LogoStrip";
+import { PriceLine } from "@/components/home/PriceLine";
+import { RequestDiagram, type RequestStep } from "@/components/home/RequestDiagram";
+import { TrustBand } from "@/components/home/TrustBand";
+import { TwoPaths } from "@/components/home/TwoPaths";
+import { heroDemo } from "@/components/home/hero-demo";
+import { company } from "@/data/company";
+import { getModel, isTokenModel, models, type TokenModel } from "@/data/models";
+import { formatLatency } from "@/lib/format";
 
-// Placeholder home. The full home page (hero terminal, catalog preview,
-// request diagram) replaces this in a later change.
+function referenceModel(): TokenModel {
+  const m = getModel(heroDemo.modelSlug);
+  if (!m || !isTokenModel(m)) throw new Error(`Home: ${heroDemo.modelSlug} must be a token model`);
+  return m;
+}
+
+/** Hop times before the GPU are fixed overheads; the last stamp is the model's p50. */
+function requestSteps(m: TokenModel): RequestStep[] {
+  return [
+    {
+      name: "App",
+      stamp: "t+0 ms",
+      sentence: `Your code sends one HTTPS request with a model name and messages, in the same shape for all ${models.length} models.`,
+      detail: ["POST /v1/chat/completions"],
+    },
+    {
+      name: "Edge",
+      stamp: "t+14 ms",
+      sentence: `The closest of ${company.regions.length} regions ends TLS, checks the key and the rate limit, and turns bad requests away before they reach a GPU.`,
+      detail: ["TLS 1.3", "API key", "rate limit"],
+    },
+    {
+      name: "Router",
+      stamp: "t+19 ms",
+      sentence:
+        "Sends the request to the region you pinned, or to the one with free capacity, batches it with others on the same model, and reuses cached prompt prefixes.",
+      detail: ["region", "batching", "prefix cache"],
+    },
+    {
+      name: "GPUs",
+      stamp: `t+${formatLatency(m.p50Ms)} · first token`,
+      sentence:
+        "Shared H100s by default, or replicas reserved for you. The first token streams back and the rest follow as they decode.",
+      detail: ["shared pool", "dedicated replicas"],
+    },
+  ];
+}
+
 export default function Home() {
-  const model = getModel("llama-3-3-70b");
+  const model = referenceModel();
+
   return (
-    <div className="container-site py-24 md:py-36">
-      <div className="grid grid-cols-12 gap-x-6">
-        <div className="col-span-12 lg:col-span-8">
-          <p className="label-mono text-fg-2">Inference platform</p>
-          <h1 className="mt-6 text-[2.75rem] leading-[1.02] tracking-[-0.03em] text-fg md:text-display">
-            Open models in production, <span className="text-amber">billed by the token.</span>
-          </h1>
-          <p className="mt-6 max-w-[34rem] text-[1.0625rem] leading-relaxed text-fg-2">
-            One API for open-weight models. Move to dedicated GPUs when your traffic outgrows
-            shared capacity, without changing a line of code.
+    <>
+      <Hero model={model} />
+      <LogoStrip />
+      <CatalogPreview />
+      <Section
+        id="how-it-runs"
+        eyebrow="Architecture"
+        title="How a request runs"
+        lede={`Four hops between your code and the first token. On ${model.name.replace(/ Instruct$/, "")}, the median trip takes ${formatLatency(model.p50Ms)}.`}
+      >
+        <div data-testid="request-diagram">
+          <RequestDiagram steps={requestSteps(model)} />
+          <p className="mt-14 max-w-[44rem] border-l border-amber pl-4 text-small text-fg-2 md:mt-16">
+            Moving to dedicated GPUs changes one hop: the router sends your requests to replicas
+            reserved for you. The request, the SDK and your code stay the same.
           </p>
         </div>
-        {model && model.pricing.unit === "tokens" ? (
-          <div className="col-span-12 mt-14 lg:col-span-7">
-            <CodePanel
-              snippets={snippetsFor(model)}
-              footer={`${model.slug} · $${model.pricing.input.toFixed(2)} in / $${model.pricing.output.toFixed(2)} out per 1M tokens`}
-            />
-          </div>
-        ) : null}
-      </div>
-    </div>
+      </Section>
+      <TwoPaths />
+      <PriceLine model={model} />
+      <TrustBand />
+      <ClosingCta />
+    </>
   );
 }

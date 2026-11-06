@@ -36,6 +36,19 @@ function Code({ text, lang }: { text: string; lang: SnippetLang }) {
 }
 
 /**
+ * The three highlighted panes (curl, Python, Node). Exported so other client
+ * shells, like the hero terminal, get the same server-rendered code.
+ */
+export function codePanes(snippets: Snippets): CodePane[] {
+  return (["curl", "python", "node"] as const).map((lang) => ({
+    lang,
+    label: LABELS[lang],
+    text: snippets[lang],
+    content: <Code text={snippets[lang]} lang={lang} />,
+  }));
+}
+
+/**
  * Tabbed request example (curl, Python, Node) with a copy button.
  * A Server Component: it renders the highlighted code and hands it to the
  * small client component that owns the tab state.
@@ -49,12 +62,5 @@ export function CodePanel({
   footer?: ReactNode;
   defaultTab?: SnippetLang;
 }) {
-  const panes: CodePane[] = (["curl", "python", "node"] as const).map((lang) => ({
-    lang,
-    label: LABELS[lang],
-    text: snippets[lang],
-    content: <Code text={snippets[lang]} lang={lang} />,
-  }));
-
-  return <CodeTabs panes={panes} defaultTab={defaultTab} footer={footer} />;
+  return <CodeTabs panes={codePanes(snippets)} defaultTab={defaultTab} footer={footer} />;
 }

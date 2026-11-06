@@ -45,10 +45,14 @@ export function Footer() {
 
           <div className="col-span-12 md:col-span-3">
             <h2 className="label-mono text-fg">Status</h2>
-            <p className="mt-5 flex items-center gap-2.5 font-mono text-[0.8125rem] text-fg">
+            {/* No status page in a concept site: the trust section on the home holds it. */}
+            <Link
+              href="/#trust"
+              className="mt-5 inline-flex items-center gap-2.5 rounded-sm font-mono text-[0.8125rem] text-fg underline decoration-transparent underline-offset-4 transition-colors duration-150 hover:decoration-line-strong"
+            >
               <StatusDot state="ok" />
               All systems normal
-            </p>
+            </Link>
           </div>
         </div>
 
