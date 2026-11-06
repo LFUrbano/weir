@@ -40,3 +40,10 @@ export const footerColumns: FooterColumn[] = [
 ];
 
 export const fictionNote = "Fictional company. Concept project.";
+
+/**
+ * Absolute origin for share images and canonical URLs (Next's metadataBase).
+ * The Netlify address is only known after the first deploy (Task 12), so the
+ * build reads SITE_URL and falls back to the reserved fictional domain.
+ */
+export const siteUrl = new URL(process.env.SITE_URL ?? "https://weir.example");
