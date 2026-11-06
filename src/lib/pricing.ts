@@ -48,9 +48,15 @@ function replicaMonthlyCost(m: DedicatedModel): number {
   return m.dedicated.gpusPerReplica * getGpu(m.dedicated.gpu).hourly * HOURS_PER_MONTH;
 }
 
-/** Replicas needed to serve the monthly volume at peak; always at least 1. */
+/**
+ * Input and output are each capped at MAX_MONTHLY_TOKENS, so the most a month
+ * can carry through a replica is twice that.
+ */
+const MAX_MONTHLY_TOTAL = 2 * MAX_MONTHLY_TOKENS;
+
+/** Replicas needed to serve the monthly volume (input plus output) at peak; always at least 1. */
 export function replicasNeeded(m: DedicatedModel, monthlyTokens: number): number {
-  const tokens = clampMonthlyTokens(monthlyTokens);
+  const tokens = Math.min(finiteOrZero(monthlyTokens), MAX_MONTHLY_TOTAL);
   const peakTokensPerSec = (tokens / SECONDS_PER_MONTH) * PEAK_FACTOR;
   // The epsilon keeps an exact multiple (e.g. 2.0000000001) from adding a replica.
   const needed = Math.ceil(peakTokensPerSec / m.dedicated.replicaTokensPerSec - 1e-9);
@@ -84,4 +90,52 @@ export function clampMonthlyTokens(v: unknown): number {
   else n = 0;
   if (Number.isNaN(n) || n <= 0) return 0;
   return Math.min(n, MAX_MONTHLY_TOKENS);
+}
+
+export interface MonthlyComparison {
+  /** The person's volumes after clamping, each 0..100B. */
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  /** Input as a share of all tokens (0..1); an even 0.5 when there is no traffic. */
+  inputShare: number;
+  /** Serverless USD per 1M tokens at that mix. */
+  blended: number;
+  serverless: number;
+  /** Null for models that only run on the shared pool. */
+  dedicated: { replicas: number; cost: number } | null;
+  /** Monthly tokens at which one replica pays for itself, at this mix. */
+  breakEven: number | null;
+  /** Serverless wins a tie: it has no reserved capacity to manage. */
+  cheaper: "serverless" | "dedicated";
+  /** What the cheaper option saves per month; 0 without a dedicated option. */
+  savings: number;
+}
+
+/**
+ * Everything the pricing calculator shows for one model and one month,
+ * from raw field values (any text or number is clamped first).
+ */
+export function compareMonthly(m: TokenModel, input: unknown, output: unknown): MonthlyComparison {
+  const inputTokens = clampMonthlyTokens(input);
+  const outputTokens = clampMonthlyTokens(output);
+  const totalTokens = inputTokens + outputTokens;
+  const inputShare = totalTokens > 0 ? inputTokens / totalTokens : 0.5;
+  const serverless = serverlessMonthlyCost(m, inputTokens, outputTokens);
+  const dedicated = isDedicatedModel(m)
+    ? { replicas: replicasNeeded(m, totalTokens), cost: dedicatedMonthlyCost(m, totalTokens) }
+    : null;
+  const cheaper = dedicated && dedicated.cost < serverless ? "dedicated" : "serverless";
+  return {
+    inputTokens,
+    outputTokens,
+    totalTokens,
+    inputShare,
+    blended: blendedPrice(m, inputShare),
+    serverless,
+    dedicated,
+    breakEven: breakEvenMonthlyTokens(m, inputShare),
+    cheaper,
+    savings: dedicated ? Math.abs(serverless - dedicated.cost) : 0,
+  };
 }
