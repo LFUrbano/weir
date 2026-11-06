@@ -11,7 +11,33 @@ const distDir = join(root, "dist");
 const date = new Date().toISOString().slice(0, 10);
 const zipPath = join(distDir, `weir-${date}.zip`);
 
-execSync("npx next build", { cwd: root, stdio: "inherit" });
+/**
+ * Share images and canonical URLs are absolute, built from
+ * SITE_URL (src/data/site.ts). Without it they would point at the fictional
+ * weir.example, so the deploy zip is refused until the live address is set.
+ */
+function siteUrlOrExit() {
+  const raw = process.env.SITE_URL?.trim();
+  let url;
+  try {
+    url = raw ? new URL(raw) : null;
+  } catch {
+    url = null;
+  }
+  if (!url || !/^https?:$/.test(url.protocol) || url.hostname === "weir.example") {
+    console.error(
+      `SITE_URL is ${raw ? `"${raw}"` : "not set"}: set SITE_URL to the live address before packaging,` +
+        ` e.g. SITE_URL=https://your-site.netlify.app npm run package`,
+    );
+    process.exit(1);
+  }
+  return url.origin;
+}
+
+const siteUrl = siteUrlOrExit();
+console.log(`Packaging for ${siteUrl}`);
+
+execSync("npx next build", { cwd: root, stdio: "inherit", env: { ...process.env, SITE_URL: siteUrl } });
 
 await mkdir(distDir, { recursive: true });
 await rm(zipPath, { force: true });
