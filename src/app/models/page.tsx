@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
-import { CatalogClient, CatalogFallback } from "@/components/models/CatalogClient";
+import { CatalogClient } from "@/components/models/CatalogClient";
 import { StatusDot } from "@/components/site/StatusDot";
 import { company } from "@/data/company";
 import { isDedicatedModel, models } from "@/data/models";
@@ -59,9 +58,7 @@ export default function ModelsPage() {
 
       <section aria-label="Model catalog" className="pb-20 md:pb-28">
         <div className="container-site">
-          <Suspense fallback={<CatalogFallback />}>
-            <CatalogClient />
-          </Suspense>
+          <CatalogClient />
           <p className="mt-8 max-w-[44rem] text-small text-fg-2">
             Prices in USD: token models per 1M tokens, image models per image. Price order blends
             input and output tokens 50/50, with image models after. p50 is the median time to first

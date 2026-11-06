@@ -133,6 +133,15 @@ test.describe("model catalog", () => {
     await context.close();
   });
 
+  test("the static catalog is hydrated, not rebuilt on the client", async ({ request }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "static HTML, once");
+    const html = await (await request.get("/models/")).text();
+    // "<!--$!-->" marks a Suspense boundary React must render on the client
+    // only (useSearchParams in a static export): ~250 ms of work on a phone.
+    expect(html).not.toContain("<!--$!-->");
+    expect(html.match(/data-slug="/g)).toHaveLength(models.length * 2);
+  });
+
   test("phones get cards and no horizontal scroll", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "mobile", "phone layout only");
     for (const width of [360, 412]) {

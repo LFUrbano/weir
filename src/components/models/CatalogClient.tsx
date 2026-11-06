@@ -1,7 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { models, type Task } from "@/data/models";
 import {
@@ -14,6 +13,7 @@ import {
   type CatalogParams,
   type SortKey,
 } from "@/lib/catalog";
+import { useHydrated, useLocationSearch } from "@/lib/use-location-search";
 import { CatalogFilters, TASK_LABELS } from "./CatalogFilters";
 import { CatalogTable } from "./CatalogTable";
 
@@ -81,8 +81,12 @@ interface CatalogViewProps {
 
 function CatalogView({ params, query, onQueryChange, onTaskChange, onSortChange, onClear }: CatalogViewProps) {
   const filtered = { ...params, q: query };
-  const list = sortModels(filterModels(models, filtered), params.sort);
+  const { task, sort } = params;
+  const list = useMemo(() => sortModels(filterModels(models, { task, sort, q: query }), sort), [task, sort, query]);
   const shown = list.length;
+  // The rows only depend on the list: enabling the controls after hydration
+  // must not render 24 rows (in two layouts) again.
+  const table = useMemo(() => <CatalogTable list={list} task={task} sort={sort} />, [list, task, sort]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -109,7 +113,7 @@ function CatalogView({ params, query, onQueryChange, onTaskChange, onSortChange,
         )}
       </p>
       {shown > 0 ? (
-        <CatalogTable list={list} task={params.task} sort={params.sort} />
+        table
       ) : (
         <EmptyState params={{ ...params, q: normalizeQuery(query) }} onClear={onClear} />
       )}
@@ -118,22 +122,18 @@ function CatalogView({ params, query, onQueryChange, onTaskChange, onSortChange,
 }
 
 /**
- * Static HTML and pre-hydration view: every model, default order, inert
- * controls. Readers without JavaScript get the full catalog from this.
- */
-export function CatalogFallback() {
-  return <CatalogView params={DEFAULT_PARAMS} query="" />;
-}
-
-/**
- * The catalog with its state in the URL. Must render inside <Suspense>:
- * useSearchParams has no value at build time in a static export.
+ * The catalog with its state in the URL.
+ *
+ * The static HTML is this component with no query: every model, default
+ * order, inert controls (readers without JavaScript get the full catalog).
+ * React hydrates that HTML as is; the controls come alive right after, and a
+ * URL with filters re-renders then (useLocationSearch, not useSearchParams,
+ * which would make the whole catalog render on the client only).
  *
  * Search replaces the history entry on every keystroke; filters and sort push
  * one, so Back steps through them. URLs are written with the native History
- * API, which Next.js syncs into useSearchParams: router.replace would fetch the
- * page's RSC payload again on every keystroke, for a page whose data is already
- * in the browser.
+ * API: router.replace would fetch the page's RSC payload again on every
+ * keystroke, for a page whose data is already in the browser.
  *
  * The search box keeps its own text, because the URL trims spaces ("llama "
  * is stored as "llama"). Whenever the URL changes, the box takes the URL's
@@ -142,8 +142,8 @@ export function CatalogFallback() {
  * without undoing a trailing space the reader just typed.
  */
 export function CatalogClient() {
-  const searchParams = useSearchParams();
-  const search = searchParams.toString();
+  const search = useLocationSearch();
+  const hydrated = useHydrated();
   const params = parseCatalogParams(new URLSearchParams(search));
   const [query, setQuery] = useState(params.q);
   // "Reset state when a value changes", compared during render (no effect).
@@ -158,6 +158,9 @@ export function CatalogClient() {
     window.history.replaceState(null, "", `${CATALOG_PATH}${toSearchString(p)}`);
   const push = (p: CatalogParams) =>
     window.history.pushState(null, "", `${CATALOG_PATH}${toSearchString(p)}`);
+
+  // Inert (no handlers) until hydration, as in the static HTML.
+  if (!hydrated) return <CatalogView params={params} query={query} />;
 
   return (
     <CatalogView
