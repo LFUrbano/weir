@@ -23,7 +23,10 @@ export const contactMessages = {
     required: "Enter your work email.",
     invalid: "Enter an email like name@company.com.",
   },
-  company: { required: "Enter your company name." },
+  company: {
+    required: "Enter your company name.",
+    tooLong: "Keep the company name to 200 characters or fewer.",
+  },
   volume: "Pick a monthly volume. A rough range is fine.",
   useCase: "Pick the use case closest to yours.",
   message: { tooLong: "Keep the message to 2,000 characters or fewer." },
@@ -41,7 +44,11 @@ export const contactSchema = z.object({
     .trim()
     .min(1, contactMessages.email.required)
     .pipe(z.email(contactMessages.email.invalid).max(254, contactMessages.email.invalid)),
-  company: z.string().trim().min(1, contactMessages.company.required).max(200),
+  company: z
+    .string()
+    .trim()
+    .min(1, contactMessages.company.required)
+    .max(200, contactMessages.company.tooLong),
   volume: z.enum(VOLUMES, { error: contactMessages.volume }),
   useCase: z.enum(USE_CASES, { error: contactMessages.useCase }),
   message: z.string().trim().max(CONTACT_MESSAGE_MAX, contactMessages.message.tooLong),

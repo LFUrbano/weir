@@ -97,6 +97,12 @@ export const regionLocations: Record<Region, string> = {
 /** "99.95% monthly uptime, with service credits": the SLA in the words every page uses. */
 export const slaLine = `${pct(company.slaDedicatedPct)} monthly uptime, with service credits`;
 
+/**
+ * Who the SLA covers, stated once: it comes with dedicated capacity itself,
+ * not with a contract.
+ */
+export const slaCoverage = "Every dedicated endpoint is covered, self-serve or under contract.";
+
 /** "SSO with SAML 2.0 and SCIM, with audit logs". */
 export const identityLine = `SSO with ${listAnd(company.sso.protocols)}, with audit logs`;
 
@@ -112,7 +118,6 @@ export const trustNotes = {
 
 /** The dedicated-endpoint SLA in detail. Credits are a share of that month's dedicated bill. */
 export const sla = {
-  scope: "Dedicated endpoints",
   measured: "Per endpoint, each calendar month, from our edge in every region",
   credits: [
     { below: company.slaDedicatedPct, creditPct: 10 },

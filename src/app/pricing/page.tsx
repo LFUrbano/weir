@@ -13,10 +13,12 @@ import {
   identityLine,
   listAnd,
   pct,
+  slaCoverage,
   slaLine,
   supportLine,
 } from "@/data/company";
 import { gpuShortName, gpus } from "@/data/gpus";
+import { contactHref } from "@/data/site";
 import { isTokenModel, models } from "@/data/models";
 import { formatUsd } from "@/lib/format";
 import { PEAK_FACTOR } from "@/lib/pricing";
@@ -54,7 +56,7 @@ const modes = [
     price: "Contract",
     unit: "committed volume",
     summary: "Invoiced billing, SSO and a security review, on either kind of capacity.",
-    link: { href: "/enterprise/", label: "Talk to an engineer" },
+    link: { href: contactHref, label: "Talk to an engineer" },
   },
 ] as const;
 
@@ -72,7 +74,7 @@ function Arrow() {
 const enterpriseTerms = [
   { label: "Pricing", value: billingTerms.contractPricing },
   { label: "Billing", value: billingTerms.contractBilling },
-  { label: "SLA", value: slaLine },
+  { label: "SLA", value: `${slaLine}. ${slaCoverage}` },
   { label: "Identity", value: identityLine },
   { label: "Compliance", value: complianceLine },
   { label: "Support", value: supportLine },
@@ -192,7 +194,7 @@ export default function PricingPage() {
             ))}
           </dl>
           <div className="col-span-12 lg:col-span-4 lg:pl-8">
-            <Link href="/enterprise/" className={cn(buttonVariants({ variant: "outline", size: "lg" }))}>
+            <Link href={contactHref} className={cn(buttonVariants({ variant: "outline", size: "lg" }))}>
               Talk to an engineer
             </Link>
           </div>

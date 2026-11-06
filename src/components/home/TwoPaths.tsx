@@ -11,6 +11,7 @@ import {
   supportLine,
 } from "@/data/company";
 import { gpuShortName, gpus } from "@/data/gpus";
+import { contactHref } from "@/data/site";
 import { formatUsd } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +20,7 @@ interface Path {
   title: string;
   summary: string;
   items: { label: string; value: string }[];
-  cta: { label: string; href: "/docs/quickstart/" | "/enterprise/" };
+  cta: { label: string; href: "/docs/quickstart/" | typeof contactHref };
 }
 
 function paths(): Path[] {
@@ -56,7 +57,7 @@ function paths(): Path[] {
         { label: "Compliance", value: `${complianceLine}.` },
         { label: "Support", value: `${supportLine}.` },
       ],
-      cta: { label: "Talk to an engineer", href: "/enterprise/" },
+      cta: { label: "Talk to an engineer", href: contactHref },
     },
   ];
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { ContactForm } from "@/components/enterprise/ContactForm";
 import {
   CapacityTable,
@@ -21,21 +22,53 @@ import {
   pct,
   regionLocations,
   sla,
+  slaCoverage,
   slaLine,
   trustNotes,
 } from "@/data/company";
 import { gpuShortName, gpus } from "@/data/gpus";
 import { formatUsd } from "@/lib/format";
 
-const gpuNames = listAnd(gpus.map(gpuShortName));
 const cheapestGpu = Math.min(...gpus.map((g) => g.hourly));
 const slaPct = pct(company.slaDedicatedPct);
 const downtime = `${allowedDowntimeMinutes(company.slaDedicatedPct).toFixed(1)} min`;
 const locations = listAnd(company.regions.map((r) => regionLocations[r]));
+const euRegion = company.regions.find((r) => r.startsWith("eu"));
+
+/**
+ * Where each GPU can be reserved, from gpus.ts: "H100 and H200 in all 3
+ * regions, B200 in us-east and us-west". Never implies a GPU runs where it does not.
+ */
+const everywhere = gpus.filter((g) => company.regions.every((r) => g.regions.includes(r)));
+const gpuRegionLine = [
+  ...(everywhere.length
+    ? [`${listAnd(everywhere.map(gpuShortName))} in all ${company.regions.length} regions`]
+    : []),
+  ...gpus
+    .filter((g) => !everywhere.includes(g))
+    .map((g) => `${gpuShortName(g)} in ${listAnd(g.regions)}`),
+].join(", ");
+const euGpus = listAnd(gpus.filter((g) => euRegion && g.regions.includes(euRegion)).map(gpuShortName));
+
+/** complianceLine, with each certification kept on one line ("ISO 27001" never splits). */
+function ComplianceText(): ReactNode {
+  const certs = company.certifications;
+  return (
+    <>
+      {certs.map((c, i) => (
+        <span key={c}>
+          {i === 0 ? "" : i === certs.length - 1 ? " and " : ", "}
+          <span className="whitespace-nowrap">{c}</span>
+        </span>
+      ))}
+      , with a DPA
+    </>
+  );
+}
 
 export const metadata: Metadata = {
   title: "Enterprise",
-  description: `Dedicated ${gpuNames} replicas in ${listAnd(company.regions)}, a ${slaPct} uptime SLA, ${complianceLine}. Support tiers and a contact form to size your capacity.`,
+  description: `Dedicated GPU replicas (${gpuRegionLine}), a ${slaPct} uptime SLA, ${complianceLine}. Support tiers and a contact form to size your capacity.`,
 };
 
 const facts = [
@@ -54,11 +87,11 @@ const capacityTerms = [
 
 const slaTerms = [
   { label: "Commitment", value: slaLine },
-  { label: "Scope", value: sla.scope },
+  { label: "Scope", value: slaCoverage },
   { label: "Measured", value: sla.measured },
   { label: "Credits", value: sla.claim },
   { label: "Maintenance", value: sla.maintenance },
-  { label: "Serverless", value: `No contractual SLA. ${measuredUptimeLine}.` },
+  { label: "Serverless", value: `No SLA. ${measuredUptimeLine}.` },
 ];
 
 const firstCall = [
@@ -100,8 +133,8 @@ export default function EnterprisePage() {
             GPUs reserved for you, <span className="text-fg-2">on terms procurement can sign.</span>
           </h1>
           <p className="mt-6 max-w-[40rem] text-[1.0625rem] leading-relaxed text-fg-2">
-            The same API and model IDs you call today, on {gpuNames} replicas pinned to the region
-            you choose. A {slaPct} uptime SLA, SSO, and {complianceLine}.
+            The same API and model IDs you call today, on replicas reserved for you and pinned to a
+            region: {gpuRegionLine}. A {slaPct} uptime SLA, SSO, and <ComplianceText />.
           </p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
             <a href="#contact" className={buttonVariants({ size: "lg" })}>
@@ -141,7 +174,7 @@ export default function EnterprisePage() {
         id="capacity"
         eyebrow="Capacity"
         title="Dedicated capacity, region by region"
-        lede={`Replicas reserved for you on ${gpuNames}. Pin each one to a region: EU traffic can stay in ${company.regions.find((r) => r.startsWith("eu"))}.`}
+        lede={`Replicas reserved for you: ${gpuRegionLine}. Pin each one to a region where its GPU runs; EU traffic can stay in ${euRegion} on ${euGpus}.`}
       >
         <div className="grid grid-cols-12 gap-x-6 gap-y-12">
           <div className="col-span-12 lg:col-span-8">
@@ -174,7 +207,7 @@ export default function EnterprisePage() {
       <Section
         id="sla"
         eyebrow="SLA"
-        title={`${slaPct} uptime, written into the contract`}
+        title={`${slaPct} uptime on every dedicated endpoint`}
         lede={`On dedicated endpoints, ${slaPct} a month allows about ${downtime} of downtime. Below that, a share of the month's dedicated bill comes back as credit.`}
       >
         <div className="grid grid-cols-12 gap-x-6 gap-y-12">
@@ -201,39 +234,38 @@ export default function EnterprisePage() {
         id="contact"
         eyebrow="Contact"
         title="Talk to an engineer"
-        lede="Four questions, about a minute. The first call starts from your numbers, not from a discovery script."
+        lede="Four questions, about a minute. Volume and use case are what dedicated capacity is sized from."
       >
-        <div className="grid grid-cols-12 gap-x-6 gap-y-12">
-          <div className="col-span-12 rounded-panel border border-line bg-surface p-5 sm:p-8 lg:col-span-7">
-            <ContactForm />
-          </div>
-          <aside aria-labelledby="first-call-title" className="col-span-12 lg:col-span-4 lg:col-start-9">
-            <h3 id="first-call-title" className="label-mono text-fg-2">
-              What the first call covers
-            </h3>
-            <ol className="mt-5 border-t border-line">
-              {firstCall.map((s, i) => (
-                <li key={s.title} className="grid grid-cols-[2rem_1fr] gap-2 border-b border-line py-4">
-                  <span className="font-mono text-small text-fg-2">{String(i + 1).padStart(2, "0")}</span>
-                  <p className="text-small text-fg-2">
-                    <span className="block text-fg">{s.title}</span>
-                    {s.text}
-                  </p>
-                </li>
-              ))}
-            </ol>
-            <dl className="mt-10 grid gap-4 text-small">
-              <div>
-                <dt className="label-mono text-fg-2">Email</dt>
-                <dd className="mt-1.5 font-mono text-fg">enterprise@weir.example</dd>
-              </div>
-              <div>
-                <dt className="label-mono text-fg-2">Phone</dt>
-                <dd className="mt-1.5 font-mono text-fg">+1 (415) 555-0142</dd>
-              </div>
-            </dl>
-          </aside>
-        </div>
+        <ContactForm
+          aside={
+            <aside aria-labelledby="first-call-title" className="col-span-12 lg:col-span-4 lg:col-start-9">
+              <h3 id="first-call-title" className="label-mono text-fg-2">
+                What the first call covers
+              </h3>
+              <ol className="mt-5 border-t border-line">
+                {firstCall.map((s, i) => (
+                  <li key={s.title} className="grid grid-cols-[2rem_1fr] gap-2 border-b border-line py-4">
+                    <span className="font-mono text-small text-fg-2">{String(i + 1).padStart(2, "0")}</span>
+                    <p className="text-small text-fg-2">
+                      <span className="block text-fg">{s.title}</span>
+                      {s.text}
+                    </p>
+                  </li>
+                ))}
+              </ol>
+              <dl className="mt-10 grid gap-4 text-small">
+                <div>
+                  <dt className="label-mono text-fg-2">Email</dt>
+                  <dd className="mt-1.5 font-mono text-fg">enterprise@weir.example</dd>
+                </div>
+                <div>
+                  <dt className="label-mono text-fg-2">Phone</dt>
+                  <dd className="mt-1.5 font-mono text-fg">+1 (415) 555-0142</dd>
+                </div>
+              </dl>
+            </aside>
+          }
+        />
       </Section>
     </>
   );

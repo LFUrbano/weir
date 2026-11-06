@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useForm, useWatch, type Control, type ControllerRenderProps } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,7 +50,12 @@ function VolumeChoice({ field: f }: { field: ControllerRenderProps<ContactInput,
   const { error, formItemId, formMessageId, formDescriptionId } = useFormField();
   const describedBy = [error && formMessageId, formDescriptionId].filter(Boolean).join(" ");
   return (
-    <fieldset role="radiogroup" aria-invalid={!!error} aria-describedby={describedBy}>
+    <fieldset
+      role="radiogroup"
+      aria-required="true"
+      aria-invalid={!!error}
+      aria-describedby={describedBy}
+    >
       <legend className="text-small leading-none font-medium text-fg data-[error=true]:text-err" data-error={!!error}>
         Monthly volume
       </legend>
@@ -80,7 +85,6 @@ function VolumeChoice({ field: f }: { field: ControllerRenderProps<ContactInput,
                 onChange={() => f.onChange(v)}
                 onBlur={f.onBlur}
                 ref={i === 0 ? f.ref : undefined}
-                aria-describedby={describedBy}
                 className="absolute inset-0 cursor-pointer appearance-none rounded-md opacity-0"
               />
               {v}
@@ -124,7 +128,7 @@ function Success({ data }: { data: ContactInput }) {
         Thanks — your request is in.
       </h3>
       <p className="mt-3 max-w-[32rem] text-fg-2">
-        Here is what you sent. These three answers are what a first replica is sized from.
+        Here is what you entered. These three answers are what a first replica is sized from.
       </p>
       <dl className="mt-8 border-t border-line">
         {rows.map((r) => (
@@ -161,7 +165,7 @@ function Success({ data }: { data: ContactInput }) {
  * second submit while the first is "sending". A filled honeypot gets the same
  * wait and the same success as a person, and nothing else happens.
  */
-export function ContactForm() {
+export function ContactForm({ aside }: { aside?: ReactNode }) {
   const form = useForm<ContactInput>({
     resolver: zodResolver(contactSchema),
     defaultValues: { email: "", company: "", message: "", website: "" },
@@ -190,9 +194,7 @@ export function ContactForm() {
     void form.handleSubmit(onValid)(e);
   }
 
-  if (sent) return <Success data={sent} />;
-
-  return (
+  const formBody = (
     <Form {...form}>
       <form data-testid="contact-form" noValidate onSubmit={onSubmit} className="relative grid gap-7">
         <div className="grid gap-7 sm:grid-cols-2 sm:gap-5">
@@ -210,6 +212,7 @@ export function ContactForm() {
                     autoComplete="email"
                     autoCapitalize="none"
                     spellCheck={false}
+                    aria-required="true"
                     className={field}
                   />
                 </FormControl>
@@ -224,7 +227,7 @@ export function ContactForm() {
               <FormItem className="gap-2.5">
                 <FormLabel>Company</FormLabel>
                 <FormControl>
-                  <Input {...f} autoComplete="organization" className={field} />
+                  <Input {...f} autoComplete="organization" aria-required="true" className={field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -254,6 +257,7 @@ export function ContactForm() {
                   <SelectTrigger
                     ref={f.ref}
                     onBlur={f.onBlur}
+                    aria-required="true"
                     className={cn(field, "w-full data-[size=default]:h-11")}
                   >
                     <SelectValue placeholder="Choose the closest one" />
@@ -312,8 +316,7 @@ export function ContactForm() {
           />
         </div>
 
-        <div className="flex flex-col gap-4 border-t border-line pt-7 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-small text-fg-2">Four required fields. About a minute.</p>
+        <div className="flex border-t border-line pt-7 sm:justify-end">
           <Button
             type="submit"
             size="lg"
@@ -325,5 +328,16 @@ export function ContactForm() {
         </div>
       </form>
     </Form>
+  );
+
+  // The aside talks about the first call; once the request is in, it steps away so
+  // nothing on screen reads as a promise that someone will be in touch.
+  return (
+    <div className="grid grid-cols-12 gap-x-6 gap-y-12">
+      <div className="col-span-12 rounded-panel border border-line bg-surface p-5 sm:p-8 lg:col-span-7">
+        {sent ? <Success data={sent} /> : formBody}
+      </div>
+      {!sent && aside}
+    </div>
   );
 }

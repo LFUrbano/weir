@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { getGpu, gpuShortName } from "@/data/gpus";
+import { contactHref } from "@/data/site";
 import { isDedicatedModel, isTokenModel, models, type TokenModel } from "@/data/models";
 import { formatCount, formatTokens, formatUsd } from "@/lib/format";
 import { shortModelName } from "@/lib/model-display";
@@ -176,7 +177,7 @@ function BreakEven({ model, c }: { model: TokenModel; c: MonthlyComparison }) {
         There is no ready dedicated replica for {shortModelName(model)}. One can be set up on
         request:{" "}
         <Link
-          href="/enterprise/"
+          href={contactHref}
           className="text-fg underline decoration-line-strong underline-offset-4 hover:decoration-fg"
         >
           talk to an engineer
