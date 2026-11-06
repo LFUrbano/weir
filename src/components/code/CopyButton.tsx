@@ -36,7 +36,16 @@ async function copyText(text: string): Promise<boolean> {
 type State = "idle" | "copied" | "failed";
 
 /** Copies `text` exactly as given (plain text, no markup) and confirms for about two seconds. */
-export function CopyButton({ text, className }: { text: string; className?: string }) {
+export function CopyButton({
+  text,
+  what,
+  className,
+}: {
+  text: string;
+  /** What is copied, for the accessible name ("Copy model ID") when the visible "Copy" is ambiguous. */
+  what?: string;
+  className?: string;
+}) {
   const [state, setState] = useState<State>("idle");
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -59,6 +68,7 @@ export function CopyButton({ text, className }: { text: string; className?: stri
         variant="ghost"
         size="sm"
         onClick={onClick}
+        aria-label={what && state === "idle" ? `${label} ${what}` : undefined}
         className={cn(
           "font-mono text-[0.8125rem]",
           state === "copied" && "text-ok hover:text-ok",

@@ -30,6 +30,18 @@ The dev server runs at http://localhost:3000.
 | `npm run typecheck` | Generate Next.js route types and run `tsc` |
 | `npm test` | Run unit tests (Vitest) |
 | `npm run test:e2e` | Run end-to-end tests (Playwright) against `out/` served on port 4190. Run `npm run build` first. |
-| `npm run package` | Build and zip `out/` into `dist/weir-<YYYY-MM-DD>.zip`, ready to upload to a static host |
+| `npm run package` | Build and zip `out/` into `dist/weir-<YYYY-MM-DD>.zip`, ready to upload to a static host. Requires `SITE_URL` (see below). |
+
+## Site address (`SITE_URL`)
+
+Share images (`og:image`) and canonical URLs must be absolute, so the build reads the site's public address from the `SITE_URL` environment variable (`src/data/site.ts`, used as Next's `metadataBase`). Without it, `npm run build` falls back to the fictional `https://weir.example`, which is fine for local work and CI.
+
+`npm run package` refuses to build the deploy zip when `SITE_URL` is unset or still `https://weir.example`. Set it to the live address:
+
+```bash
+SITE_URL=https://your-site.netlify.app npm run package
+```
+
+On Windows PowerShell: `$env:SITE_URL = "https://your-site.netlify.app"; npm run package`.
 
 The first time you run the end-to-end tests, install the browser with `npx playwright install chromium`.

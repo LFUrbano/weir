@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { isTokenModel, models } from "../../src/data/models";
 import { blendedPrice } from "../../src/lib/pricing";
+import { collectErrors } from "./errors";
 
 /** Rows on desktop and cards on phones both carry data-slug; only one set is visible. */
 const rows = (page: Page): Locator => page.locator("[data-slug]").filter({ visible: true });
@@ -12,21 +13,6 @@ const taskFilter = (page: Page, label: string) =>
   page.getByRole("group", { name: "Filter by task" }).getByRole("button", {
     name: new RegExp(`^${label}\\b`),
   });
-
-/**
- * Uncaught errors and console errors. Prefetch 404s are left out: rows link to
- * model pages and the header to pages that later tasks build.
- */
-function collectErrors(page: Page): string[] {
-  const errors: string[] = [];
-  page.on("pageerror", (e) => errors.push(e.message));
-  page.on("console", (m) => {
-    if (m.type() !== "error") return;
-    if (/^Failed to load resource: .* 404/.test(m.text())) return;
-    errors.push(m.text());
-  });
-  return errors;
-}
 
 const byName = [...models].sort((a, b) => a.name.localeCompare(b.name)).map((m) => m.slug);
 
@@ -317,13 +303,10 @@ test.describe("header", () => {
   }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "desktop navigation only");
     for (const path of ["/models/", "/models/llama-3-3-70b/"]) {
-      await page.goto(path);
-      // Model pages arrive in a later task; until then the static 404 answers
-      // (prerendered for /_not-found), so only the catalog can be checked.
-      if (await page.getByText("Page not found").isVisible()) {
-        testInfo.annotations.push({ type: "note", description: `${path} is not built yet` });
-        continue;
-      }
+      const response = await page.goto(path);
+      // The 404 page would also mark Models current (its path is under /models).
+      expect(response?.status(), path).toBe(200);
+      await expect(page.getByRole("heading", { level: 1 })).not.toHaveText("Page not found");
       const nav = page.getByRole("banner").getByRole("navigation", { name: "Main" });
       await expect(nav.getByRole("link", { name: "Models" })).toHaveAttribute(
         "aria-current",
@@ -333,5 +316,37 @@ test.describe("header", () => {
         "aria-current",
       );
     }
+  });
+});
+
+test.describe("error collector", () => {
+  test("a missing script or font fails; only router prefetches may 404", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "once is enough");
+    const errors = collectErrors(page);
+    let broken = "";
+    await page.route(/\/_next\/static\/.*\.(js|woff2)$/, async (route) => {
+      if (broken) return route.continue();
+      broken = route.request().url();
+      await route.fulfill({ status: 404, body: "" });
+    });
+    await page.goto("/models/");
+    await expect.poll(() => errors.some((e) => e.includes(broken))).toBe(true);
+  });
+
+  test("a prefetch of a mistyped internal link fails; unbuilt pages are listed", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "once is enough");
+    await page.goto("/models/");
+    const errors = collectErrors(page);
+    // fetch() from the page is how the router prefetches a route path.
+    // When /pricing/ is built (Task 8), swap it for a page still in NOT_YET_BUILT.
+    const statuses = await page.evaluate(async () =>
+      Promise.all(
+        ["/models/typo/", "/pricing/"].map(async (path) => (await fetch(path)).status),
+      ),
+    );
+    expect(statuses).toEqual([404, 404]);
+    await expect.poll(() => errors).toEqual([expect.stringContaining("/models/typo/")]);
   });
 });

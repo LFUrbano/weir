@@ -4,6 +4,7 @@ import { Footer } from "@/components/site/Footer";
 import { CommandMenuProvider } from "@/components/site/CommandMenu";
 import { Header } from "@/components/site/Header";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { siteUrl } from "@/data/site";
 import "./globals.css";
 
 const funnelDisplay = Funnel_Display({
@@ -31,6 +32,13 @@ export const metadata: Metadata = {
   },
   description:
     "Run open-weight models behind one API, billed by the token, and move to dedicated GPUs when your traffic outgrows shared capacity.",
+  metadataBase: siteUrl,
+  openGraph: {
+    type: "website",
+    siteName: "Weir",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Weir: open models in production" }],
+  },
+  twitter: { card: "summary_large_image", images: ["/og.png"] },
 };
 
 export const viewport: Viewport = {

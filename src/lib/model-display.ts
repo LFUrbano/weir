@@ -30,3 +30,30 @@ export function modelSpeed(m: Model): string {
   const v = m.tokensPerSec;
   return v !== null && Number.isFinite(v) && v > 0 ? `${Math.round(v)} tok/s` : NOT_APPLICABLE;
 }
+
+export type ModelKind = "chat" | "embeddings" | "image";
+
+/** What one request does: chat (and reasoning, code, vision), embeddings or images. */
+export function modelKind(m: Model): ModelKind {
+  if (m.pricing.unit === "image") return "image";
+  if (m.tasks.includes("embeddings")) return "embeddings";
+  return "chat";
+}
+
+const ENDPOINTS: Record<ModelKind, string> = {
+  chat: "POST /v1/chat/completions",
+  embeddings: "POST /v1/embeddings",
+  image: "POST /v1/images/generations",
+};
+
+export function endpointFor(m: Model): string {
+  return ENDPOINTS[modelKind(m)];
+}
+
+/**
+ * What p50 measures: the first streamed token for chat models, the whole
+ * response for embeddings and images (they return in one piece).
+ */
+export function latencyName(m: Model): "Time to first token" | "Response time" {
+  return modelKind(m) === "chat" ? "Time to first token" : "Response time";
+}
