@@ -113,7 +113,7 @@ test.describe("model page", () => {
   test("dedicated CTA and three similar models", async ({ page, request }) => {
     await page.goto(`/models/${llama.slug}/`);
     const cta = page.getByRole("link", { name: "Run on dedicated GPUs" });
-    await expect(cta).toHaveAttribute("href", "/enterprise/");
+    await expect(cta).toHaveAttribute("href", "/enterprise/#capacity");
 
     const similar = page.getByRole("region", { name: "Similar models" }).getByRole("link");
     await expect(similar).toHaveCount(3);
@@ -168,7 +168,7 @@ test.describe("model page", () => {
       page.getByRole("main").getByRole("link", { name: "Talk to an engineer" }),
     ).toHaveAttribute(
       "href",
-      "/enterprise/",
+      "/enterprise/#contact",
     );
     await expect(page.getByRole("main")).not.toContainText(/NaN|Infinity|undefined/);
   });

@@ -67,8 +67,16 @@ test.describe("home", () => {
     );
     await expect(hero.getByRole("link", { name: "Talk to an engineer" })).toHaveAttribute(
       "href",
-      "/enterprise/",
+      "/enterprise/#contact",
     );
+  });
+
+  test("Talk to an engineer lands on the Enterprise form, in view", async ({ page }) => {
+    await page.goto("/");
+    await page.getByTestId("hero").getByRole("link", { name: "Talk to an engineer" }).click();
+    await expect(page).toHaveURL(/\/enterprise\/#contact$/);
+    await expect(page.getByTestId("contact-form")).toBeInViewport();
+    await expect(page.getByRole("textbox", { name: "Work email" })).toBeInViewport();
   });
 
   test("hero terminal streams the reply and ends on the Llama 3.3 70B numbers", async ({
@@ -151,7 +159,7 @@ test.describe("home", () => {
     await expect(paths.getByRole("heading", { name: "Start building" })).toBeVisible();
     await expect(paths.getByRole("heading", { name: "Run it at scale" })).toBeVisible();
     await expect(paths.locator('a[href="/docs/quickstart/"]')).toHaveCount(1);
-    await expect(paths.locator('a[href="/enterprise/"]')).toHaveCount(1);
+    await expect(paths.locator('a[href="/enterprise/#contact"]')).toHaveCount(1);
     for (const word of ["credit", "SDK", "Dedicated", "SLA", "SSO", "SOC 2"]) {
       await expect(paths).toContainText(word);
     }
@@ -265,7 +273,7 @@ test.describe("home", () => {
     );
     await expect(closing.getByRole("link", { name: "Talk to an engineer" })).toHaveAttribute(
       "href",
-      "/enterprise/",
+      "/enterprise/#contact",
     );
   });
 

@@ -5,6 +5,7 @@ import {
   dataRetention,
   identityLine,
   pct,
+  slaCoverage,
   slaLine,
   supportLine,
   supportTiers,
@@ -25,6 +26,7 @@ const caseField = (page: Page) => page.getByRole("combobox", { name: "Use case" 
 const message = (page: Page) => page.getByRole("textbox", { name: /^Message/ });
 const submit = (page: Page) => page.getByRole("button", { name: /^(Send request|Sending)/ });
 const success = (page: Page) => page.getByTestId("contact-success");
+const volume = (page: Page) => page.getByRole("radiogroup", { name: "Monthly volume" });
 
 async function fillValid(page: Page) {
   await email(page).fill("ana@acme.example");
@@ -90,6 +92,8 @@ test.describe("enterprise page", () => {
 
     const slaSection = page.locator("#sla");
     await expect(slaSection).toContainText(pct(company.slaDedicatedPct));
+    await expect(slaSection).toContainText(slaCoverage);
+    await expect(slaSection).not.toContainText(/written into the contract/i);
     await expect(slaSection).toContainText("21.9 min");
 
     const support = page.getByTestId("support-table");
@@ -113,6 +117,36 @@ test.describe("enterprise page", () => {
     }
   });
 
+  test("never claims a GPU runs in a region it does not", async ({ page }) => {
+    const partial = gpus.filter((g) => company.regions.some((r) => !g.regions.includes(r)));
+    expect(partial.map((g) => g.id)).toEqual(["b200"]);
+    await page.goto("/enterprise/");
+    const where = "B200 in us-east and us-west";
+    await expect(page.getByTestId("enterprise-hero")).toContainText(where);
+    await expect(page.locator("#capacity")).toContainText(where);
+    await expect(page.locator("#capacity")).toContainText("eu-west on H100 and H200");
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+      "content",
+      new RegExp(where),
+    );
+  });
+
+  test("the SLA says the same thing on Enterprise and Pricing", async ({ page }) => {
+    for (const path of ["/enterprise/", "/pricing/"]) {
+      await page.goto(path);
+      const text = (await page.getByRole("main").textContent()) ?? "";
+      expect(text, path).toContain(slaCoverage);
+    }
+  });
+
+  test("certification names never break across lines in the hero", async ({ page }) => {
+    await page.goto("/enterprise/");
+    const lede = page.getByTestId("enterprise-hero").locator("p").nth(1);
+    for (const cert of company.certifications) {
+      await expect(lede.locator("span.whitespace-nowrap", { hasText: cert })).toHaveCount(1);
+    }
+  });
+
   test("the hero leads to the form", async ({ page }) => {
     await page.goto("/enterprise/");
     const cta = page.getByTestId("enterprise-hero").getByRole("link", { name: "Talk to an engineer" });
@@ -127,6 +161,16 @@ test.describe("contact form", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/enterprise/");
     await form(page).scrollIntoViewIfNeeded();
+  });
+
+  test("the four required controls say so; the message says optional", async ({ page }) => {
+    for (const control of [email(page), companyField(page), volume(page), caseField(page)]) {
+      await expect(control).toHaveAttribute("aria-required", "true");
+    }
+    await expect(message(page)).not.toHaveAttribute("aria-required", "true");
+    await expect(form(page)).toContainText("Optional");
+    // "About a minute" is said once, in the section lede, not again by the button.
+    await expect(page.locator("#contact").getByText(/about a minute/i)).toHaveCount(1);
   });
 
   test("labels stay visible, and the controls are big enough to tap", async ({ page }) => {
@@ -154,14 +198,14 @@ test.describe("contact form", () => {
       contactMessages.company.required,
     ]);
     expect(await describedErrors(page, caseField(page))).toEqual([contactMessages.useCase]);
-    expect(
-      await describedErrors(page, page.getByRole("radio", { name: "<1B" })),
-    ).toEqual([contactMessages.volume]);
-    await expect(message(page)).toHaveAttribute("aria-invalid", "false");
-    await expect(page.getByRole("radiogroup", { name: "Monthly volume" })).toHaveAttribute(
-      "aria-invalid",
-      "true",
+    expect(await describedErrors(page, volume(page))).toEqual([contactMessages.volume]);
+    // The group carries the description, not each radio, so it is read once.
+    await expect(page.getByRole("radio", { name: "<1B" })).not.toHaveAttribute(
+      "aria-describedby",
+      /.+/,
     );
+    await expect(message(page)).toHaveAttribute("aria-invalid", "false");
+    await expect(volume(page)).toHaveAttribute("aria-invalid", "true");
 
     for (const control of [email(page), companyField(page), caseField(page)]) {
       await expect(control).toHaveAttribute("aria-invalid", "true");
@@ -222,10 +266,14 @@ test.describe("contact form", () => {
     await expect(success(page)).toContainText(SUCCESS);
     await expect(success(page).getByRole("heading", { name: SUCCESS })).toBeFocused();
     await expect(success(page)).not.toContainText(HUMAN_PROMISE);
-    // What they sent, read back.
+    // What they entered, read back.
+    await expect(success(page)).toContainText("Here is what you entered");
     await expect(success(page)).toContainText("Acme");
     await expect(success(page)).toContainText("10–100B");
     await expect(form(page)).toHaveCount(0);
+    // Nothing beside the result talks about a call that may never come.
+    await expect(page.locator("#contact")).not.toContainText(/first call/i);
+    await expect(page.locator("#contact")).not.toContainText(HUMAN_PROMISE);
 
     expect(writes.map((r) => `${r.method()} ${r.url()}`)).toEqual([]);
     expect(errors).toEqual([]);
@@ -251,6 +299,9 @@ test.describe("contact form", () => {
     await fillValid(page);
     const trap = page.locator('input[name="website"]');
     await expect(trap).toHaveAttribute("tabindex", "-1");
+    // Hidden from assistive tech: no textbox by that name in the accessibility tree.
+    await expect(page.getByRole("textbox", { name: "Leave this field empty" })).toHaveCount(0);
+    await expect(page.locator('[aria-hidden="true"]:has(input[name="website"])')).toHaveCount(1);
     await trap.fill("https://spam.example");
     await submit(page).click();
     await expect(success(page)).toContainText(SUCCESS);
@@ -293,6 +344,22 @@ test.describe("contact form", () => {
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
       );
       expect(overflow, `${width}px`).toBeLessThanOrEqual(0);
+    }
+  });
+});
+
+test.describe("links to the form", () => {
+  test("every 'Talk to an engineer' link goes to the form, not the top of the page", async ({
+    page,
+  }) => {
+    for (const path of ["/", "/pricing/", "/models/deepseek-r1-0528/"]) {
+      await page.goto(path);
+      const links = page.getByRole("link", { name: /talk to an engineer/i });
+      const count = await links.count();
+      expect(count, path).toBeGreaterThan(0);
+      for (let i = 0; i < count; i++) {
+        await expect(links.nth(i), `${path} #${i}`).toHaveAttribute("href", "/enterprise/#contact");
+      }
     }
   });
 });

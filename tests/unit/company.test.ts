@@ -11,6 +11,7 @@ import {
   pct,
   regionLocations,
   sla,
+  slaCoverage,
   slaLine,
   supportLine,
   supportTiers,
@@ -69,6 +70,10 @@ describe("enterprise facts", () => {
       for (const r of g.regions) expect(company.regions).toContain(r);
     }
     expect(Object.keys(regionLocations).sort()).toEqual([...company.regions].sort());
+  });
+
+  it("says the SLA comes with dedicated, not with a contract", () => {
+    expect(slaCoverage).toBe("Every dedicated endpoint is covered, self-serve or under contract.");
   });
 
   it("states the SLA, identity and support lines once", () => {

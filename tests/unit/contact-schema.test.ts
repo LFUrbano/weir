@@ -58,6 +58,13 @@ describe("contactSchema", () => {
     });
   });
 
+  it("caps the company name at 200 characters, with an instruction", () => {
+    expect(contactSchema.safeParse({ ...valid, company: "a".repeat(200) }).success).toBe(true);
+    expect(errorsOf({ ...valid, company: "a".repeat(201) })).toEqual({
+      company: [contactMessages.company.tooLong],
+    });
+  });
+
   it("trims what it keeps", () => {
     const result = contactSchema.parse({ ...valid, email: "  ana@acme.example ", company: " Acme  " });
     expect(result.email).toBe("ana@acme.example");
@@ -103,6 +110,7 @@ describe("contactSchema", () => {
       contactMessages.email.required,
       contactMessages.email.invalid,
       contactMessages.company.required,
+      contactMessages.company.tooLong,
       contactMessages.volume,
       contactMessages.useCase,
       contactMessages.message.tooLong,
