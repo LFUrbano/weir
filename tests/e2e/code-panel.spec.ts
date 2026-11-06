@@ -58,7 +58,9 @@ test.describe("code panel", () => {
       await page.getByRole("button", { name: "Copy", exact: true }).click();
       await expect(page.getByRole("button", { name: "Copied", exact: true })).toBeVisible();
       await expect(page.getByRole("status")).toHaveText(/Copied/);
-      expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(shown);
+      // Windows clipboards turn LF into CRLF; the text is otherwise identical.
+      const copied = await page.evaluate(() => navigator.clipboard.readText());
+      expect(copied.split(/\r?\n/).join("\n")).toBe(shown);
       // The label returns to "Copy" after about two seconds.
       await expect(page.getByRole("button", { name: "Copy", exact: true })).toBeVisible({
         timeout: 4000,
