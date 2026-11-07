@@ -41,6 +41,13 @@ describe("public/_headers", () => {
     expect(all?.get("permissions-policy")).not.toContain("interest-cohort");
   });
 
+  it("refuses to be framed by another site", () => {
+    const all = rules.get("/*");
+    // X-Frame-Options for older browsers; frame-ancestors is the current standard.
+    expect(all?.get("x-frame-options")).toBe("DENY");
+    expect(all?.get("content-security-policy")).toBe("frame-ancestors 'none'");
+  });
+
   it("never asks search engines to skip the site", () => {
     expect(read("_headers").toLowerCase()).not.toContain("noindex");
   });
