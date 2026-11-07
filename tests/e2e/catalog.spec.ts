@@ -124,6 +124,13 @@ test.describe("model catalog", () => {
     await expect(page.getByRole("main")).not.toContainText(/NaN|Infinity/);
   });
 
+  test("the lede shares a request shape per endpoint, not across every model", async ({ page }) => {
+    await page.goto("/models/");
+    const lede = page.locator("section[aria-labelledby=catalog-title] p").nth(1);
+    await expect(lede).not.toContainText(/all behind the same request format/i);
+    await expect(lede).toContainText("same endpoint");
+  });
+
   test("the static HTML lists every model for readers without JavaScript", async ({
     browser,
   }) => {

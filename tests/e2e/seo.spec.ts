@@ -64,6 +64,15 @@ test.describe("SEO", () => {
     }
   });
 
+  test("descriptions price image models per image, not per token", async ({ request }) => {
+    for (const path of ["/pricing/", "/models/"]) {
+      const description = meta(await (await request.get(path)).text(), "name", "description") ?? "";
+      expect(description, path).not.toMatch(new RegExp(`per 1M tokens for all ${models.length}`));
+      expect(description, path).not.toMatch(/with price per 1M tokens/);
+      expect(description, path).toMatch(/per image/);
+    }
+  });
+
   test("the 404 page has a title and keeps out of the canonical set", async ({ request }) => {
     const res = await request.get("/nao-existe/");
     expect(res.status()).toBe(404);

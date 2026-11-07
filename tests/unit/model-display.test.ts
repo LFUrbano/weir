@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { getModel, models, type Model } from "@/data/models";
-import { endpointFor, latencyName, modelKind, modelPrice, modelSpeed, shortModelName } from "@/lib/model-display";
+import {
+  endpointFor,
+  endpointPath,
+  latencyName,
+  modelKind,
+  modelPrice,
+  modelSpeed,
+  requestShapeLine,
+  shortModelName,
+} from "@/lib/model-display";
 import { BREAK_EVEN_LABEL, formatBreakEven } from "@/lib/model-display";
 
 function model(slug: string): Model {
@@ -57,6 +66,31 @@ describe("modelKind, endpointFor and latencyName", () => {
     expect(modelKind(flux)).toBe("image");
     expect(endpointFor(flux)).toBe("POST /v1/images/generations");
     expect(latencyName(flux)).toBe("Response time");
+  });
+});
+
+describe("requestShapeLine", () => {
+  it("scopes the shared request shape to the model's own endpoint", () => {
+    expect(requestShapeLine(model("llama-3-3-70b"))).toBe(
+      "The same request shape as every other model on /v1/chat/completions. Switching between them is a change to one string.",
+    );
+    expect(requestShapeLine(model("bge-m3"))).toBe(
+      "The same request shape as every other model on /v1/embeddings. Switching between them is a change to one string.",
+    );
+    expect(requestShapeLine(model("flux-1-dev"))).toBe(
+      "The same request shape as every other model on /v1/images/generations. Switching between them is a change to one string.",
+    );
+  });
+
+  it("never claims that every model on Weir shares one shape", () => {
+    for (const m of models) {
+      const line = requestShapeLine(m);
+      expect(line).toContain(endpointPath(m));
+      expect(endpointFor(m)).toBe(`POST ${endpointPath(m)}`);
+      expect(line).not.toMatch(/model on Weir|all \d+ models/i);
+      // Every endpoint serves more than one model, so "every other" is never empty.
+      expect(models.filter((o) => o !== m && modelKind(o) === modelKind(m)).length).toBeGreaterThan(0);
+    }
   });
 });
 
