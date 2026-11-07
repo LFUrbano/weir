@@ -41,6 +41,13 @@ const twMerge = extendTailwindMerge({
       text: fontSizeTokens,
     },
   },
+  override: {
+    // tailwind-merge assumes a font size overrides an earlier leading-*, and
+    // drops the leading. In Tailwind v4 it doesn't: leading-* sets
+    // --tw-leading, which every text-* size reads first, so an explicit
+    // leading wins in any order. Keep both.
+    conflictingClassGroups: { "font-size": [] },
+  },
 });
 
 export function cn(...inputs: ClassValue[]) {
