@@ -1,5 +1,5 @@
 import { readdirSync, renameSync, rmSync, statSync } from "node:fs";
-import { join, relative, resolve } from "node:path";
+import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /**
@@ -49,12 +49,36 @@ export function flattenSegmentDirs(outDir) {
   return moved;
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
+/**
+ * Every `__next.*` folder still in out/, relative to it. Empty after
+ * flattenSegmentDirs(); scripts/package.mjs refuses to zip otherwise.
+ * @param {string} outDir
+ * @param {string} [base]
+ * @returns {string[]}
+ */
+export function leftoverSegmentDirs(outDir, base = outDir) {
+  return readdirSync(outDir, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .flatMap((e) => {
+      const dir = join(outDir, e.name);
+      return e.name.startsWith("__next.") ? [relative(base, dir)] : leftoverSegmentDirs(dir, base);
+    });
+}
+
+// import.meta.main (Node 22.18+ / 24.2+) is true only when this file is the
+// entry point, whatever the path spelling (junctions, symlinks, drive-letter
+// case): a path comparison could fail silently and leave the zip broken.
+if (import.meta.main) {
   const outDir = join(fileURLToPath(new URL("..", import.meta.url)), "out");
   if (!statSync(outDir, { throwIfNoEntry: false })?.isDirectory()) {
     console.error("fix-segment-files: no out/ folder; run next build first");
     process.exit(1);
   }
   const moved = flattenSegmentDirs(outDir);
+  const left = leftoverSegmentDirs(outDir);
+  if (left.length > 0) {
+    console.error(`fix-segment-files: ${left.length} __next.* folder(s) remain: ${left.join(", ")}`);
+    process.exit(1);
+  }
   console.log(`fix-segment-files: ${moved} segment file${moved === 1 ? "" : "s"} moved to flat names`);
 }

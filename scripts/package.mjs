@@ -4,6 +4,7 @@ import { mkdir, rm, stat } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ZipArchive } from "archiver";
+import { leftoverSegmentDirs } from "./fix-segment-files.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = join(root, "out");
@@ -38,6 +39,14 @@ const siteUrl = siteUrlOrExit();
 console.log(`Packaging for ${siteUrl}`);
 
 execSync("npm run build", { cwd: root, stdio: "inherit", env: { ...process.env, SITE_URL: siteUrl } });
+
+// The build flattens the Windows-misnamed prefetch folders; never ship a zip
+// where one survived (every prefetch of that route would 404 on Netlify).
+const leftover = leftoverSegmentDirs(outDir);
+if (leftover.length > 0) {
+  console.error(`Refusing to package: __next.* folders remain in out/: ${leftover.join(", ")}`);
+  process.exit(1);
+}
 
 await mkdir(distDir, { recursive: true });
 await rm(zipPath, { force: true });

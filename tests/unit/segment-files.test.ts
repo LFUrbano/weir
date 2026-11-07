@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { flatSegmentName, flattenSegmentDirs } from "../../scripts/fix-segment-files.mjs";
+import { flatSegmentName, flattenSegmentDirs, leftoverSegmentDirs } from "../../scripts/fix-segment-files.mjs";
 
 describe("flatSegmentName", () => {
   it("joins a nested segment path with dots, like the client router asks for it", () => {
@@ -52,5 +52,29 @@ describe("flattenSegmentDirs", () => {
     put("models/__next.models.__PAGE__.txt");
     expect(flattenSegmentDirs(out)).toBe(0);
     expect(existsSync(join(out, "models/__next.models.__PAGE__.txt"))).toBe(true);
+  });
+});
+
+describe("leftoverSegmentDirs (the packaging guard)", () => {
+  let out: string;
+  afterEach(() => rmSync(out, { recursive: true, force: true }));
+
+  it("finds every __next.* folder left anywhere in out/", () => {
+    out = mkdtempSync(join(tmpdir(), "weir-out-"));
+    mkdirSync(join(out, "models/phi-4/__next.models/$d$slug"), { recursive: true });
+    mkdirSync(join(out, "docs/quickstart/__next.docs"), { recursive: true });
+    writeFileSync(join(out, "models/__next.models.__PAGE__.txt"), "");
+    expect(leftoverSegmentDirs(out).map((d) => d.split("\\").join("/")).sort()).toEqual([
+      "docs/quickstart/__next.docs",
+      "models/phi-4/__next.models",
+    ]);
+  });
+
+  it("is empty once the folders are flattened", () => {
+    out = mkdtempSync(join(tmpdir(), "weir-out-"));
+    mkdirSync(join(out, "models/__next.models"), { recursive: true });
+    writeFileSync(join(out, "models/__next.models/__PAGE__.txt"), "");
+    flattenSegmentDirs(out);
+    expect(leftoverSegmentDirs(out)).toEqual([]);
   });
 });
