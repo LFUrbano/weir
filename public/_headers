@@ -1,0 +1,10 @@
+# Netlify headers. This file lands at the root of the deploy zip (public/ -> out/).
+
+# Build assets have content hashes in their names, so they never change.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()

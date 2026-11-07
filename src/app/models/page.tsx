@@ -4,11 +4,13 @@ import { CatalogClient, CatalogFallback } from "@/components/models/CatalogClien
 import { StatusDot } from "@/components/site/StatusDot";
 import { company } from "@/data/company";
 import { isDedicatedModel, models } from "@/data/models";
+import { pageMetadata, pageTitle } from "@/lib/metadata";
 
-export const metadata: Metadata = {
-  title: "Models",
+export const metadata: Metadata = pageMetadata({
+  title: pageTitle("Models"),
   description: `${models.length} open-weight models for chat, reasoning, code, embeddings, vision and images, with price per 1M tokens, context window, speed and latency for each.`,
-};
+  path: "/models/",
+});
 
 const publishers = new Set(models.map((m) => m.publisher)).size;
 const dedicated = models.filter(isDedicatedModel).length;

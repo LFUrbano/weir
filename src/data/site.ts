@@ -57,4 +57,14 @@ export const fictionNote = "Fictional company. Concept project.";
  * The Netlify address is only known after the first deploy (Task 12), so the
  * build reads SITE_URL and falls back to the reserved fictional domain.
  */
-export const siteUrl = new URL(process.env.SITE_URL ?? "https://weir.example");
+export const siteUrl = toSiteUrl(process.env.SITE_URL);
+
+/**
+ * Only the origin counts: metadataBase would keep a path ("…/weir/") for
+ * canonicals while the sitemap and robots, built with new URL("/…", base),
+ * drop it, so the two would disagree.
+ */
+export function toSiteUrl(raw: string | undefined): URL {
+  const value = raw?.trim() || "https://weir.example";
+  return new URL(new URL(value).origin);
+}

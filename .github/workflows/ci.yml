@@ -28,12 +28,20 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
-      - name: Install Playwright browsers and system dependencies
+      - name: Install Playwright browser
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium
-      - name: Install Playwright system dependencies only
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium
+        run: npx playwright install chromium
+      # ubuntu-latest already has the libraries Chromium needs, and apt
+      # (install-deps) sometimes takes 9-12 minutes. Only fall back to it if
+      # Chromium cannot start.
+      - name: Install Playwright system dependencies if Chromium cannot start
+        timeout-minutes: 12
+        run: |
+          if node -e "require('@playwright/test').chromium.launch().then((b) => b.close())"; then
+            echo "Chromium starts with the runner's libraries; skipping install-deps."
+          else
+            npx playwright install-deps chromium
+          fi
       - run: npm run build
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4

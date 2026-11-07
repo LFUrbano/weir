@@ -15,6 +15,7 @@ import { getGpu, gpuShortName } from "@/data/gpus";
 import { getModel, isDedicatedModel, models, type Model } from "@/data/models";
 import { contactHref } from "@/data/site";
 import { formatLatency, formatUsd } from "@/lib/format";
+import { pageMetadata, pageTitle } from "@/lib/metadata";
 import { metricsSeries, percentile } from "@/lib/metrics";
 import { BREAK_EVEN_LABEL, endpointFor, formatBreakEven, latencyName, modelPrice } from "@/lib/model-display";
 import { breakEvenMonthlyTokens } from "@/lib/pricing";
@@ -36,21 +37,13 @@ function load(slug: string): Model {
 
 export async function generateMetadata({ params }: PageProps<"/models/[slug]">): Promise<Metadata> {
   const m = load((await params).slug);
-  const title = `${m.name} — Weir`;
   const path = `/models/${m.slug}/`;
-  const image = {
-    url: `${path}og.png`,
-    width: 1200,
-    height: 630,
-    alt: `${m.name} on Weir: price and 24-hour latency`,
-  };
-  return {
-    title: { absolute: title },
+  return pageMetadata({
+    title: pageTitle(m.name),
     description: m.summary,
-    alternates: { canonical: path },
-    openGraph: { type: "website", siteName: "Weir", url: path, title, description: m.summary, images: [image] },
-    twitter: { card: "summary_large_image", title, description: m.summary, images: [image.url] },
-  };
+    path,
+    image: { url: `${path}og.png`, alt: `${m.name} on Weir: price and 24-hour latency` },
+  });
 }
 
 /** A documentation-style band: the heading in a narrow column, the content beside it. */
