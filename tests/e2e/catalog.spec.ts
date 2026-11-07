@@ -2,6 +2,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 import { isTokenModel, models } from "../../src/data/models";
 import { blendedPrice } from "../../src/lib/pricing";
 import { collectErrors } from "./errors";
+import { pressMenuShortcut } from "./shortcut";
 
 /** Rows on desktop and cards on phones both carry data-slug; only one set is visible. */
 const rows = (page: Page): Locator => page.locator("[data-slug]").filter({ visible: true });
@@ -242,7 +243,7 @@ test.describe("model catalog", () => {
 
     // Command menu "Models" page item.
     await typeLlama();
-    await page.keyboard.press("Control+k");
+    await pressMenuShortcut(page);
     await expect(page.getByRole("combobox", { name: "Search models and pages" })).toBeFocused();
     await page.keyboard.type("models");
     await page.getByRole("dialog", { name: "Search Weir" }).getByRole("option", { name: /^Models/ }).click();
@@ -315,7 +316,7 @@ test.describe("command menu", () => {
 
   test("typing a model name and Enter opens its page", async ({ page }) => {
     await page.goto("/");
-    await page.keyboard.press("Control+k");
+    await pressMenuShortcut(page);
     const menu = page.getByRole("dialog", { name: "Search Weir" });
     await expect(menu).toBeVisible();
     await expect(menu.getByRole("combobox", { name: "Search models and pages" })).toBeFocused();
@@ -327,7 +328,7 @@ test.describe("command menu", () => {
 
   test("lists the site pages", async ({ page }) => {
     await page.goto("/");
-    await page.keyboard.press("Control+k");
+    await pressMenuShortcut(page);
     const menu = page.getByRole("dialog", { name: "Search Weir" });
     for (const label of ["Models", "Pricing", "Enterprise", "Quickstart"]) {
       await expect(menu.getByRole("option", { name: new RegExp(`^${label}`) })).toBeVisible();

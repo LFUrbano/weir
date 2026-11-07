@@ -1,6 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+/** One rule set for every axe run in this file. */
+const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-practice"];
+
 const pages = ["/", "/models/", "/models/llama-3-3-70b/", "/pricing/", "/enterprise/", "/docs/quickstart/"];
 
 /** Final state of every animation, so axe judges the colors a reader ends up seeing. */
@@ -11,7 +14,7 @@ for (const path of pages) {
     await page.goto(path);
     await page.waitForLoadState("networkidle");
     const { violations } = await new AxeBuilder({ page })
-      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-practice"])
+      .withTags(AXE_TAGS)
       .analyze();
     const blocking = violations
       .filter((v) => v.impact === "serious" || v.impact === "critical")
@@ -34,7 +37,7 @@ for (const path of pages) {
 test("no serious or critical axe violations on the 404 page, or with the menus open", async ({ page }, testInfo) => {
   await page.goto("/nao-existe/");
   const axe = () =>
-    new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+    new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
   const blocking = (v: Awaited<ReturnType<typeof axe>>["violations"]) =>
     v.filter((x) => x.impact === "serious" || x.impact === "critical").map((x) => x.id);
 
