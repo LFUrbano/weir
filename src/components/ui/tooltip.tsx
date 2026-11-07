@@ -17,10 +17,16 @@ function TooltipProvider({
   )
 }
 
+// Each Tooltip brings its own provider (as stock shadcn does): the root
+// layout no longer mounts a TooltipProvider, so none is needed above it.
 function Tooltip({
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Root>) {
-  return <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+  return (
+    <TooltipProvider>
+      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
+    </TooltipProvider>
+  )
 }
 
 function TooltipTrigger({
