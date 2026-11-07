@@ -177,6 +177,41 @@ test.describe("contact form", () => {
     await expect.poll(zodLoaded).toBe(true);
   });
 
+  test("if the checks fail to download, the form says so and works on the next try", async ({ page }) => {
+    // Fail every download of the chunk that holds zod until the network "comes back".
+    let offline = true;
+    let failures = 0;
+    await page.route(/\/_next\/static\/chunks\/.*\.js$/, async (route) => {
+      const response = await route.fetch();
+      const body = await response.text();
+      if (offline && body.includes("$ZodType")) {
+        failures++;
+        return route.abort("internetdisconnected");
+      }
+      return route.fulfill({ response, body });
+    });
+    const unhandled: string[] = [];
+    page.on("pageerror", (e) => unhandled.push(e.message));
+
+    await page.goto("/enterprise/");
+    await form(page).scrollIntoViewIfNeeded();
+    await submit(page).click();
+    await expect(page.getByTestId("form-error")).toHaveText(contactMessages.load);
+    await expect(page.getByRole("alert").filter({ hasText: contactMessages.load })).toBeVisible();
+    expect(failures).toBeGreaterThan(0);
+    await expect(success(page)).toBeHidden();
+
+    // Back online: the next try downloads the checks again and validation runs.
+    offline = false;
+    await submit(page).click();
+    await expect(page.getByTestId("form-error")).toBeHidden();
+    await expect(page.getByText(contactMessages.email.required)).toBeVisible();
+    await fillValid(page);
+    await submit(page).click();
+    await expect(success(page)).toBeVisible({ timeout: 5000 });
+    expect(unhandled).toEqual([]);
+  });
+
   test.beforeEach(async ({ page }) => {
     await page.goto("/enterprise/");
     await form(page).scrollIntoViewIfNeeded();

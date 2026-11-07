@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { CONTACT_MESSAGE_MAX, USE_CASES, VOLUMES, useCaseLabels } from "@/lib/contact-fields";
+import { CONTACT_MESSAGE_MAX, USE_CASES, VOLUMES, contactMessages, useCaseLabels } from "@/lib/contact-fields";
 import type { ContactInput } from "@/lib/contact-schema";
 import { formatCount } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -160,12 +160,23 @@ function Success({ data }: { data: ContactInput }) {
 let zodResolverPromise: Promise<Resolver<ContactInput>> | null = null;
 
 function loadResolver(): Promise<Resolver<ContactInput>> {
-  zodResolverPromise ??= Promise.all([import("@hookform/resolvers/zod"), import("@/lib/contact-schema")]).then(
-    ([{ zodResolver }, { contactSchema }]) => zodResolver(contactSchema) as Resolver<ContactInput>,
-  );
+  zodResolverPromise ??= Promise.all([import("@hookform/resolvers/zod"), import("@/lib/contact-schema")])
+    .then(([{ zodResolver }, { contactSchema }]) => zodResolver(contactSchema) as Resolver<ContactInput>)
+    .catch((error: unknown) => {
+      // A failed download (offline, a flaky network) must not stick: the
+      // next validation tries again.
+      zodResolverPromise = null;
+      throw error;
+    });
   return zodResolverPromise;
 }
 
+/**
+ * Validates with zod. onSubmit makes sure it has loaded before handing over to
+ * React Hook Form (and re-validation only runs after a submit), so by the time
+ * this runs the download has succeeded. It can't report a load failure
+ * itself: handleSubmit drops errors.root and would treat the form as valid.
+ */
 const lazyZodResolver: Resolver<ContactInput> = async (values, context, options) =>
   (await loadResolver())(values, context, options);
 
@@ -182,6 +193,8 @@ export function ContactForm({ aside }: { aside?: ReactNode }) {
     shouldFocusError: true,
   });
   const [sending, setSending] = useState(false);
+  // The checks could not be downloaded: say so instead of doing nothing.
+  const [loadFailed, setLoadFailed] = useState(false);
   const [sent, setSent] = useState<ContactInput | null>(null);
   // State updates land a render later; the ref stops a double click in between.
   const busy = useRef(false);
@@ -196,12 +209,17 @@ export function ContactForm({ aside }: { aside?: ReactNode }) {
     setSent(data);
   }
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
-    if (busy.current) {
-      e.preventDefault();
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (busy.current) return;
+    try {
+      await loadResolver();
+    } catch {
+      setLoadFailed(true);
       return;
     }
-    void form.handleSubmit(onValid)(e);
+    setLoadFailed(false);
+    await form.handleSubmit(onValid)();
   }
 
   const formBody = (
@@ -209,8 +227,9 @@ export function ContactForm({ aside }: { aside?: ReactNode }) {
       <form
         data-testid="contact-form"
         noValidate
-        onSubmit={onSubmit}
-        onFocus={() => void loadResolver()}
+        onSubmit={(e) => void onSubmit(e)}
+        // Warm-up only: a failure here is reported when the form validates.
+        onFocus={() => void loadResolver().catch(() => {})}
         className="relative grid gap-7"
       >
         <div className="grid gap-7 sm:grid-cols-2 sm:gap-5">
@@ -342,6 +361,11 @@ export function ContactForm({ aside }: { aside?: ReactNode }) {
             {sending ? "Sending…" : "Send request"}
           </Button>
         </div>
+        {loadFailed && (
+          <p data-testid="form-error" role="alert" className="-mt-3 text-small text-err sm:text-right">
+            {contactMessages.load}
+          </p>
+        )}
       </form>
     </Form>
   );

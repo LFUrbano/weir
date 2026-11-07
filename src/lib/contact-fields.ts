@@ -34,4 +34,6 @@ export const contactMessages = {
   volume: "Pick a monthly volume. A rough range is fine.",
   useCase: "Pick the use case closest to yours.",
   message: { tooLong: "Keep the message to 2,000 characters or fewer." },
+  /** The checks themselves failed to download (offline, a flaky network). */
+  load: "Couldn't load the form. Check your connection and try again.",
 } as const;
