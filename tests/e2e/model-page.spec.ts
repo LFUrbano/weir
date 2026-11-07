@@ -195,7 +195,7 @@ test.describe("model page", () => {
     }
   });
 
-  // Review Focus 3: a slug that is not in the data is a static 404.
+  // A slug that is not in the data is a static 404.
   test("an unknown slug is a 404", async ({ page }) => {
     const res = await page.goto("/models/nao-existe/");
     expect(res?.status()).toBe(404);

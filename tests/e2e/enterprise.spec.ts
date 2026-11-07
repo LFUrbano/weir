@@ -267,7 +267,7 @@ test.describe("contact form", () => {
     await expect(success(page)).toHaveCount(0);
   });
 
-  test("Review Focus 5: spaces only count as empty", async ({ page }) => {
+  test("spaces only count as empty", async ({ page }) => {
     await fillValid(page);
     await email(page).fill("   ");
     await companyField(page).fill("  \t ");
@@ -333,7 +333,7 @@ test.describe("contact form", () => {
     expect(errors).toEqual([]);
   });
 
-  test("Review Focus 5: two clicks in a row make one success state", async ({ page }) => {
+  test("two clicks in a row make one success state", async ({ page }) => {
     const writes = recordWrites(page);
     await fillValid(page);
     const button = submit(page);
@@ -346,7 +346,7 @@ test.describe("contact form", () => {
     expect(writes).toEqual([]);
   });
 
-  test("Review Focus 5: a filled honeypot shows the same success and sends nothing", async ({
+  test("a filled honeypot shows the same success and sends nothing", async ({
     page,
   }) => {
     const writes = recordWrites(page);
