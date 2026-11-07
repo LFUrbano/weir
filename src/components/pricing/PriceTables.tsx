@@ -9,10 +9,11 @@ import {
   TableRow,
   TableRowHeader,
 } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { getGpu, gpuShortName, gpus, type Gpu } from "@/data/gpus";
-import { isDedicatedModel, isTokenModel, models, type Model } from "@/data/models";
+import { IMAGE_SIZE, isDedicatedModel, isTokenModel, models, type Model } from "@/data/models";
 import { formatCount, formatPerImage, formatUsd } from "@/lib/format";
-import { BREAK_EVEN_LABEL, formatBreakEven, modelPrice } from "@/lib/model-display";
+import { BREAK_EVEN_LABEL, BREAK_EVEN_NOTE, formatBreakEven, modelPrice } from "@/lib/model-display";
 import { HOURS_PER_MONTH, breakEvenMonthlyTokens, dedicatedMonthlyCost } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
@@ -52,6 +53,39 @@ function Short({ phone, full }: { phone: string; full: string }) {
     <>
       <span className="md:hidden">{phone}</span>
       <span className="hidden md:inline">{full}</span>
+    </>
+  );
+}
+
+/**
+ * The break-even header, with its meaning one focus or hover away. The trigger
+ * is a real button, so the keyboard reaches it. The tooltip is extra: the
+ * definition is the button's description at all times, so a screen reader
+ * hears it and a touch screen (where tooltips do not open) loses nothing.
+ */
+function BreakEvenHead() {
+  return (
+    <>
+      <Tooltip>
+        <TooltipTrigger
+          type="button"
+          aria-describedby="break-even-note"
+          className="cursor-help rounded-sm uppercase underline decoration-line-strong decoration-dotted underline-offset-4 hover:text-fg focus-visible:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        >
+          <Short phone="Break-even" full={BREAK_EVEN_LABEL} />
+        </TooltipTrigger>
+        {/* The sticky site header covers the top 64 px: flip below before reaching it. */}
+        <TooltipContent
+          side="top"
+          collisionPadding={{ top: 80, left: 16, right: 16 }}
+          className="max-w-64 font-sans text-small normal-case"
+        >
+          {BREAK_EVEN_NOTE}
+        </TooltipContent>
+      </Tooltip>
+      <span id="break-even-note" hidden>
+        {BREAK_EVEN_NOTE}
+      </span>
     </>
   );
 }
@@ -150,7 +184,7 @@ export function ImageTable() {
               <TableRowHeader className={nameCell}>
                 <ModelName model={m} />
               </TableRowHeader>
-              <TableCell className={cn(num, quiet)}>1024 × 1024</TableCell>
+              <TableCell className={cn(num, quiet)}>{IMAGE_SIZE.label}</TableCell>
               <TableCell className={num}>{formatPerImage(m.pricing.perImage)}</TableCell>
             </TableRow>
           ) : null,
@@ -234,7 +268,7 @@ export function ReplicaTable() {
             Peak
           </TableHead>
           <TableHead scope="col" className="text-right">
-            <Short phone="Break-even" full={BREAK_EVEN_LABEL} />
+            <BreakEvenHead />
           </TableHead>
         </TableRow>
       </TableHeader>

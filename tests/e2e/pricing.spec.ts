@@ -3,7 +3,7 @@ import { dataRetention } from "../../src/data/company";
 import { gpus } from "../../src/data/gpus";
 import { getModel, isDedicatedModel, isTokenModel, models } from "../../src/data/models";
 import { formatPerImage } from "../../src/lib/format";
-import { BREAK_EVEN_LABEL, formatBreakEven, modelPrice } from "../../src/lib/model-display";
+import { BREAK_EVEN_LABEL, BREAK_EVEN_NOTE, formatBreakEven, modelPrice } from "../../src/lib/model-display";
 import { breakEvenMonthlyTokens } from "../../src/lib/pricing";
 import { collectErrors } from "./errors";
 
@@ -252,6 +252,27 @@ test.describe("pricing page", () => {
       );
       expect(overflow, `${width}px`).toBeLessThanOrEqual(0);
     }
+  });
+});
+
+test.describe("break-even header", () => {
+  test("explains the term from the keyboard, and without hover", async ({ page }) => {
+    await page.goto("/pricing/");
+    const trigger = page
+      .getByTestId("replica-table")
+      .locator("thead")
+      .getByRole("button", { name: /^Break-even/ });
+    // A real button in the tab order, described at all times (no hover needed).
+    await expect(trigger).toHaveJSProperty("tabIndex", 0);
+    await expect(trigger).toHaveAttribute("type", "button");
+    await expect(trigger).toHaveAccessibleDescription(BREAK_EVEN_NOTE);
+
+    await trigger.focus();
+    await expect(page.getByRole("tooltip")).toHaveText(BREAK_EVEN_NOTE);
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("tooltip")).toHaveCount(0);
+    // Still described after the tooltip closes.
+    await expect(trigger).toHaveAccessibleDescription(BREAK_EVEN_NOTE);
   });
 });
 
