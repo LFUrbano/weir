@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import robots from "@/app/robots";
 import sitemap from "@/app/sitemap";
 import { models } from "@/data/models";
-import { siteUrl } from "@/data/site";
-import { pageMetadata, pageTitle, sitePaths } from "@/lib/metadata";
+import { siteUrl, toSiteUrl } from "@/data/site";
+import { HOME_TITLE, pageMetadata, pageTitle, sitePaths } from "@/lib/metadata";
 
 const abs = (path: string) => new URL(path, siteUrl).href;
 
@@ -17,6 +17,16 @@ describe("site paths", () => {
     expect(paths).toHaveLength(5 + models.length);
     expect(new Set(paths).size).toBe(paths.length);
     for (const p of paths) expect(p).toMatch(/^\/([a-z0-9-]+\/)*$/);
+  });
+});
+
+describe("site URL", () => {
+  it("keeps only the origin, so sitemap, robots and canonicals agree", () => {
+    expect(toSiteUrl("https://weir.netlify.app/some/path/?q=1#x").href).toBe("https://weir.netlify.app/");
+    expect(toSiteUrl("  https://weir.netlify.app  ").href).toBe("https://weir.netlify.app/");
+    expect(toSiteUrl(undefined).href).toBe("https://weir.example/");
+    expect(toSiteUrl("").href).toBe("https://weir.example/");
+    expect(siteUrl.pathname).toBe("/");
   });
 });
 
@@ -39,6 +49,7 @@ describe("robots.txt", () => {
 describe("page metadata", () => {
   it("uses one title separator everywhere", () => {
     expect(pageTitle("Pricing")).toBe("Pricing · Weir");
+    expect(HOME_TITLE).toBe("Weir · Open models in production");
   });
 
   it("sets title, description, canonical, Open Graph and Twitter from one input", () => {

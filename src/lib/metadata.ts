@@ -13,6 +13,9 @@ export function pageTitle(page: string): string {
   return `${page}${TITLE_SEPARATOR}${SITE_NAME}`;
 }
 
+/** The home page leads with the brand; every other page ends with it. */
+export const HOME_TITLE = `${SITE_NAME}${TITLE_SEPARATOR}Open models in production`;
+
 export type ShareImage = { url: string; alt: string };
 
 export const siteShareImage: ShareImage = { url: "/og.png", alt: "Weir: open models in production" };

@@ -5,7 +5,7 @@ import { CommandMenuProvider } from "@/components/site/CommandMenu";
 import { Header } from "@/components/site/Header";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { siteUrl } from "@/data/site";
-import { SITE_NAME, pageTitle, siteDescription, siteShareImage } from "@/lib/metadata";
+import { HOME_TITLE, SITE_NAME, pageTitle, siteDescription, siteShareImage } from "@/lib/metadata";
 import "./globals.css";
 
 const funnelDisplay = Funnel_Display({
@@ -32,7 +32,7 @@ const azeretMono = Azeret_Mono({
  */
 export const metadata: Metadata = {
   title: {
-    default: pageTitle("Open models in production"),
+    default: HOME_TITLE,
     template: pageTitle("%s"),
   },
   description: siteDescription,

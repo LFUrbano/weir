@@ -11,10 +11,10 @@ import { heroDemo } from "@/components/home/hero-demo";
 import { company } from "@/data/company";
 import { getModel, isTokenModel, models, type TokenModel } from "@/data/models";
 import { formatLatency } from "@/lib/format";
-import { SITE_NAME, TITLE_SEPARATOR, pageMetadata, siteDescription } from "@/lib/metadata";
+import { HOME_TITLE, pageMetadata, siteDescription } from "@/lib/metadata";
 
 export const metadata = pageMetadata({
-  title: `${SITE_NAME}${TITLE_SEPARATOR}Open models in production`,
+  title: HOME_TITLE,
   description: siteDescription,
   path: "/",
 });
