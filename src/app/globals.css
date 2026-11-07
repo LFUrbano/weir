@@ -66,7 +66,8 @@
    * from the element (leading-*, tracking-*) or are inherited, so swapping an
    * arbitrary size for one of these changes nothing on screen. No arbitrary
    * font size (text-[…]) is allowed in src/ (tests/unit/type-tokens.test.ts).
-   * Unlike the styles above, these steps are not in the Figma file yet.
+   * In Figma each step is a text style named Size/<step> (Size/meta, Size/hero),
+   * size only like here, set in the family the step is usually used with.
    */
   /* Small text: plain tiny text (label without its caps and tracking), captions, mono meta lines, controls. */
   --text-micro: 0.6875rem;
