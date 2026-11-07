@@ -34,6 +34,17 @@ for (const path of pages) {
   });
 }
 
+test("no serious or critical axe violations with the break-even tooltip open", async ({ page }) => {
+  await page.goto("/pricing/");
+  await page.waitForLoadState("networkidle");
+  await page.getByTestId("replica-table").locator("thead").getByRole("button", { name: /^Break-even/ }).focus();
+  await expect(page.getByRole("tooltip")).toBeVisible();
+  const { violations } = await new AxeBuilder({ page }).withTags(AXE_TAGS).analyze();
+  expect(
+    violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => v.id),
+  ).toEqual([]);
+});
+
 test("no serious or critical axe violations on the 404 page, or with the menus open", async ({ page }, testInfo) => {
   await page.goto("/nao-existe/");
   const axe = () =>

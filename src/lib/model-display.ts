@@ -84,6 +84,10 @@ export function shortModelName(m: Model): string {
  */
 export const BREAK_EVEN_LABEL = "Break-even, 1 replica";
 
+/** What the label means, for its tooltip and screen-reader description. */
+export const BREAK_EVEN_NOTE =
+  "The monthly volume where one dedicated replica costs the same as serverless, at half input and half output tokens.";
+
 /** "5.77B tok/mo". */
 export function formatBreakEven(tokens: number): string {
   return `${formatTokens(tokens)} tok/mo`;

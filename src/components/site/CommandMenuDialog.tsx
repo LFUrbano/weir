@@ -13,6 +13,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { models } from "@/data/models";
+import { MAX_QUERY_LENGTH } from "@/lib/catalog";
 import { commandPages } from "@/data/site";
 import { Kbd } from "./Kbd";
 
@@ -63,7 +64,7 @@ export function CommandMenuDialog({
           value={search}
           onValueChange={setSearch}
           placeholder="Search models and pages"
-          maxLength={80}
+          maxLength={MAX_QUERY_LENGTH}
         />
         <CommandList>
           <CommandEmpty>

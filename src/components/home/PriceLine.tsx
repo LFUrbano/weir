@@ -1,15 +1,15 @@
 import Link from "next/link";
 import { sectionY } from "@/components/site/Section";
 import { company } from "@/data/company";
-import { getGpu } from "@/data/gpus";
+import { getGpu, gpuShortName } from "@/data/gpus";
 import type { TokenModel } from "@/data/models";
 import { formatUsd } from "@/lib/format";
+import { shortModelName } from "@/lib/model-display";
 import { blendedPrice } from "@/lib/pricing";
 
-/** Short display name: "Llama 3.3 70B Instruct" reads as "Llama 3.3 70B" in a sentence. */
-function shortName(m: TokenModel) {
-  // Non-breaking spaces keep the model name on one line when the heading wraps.
-  return m.name.replace(/ Instruct$/, "").replaceAll(" ", String.fromCharCode(0xa0));
+/** The short name, with non-breaking spaces so it stays on one line when the heading wraps. */
+function unbrokenName(m: TokenModel) {
+  return shortModelName(m).replaceAll(" ", String.fromCharCode(0xa0));
 }
 
 /**
@@ -35,7 +35,7 @@ export function PriceLine({ model }: { model: TokenModel }) {
               data-testid="price-line"
               className="text-h2-sm leading-[1.1] tracking-[-0.02em] text-fg md:text-h2 xl:text-title xl:leading-[1.05]"
             >
-              1M tokens on {shortName(model)} costs <span className="text-amber">{price}</span>.
+              1M tokens on {unbrokenName(model)} costs <span className="text-amber">{price}</span>.
             </h2>
             <p className="mt-5 max-w-[38rem] font-mono text-small text-fg-2">
               Half input at {formatUsd(model.pricing.input)}, half output at{" "}
@@ -44,7 +44,7 @@ export function PriceLine({ model }: { model: TokenModel }) {
           </div>
           <div className="col-span-12 lg:col-span-4 lg:border-l lg:border-line lg:pl-8">
             <p className="text-small text-fg-2">
-              Dedicated {h100.name.replace("NVIDIA ", "")}s from {formatUsd(h100.hourly)} per
+              Dedicated {gpuShortName(h100)}s from {formatUsd(h100.hourly)} per
               GPU-hour, billed {company.dedicatedBilling}.
             </p>
             <Link

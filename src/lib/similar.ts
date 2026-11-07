@@ -1,10 +1,10 @@
-import { models as allModels, type Model } from "@/data/models";
+import { models as allModels, isTokenModel, type Model } from "@/data/models";
+import { blendedPrice } from "@/lib/pricing";
 
 /** One comparable price per model: 50/50 blended per 1M tokens, or per image. */
 function unitPrice(m: Model): number {
-  return m.pricing.unit === "image"
-    ? m.pricing.perImage
-    : (m.pricing.input + m.pricing.output) / 2;
+  if (isTokenModel(m)) return blendedPrice(m, 0.5);
+  return m.pricing.unit === "image" ? m.pricing.perImage : 0;
 }
 
 function priceDistance(a: Model, b: Model): number {

@@ -1,8 +1,21 @@
 import Link from "next/link";
 import { Section } from "@/components/site/Section";
 import { getModel, isTokenModel, models, type TokenModel } from "@/data/models";
-import { headCell as th, numCell as num } from "@/components/models/table-styles";
+import { numCell } from "@/components/models/table-styles";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableRowHeader,
+} from "@/components/ui/table";
 import { formatContext, formatLatency, formatUsd } from "@/lib/format";
+import { cn } from "@/lib/utils";
+
+/** Header cells sit on their label, as in the catalog, without the catalog's fixed row height. */
+const head = "h-auto pb-3 align-bottom font-[450]";
 
 /** One per family and task, so the preview reads as range, not as a list of Llamas. */
 const PREVIEW = [
@@ -33,45 +46,42 @@ export function CatalogPreview() {
       lede="One key and one SDK for all of them, and switching between models on the same endpoint is a one-string change. Prices here are per million tokens, with no minimums and nothing billed while you are idle."
     >
       <div data-testid="catalog-preview">
-        <table className="w-full border-collapse">
+        <Table className="text-body">
           <caption className="sr-only">
             Six of the {models.length} models, with price per 1M tokens and median time to first token
           </caption>
-          <thead>
-            <tr className="border-b border-line-strong">
-              <th scope="col" className={th}>
+          <TableHeader>
+            <TableRow>
+              <TableHead scope="col" className={head}>
                 Model
-              </th>
-              <th scope="col" className={`${th} hidden md:table-cell`}>
+              </TableHead>
+              <TableHead scope="col" className={cn(head, "hidden md:table-cell")}>
                 Task
-              </th>
-              <th scope="col" className={`${th} hidden text-right lg:table-cell`}>
+              </TableHead>
+              <TableHead scope="col" className={cn(head, "hidden text-right lg:table-cell")}>
                 Context
-              </th>
-              <th scope="col" className={`${th} hidden text-right md:table-cell`}>
+              </TableHead>
+              <TableHead scope="col" className={cn(head, "hidden text-right md:table-cell")}>
                 Input / 1M
-              </th>
-              <th scope="col" className={`${th} hidden text-right md:table-cell`}>
+              </TableHead>
+              <TableHead scope="col" className={cn(head, "hidden text-right md:table-cell")}>
                 Output / 1M
-              </th>
-              <th scope="col" className={`${th} text-right md:hidden`}>
+              </TableHead>
+              <TableHead scope="col" className={cn(head, "text-right md:hidden")}>
                 In / out
-              </th>
-              <th scope="col" className={`${th} text-right`}>
+              </TableHead>
+              <TableHead scope="col" className={cn(head, "text-right")}>
                 p50
-              </th>
-              <th scope="col" className={`${th} hidden w-8 md:table-cell`}>
+              </TableHead>
+              <TableHead scope="col" className={cn(head, "hidden w-8 md:table-cell")}>
                 <span className="sr-only">Open</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {rows.map((m) => (
-              <tr
-                key={m.slug}
-                className="group relative border-b border-line transition-colors duration-150 hover:bg-surface"
-              >
-                <th scope="row" className="py-4 pr-3 text-left font-normal md:py-5">
+              <TableRow key={m.slug} className="group relative hover:bg-surface">
+                <TableRowHeader className="py-4 pr-3 md:py-5">
                   <Link
                     href={`/models/${m.slug}/`}
                     className="font-medium text-fg outline-offset-4 after:absolute after:inset-0 after:content-['']"
@@ -82,30 +92,30 @@ export function CatalogPreview() {
                     {m.publisher}
                     <span className="md:hidden"> · {m.tasks.join(" · ")}</span>
                   </span>
-                </th>
-                <td className="hidden px-3 font-mono text-small text-fg-2 md:table-cell">
+                </TableRowHeader>
+                <TableCell className="hidden font-mono text-small text-fg-2 md:table-cell">
                   {m.tasks.join(" · ")}
-                </td>
-                <td className={`${num} hidden lg:table-cell`}>{formatContext(m.contextK)}</td>
-                <td className={`${num} hidden md:table-cell`}>{formatUsd(m.pricing.input)}</td>
-                <td className={`${num} hidden md:table-cell`}>{formatUsd(m.pricing.output)}</td>
-                <td className={`${num} whitespace-nowrap md:hidden`}>
+                </TableCell>
+                <TableCell className={cn(numCell, "hidden lg:table-cell")}>{formatContext(m.contextK)}</TableCell>
+                <TableCell className={cn(numCell, "hidden md:table-cell")}>{formatUsd(m.pricing.input)}</TableCell>
+                <TableCell className={cn(numCell, "hidden md:table-cell")}>{formatUsd(m.pricing.output)}</TableCell>
+                <TableCell className={cn(numCell, "whitespace-nowrap md:hidden")}>
                   <span className="block">{formatUsd(m.pricing.input)}</span>
                   <span className="mt-1 block text-fg-2">{formatUsd(m.pricing.output)}</span>
-                </td>
-                <td className={`${num} whitespace-nowrap last:pr-0 md:pr-3`}>
+                </TableCell>
+                <TableCell className={cn(numCell, "whitespace-nowrap last:pr-0 md:pr-3")}>
                   {formatLatency(m.p50Ms)}
-                </td>
-                <td
+                </TableCell>
+                <TableCell
                   aria-hidden="true"
                   className="hidden pl-3 text-right font-mono text-fg-2 transition-[color,translate] duration-150 group-hover:translate-x-0.5 group-hover:text-fg md:table-cell"
                 >
                   →
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
 
         <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-baseline md:justify-between">
           <p className="max-w-[36rem] text-small text-fg-2">

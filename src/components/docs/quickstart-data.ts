@@ -1,4 +1,4 @@
-import { getModel, isTokenModel, type TokenModel } from "@/data/models";
+import { referenceModel } from "@/data/models";
 import { formatUsd } from "@/lib/format";
 
 /**
@@ -6,12 +6,6 @@ import { formatUsd } from "@/lib/format";
  * MDX page is a Next route module, and a route module may only export what
  * Next knows (`metadata`, and so on).
  */
-
-function referenceModel(): TokenModel {
-  const m = getModel("llama-3-3-70b");
-  if (!m || !isTokenModel(m)) throw new Error("The quickstart needs the llama-3-3-70b token model.");
-  return m;
-}
 
 /** The model every example calls. */
 export const model = referenceModel();

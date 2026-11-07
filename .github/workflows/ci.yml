@@ -5,6 +5,11 @@ on:
   push:
     branches: [main]
 
+# The job only reads the code. Caching and the report upload use the Actions
+# runtime token, not GITHUB_TOKEN, so they need no extra scope.
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest

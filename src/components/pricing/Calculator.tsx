@@ -15,7 +15,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { getGpu, gpuShortName } from "@/data/gpus";
 import { contactHref } from "@/data/site";
-import { isDedicatedModel, isTokenModel, models, type TokenModel } from "@/data/models";
+import { REFERENCE_MODEL_SLUG, isDedicatedModel, isTokenModel, models, type TokenModel } from "@/data/models";
 import { formatCount, formatTokens, formatUsd } from "@/lib/format";
 import { shortModelName } from "@/lib/model-display";
 import { HOURS_PER_MONTH, PEAK_FACTOR, compareMonthly, type MonthlyComparison } from "@/lib/pricing";
@@ -31,7 +31,7 @@ const GROUPS = [
   { label: "Dedicated available", list: CALC_MODELS.filter(isDedicatedModel) },
   { label: "Serverless only", list: CALC_MODELS.filter((m) => !isDedicatedModel(m)) },
 ];
-const DEFAULT_SLUG = "llama-3-3-70b";
+const DEFAULT_SLUG = REFERENCE_MODEL_SLUG;
 
 /** A month a small product team might see: 2B tokens in, 500M out. */
 const DEFAULT_INPUT = 2e9;

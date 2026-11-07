@@ -48,6 +48,12 @@ export function isDedicatedModel(m: Model): m is DedicatedModel {
   return m.dedicated !== null;
 }
 
+/** The model the home, the quickstart and the calculator use as their example. */
+export const REFERENCE_MODEL_SLUG = "llama-3-3-70b";
+
+/** The size every image price is quoted at, and the size the example request asks for. */
+export const IMAGE_SIZE = { label: "1024 × 1024", param: "1024x1024" } as const;
+
 const ALL: Region[] = ["us-east", "us-west", "eu-west"];
 
 export const models: Model[] = [
@@ -413,6 +419,13 @@ export const models: Model[] = [
     dedicated: null,
   },
 ];
+
+/** The reference model, which must exist and bill per token. */
+export function referenceModel(): TokenModel {
+  const m = getModel(REFERENCE_MODEL_SLUG);
+  if (!m || !isTokenModel(m)) throw new Error(`${REFERENCE_MODEL_SLUG} must be a token model`);
+  return m;
+}
 
 export function getModel(slug: string): Model | undefined {
   return models.find((m) => m.slug === slug);

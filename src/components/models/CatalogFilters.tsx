@@ -5,7 +5,7 @@ import { useId } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Task } from "@/data/models";
-import { SORT_KEYS, TASKS, type SortKey } from "@/lib/catalog";
+import { MAX_QUERY_LENGTH, SORT_KEYS, TASKS, type SortKey } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
 
 export const TASK_LABELS: Record<Task | "all", string> = {
@@ -24,9 +24,6 @@ export const SORT_LABELS: Record<SortKey, string> = {
   speed: "Speed, fastest first",
   context: "Context, largest first",
 };
-
-/** Longest accepted query; the same cap parseCatalogParams applies to the URL. */
-export const MAX_QUERY_LENGTH = 80;
 
 export interface CatalogFiltersProps {
   query: string;
