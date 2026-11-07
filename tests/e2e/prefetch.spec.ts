@@ -26,9 +26,9 @@ for (const path of pages) {
         await new Promise((r) => setTimeout(r, 50));
       }
     });
+    // The router prefetches from idle callbacks: wait for it to start, then to finish.
+    await expect.poll(() => prefetched.length, { message: "the router prefetched segment files" }).toBeGreaterThan(0);
     await page.waitForLoadState("networkidle");
-
-    expect(prefetched.length, "the router prefetched segment files").toBeGreaterThan(0);
     expect(failed).toEqual([]);
   });
 }
