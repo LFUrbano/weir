@@ -81,6 +81,22 @@ test.describe("site shell", () => {
     await expect(sheet).toBeHidden();
   });
 
+  test("header links prefetch on intent, not on load", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "hover on desktop");
+    const segments: string[] = [];
+    page.on("request", (r) => {
+      const { pathname } = new URL(r.url());
+      if (pathname.endsWith(".txt")) segments.push(pathname);
+    });
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1000);
+    // The header shows Pricing, but nothing on the first screen of the home page fetches it.
+    expect(segments.filter((p) => p.startsWith("/pricing/"))).toEqual([]);
+    await page.getByRole("banner").getByRole("link", { name: "Pricing", exact: true }).hover();
+    await expect.poll(() => segments.filter((p) => p.startsWith("/pricing/")).length).toBeGreaterThan(0);
+  });
+
   test("footer note", async ({ page }) => {
     await page.goto("/");
     const footer = page.getByRole("contentinfo");

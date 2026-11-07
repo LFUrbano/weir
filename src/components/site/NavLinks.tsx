@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { siteNav } from "@/data/site";
 import { isActivePath } from "@/lib/nav";
 import { cn } from "@/lib/utils";
+import { IntentLink } from "./IntentLink";
 
 export function NavLinks({ className }: { className?: string }) {
   const pathname = usePathname() ?? "/";
@@ -14,7 +14,7 @@ export function NavLinks({ className }: { className?: string }) {
         const active = isActivePath(pathname, item.href);
         return (
           <li key={item.href}>
-            <Link
+            <IntentLink
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
@@ -24,7 +24,7 @@ export function NavLinks({ className }: { className?: string }) {
               )}
             >
               {item.label}
-            </Link>
+            </IntentLink>
           </li>
         );
       })}

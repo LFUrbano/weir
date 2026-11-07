@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { IntentLink } from "./IntentLink";
 
 /**
  * The mark is a weir in section: the water level upstream, the crest, and the
@@ -28,7 +28,7 @@ export function Logo({
   onClick?: () => void;
 }) {
   return (
-    <Link
+    <IntentLink
       href="/"
       aria-label="Weir home"
       onClick={onClick}
@@ -41,6 +41,6 @@ export function Logo({
       <span className="font-display text-logo leading-none font-semibold tracking-[-0.035em]">
         weir
       </span>
-    </Link>
+    </IntentLink>
   );
 }

@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { primaryCta } from "@/data/site";
 import { CommandMenuTrigger } from "./CommandMenu";
+import { IntentLink } from "./IntentLink";
 import { Logo } from "./Logo";
 import { MobileNav } from "./MobileNav";
 import { NavLinks } from "./NavLinks";
@@ -20,9 +20,9 @@ export function Header() {
           <span className="hidden cursor-default text-small text-fg-2 select-none md:inline">
             Sign in
           </span>
-          <Link href={primaryCta.href} className={buttonVariants({ size: "sm" })}>
+          <IntentLink href={primaryCta.href} className={buttonVariants({ size: "sm" })}>
             {primaryCta.label}
-          </Link>
+          </IntentLink>
           <MobileNav />
         </div>
       </div>
