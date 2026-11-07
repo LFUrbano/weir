@@ -25,6 +25,6 @@ describe("Node version", () => {
 
   it("requires the Node that has import.meta.main (the segment-file fix relies on it)", () => {
     const pkg = JSON.parse(read("package.json")) as { engines?: { node?: string } };
-    expect(pkg.engines?.node).toBe(">=22.18");
+    expect(pkg.engines?.node).toBe("^22.18.0 || >=24.2.0");
   });
 });
