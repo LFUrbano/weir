@@ -13,7 +13,8 @@ export const TASKS: Task[] = ["chat", "reasoning", "code", "embeddings", "vision
 export const SORT_KEYS: SortKey[] = ["name", "price", "speed", "context"];
 export const DEFAULT_PARAMS: CatalogParams = { q: "", task: "all", sort: "name" };
 
-const MAX_QUERY_LENGTH = 80;
+/** Longest search query, in the URL, the catalog box and the command menu. */
+export const MAX_QUERY_LENGTH = 80;
 
 /** Reads catalog filters from a URL, falling back to defaults for anything invalid. */
 export function parseCatalogParams(sp: URLSearchParams): CatalogParams {

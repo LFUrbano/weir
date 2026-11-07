@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getModel, models } from "@/data/models";
+import { IMAGE_SIZE, getModel, models } from "@/data/models";
 import { snippetsFor } from "@/components/code/snippets";
 import { highlight, type Token } from "@/components/code/highlight";
 
@@ -28,6 +28,11 @@ describe("snippetsFor", () => {
     expect(s.python).toContain("images.generate");
     expect(s.node).toContain("images.generate");
     expect(s.curl).not.toContain("chat/completions");
+    // The size the price tables quote is the size the request asks for.
+    expect(s.curl).toContain(`"size": "${IMAGE_SIZE.param}"`);
+    expect(s.python).toContain(`size="${IMAGE_SIZE.param}"`);
+    expect(s.node).toContain(`size: "${IMAGE_SIZE.param}"`);
+    expect(IMAGE_SIZE.label).toBe("1024 × 1024");
   });
 
   it("uses the embeddings endpoint for embedding models", () => {

@@ -1,4 +1,4 @@
-import type { TokenModel } from "@/data/models";
+import { REFERENCE_MODEL_SLUG, type TokenModel } from "@/data/models";
 
 /**
  * The call the hero terminal plays back. It is the request in the code panel
@@ -7,7 +7,7 @@ import type { TokenModel } from "@/data/models";
  * terminal shows is computed here from the model data, never typed in.
  */
 export const heroDemo = {
-  modelSlug: "llama-3-3-70b",
+  modelSlug: REFERENCE_MODEL_SLUG,
   /** The snippet's one user message with the Llama 3 chat template around it. */
   promptTokens: 17,
   response:

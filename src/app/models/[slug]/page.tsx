@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { company, pct } from "@/data/company";
 import { getGpu, gpuShortName } from "@/data/gpus";
-import { getModel, isDedicatedModel, models, type Model } from "@/data/models";
+import { IMAGE_SIZE, getModel, isDedicatedModel, models, type Model } from "@/data/models";
 import { contactHref } from "@/data/site";
 import { formatLatency, formatUsd } from "@/lib/format";
 import { pageMetadata, pageTitle } from "@/lib/metadata";
@@ -80,7 +80,7 @@ function PricePanel({ model }: { model: Model }) {
   const price = modelPrice(model);
   const rows =
     price.unit === "image"
-      ? [{ label: "Per image", value: price.perImage, note: "1024 × 1024, one image" }]
+      ? [{ label: "Per image", value: price.perImage, note: `${IMAGE_SIZE.label}, one image` }]
       : [
           { label: "Input", value: price.input, note: "per 1M tokens" },
           {

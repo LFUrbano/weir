@@ -12,6 +12,7 @@ import { company } from "@/data/company";
 import { getModel, isTokenModel, models, type TokenModel } from "@/data/models";
 import { formatLatency } from "@/lib/format";
 import { HOME_TITLE, pageMetadata, siteDescription } from "@/lib/metadata";
+import { shortModelName } from "@/lib/model-display";
 
 export const metadata = pageMetadata({
   title: HOME_TITLE,
@@ -69,7 +70,7 @@ export default function Home() {
         id="how-it-runs"
         eyebrow="Architecture"
         title="How a request runs"
-        lede={`Four hops between your code and the first token. On ${model.name.replace(/ Instruct$/, "")}, the median trip takes ${formatLatency(model.p50Ms)}.`}
+        lede={`Four hops between your code and the first token. On ${shortModelName(model)}, the median trip takes ${formatLatency(model.p50Ms)}.`}
       >
         <div data-testid="request-diagram">
           <RequestDiagram steps={requestSteps(model)} />

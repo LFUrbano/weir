@@ -1,4 +1,4 @@
-import type { Model } from "@/data/models";
+import { IMAGE_SIZE, type Model } from "@/data/models";
 import { modelKind, type ModelKind } from "@/lib/model-display";
 
 export interface Snippets {
@@ -75,7 +75,7 @@ console.log(response.data[0].embedding.length);`,
   -d '{
     "model": "${m.slug}",
     "prompt": "${prompt}",
-    "size": "1024x1024"
+    "size": "${IMAGE_SIZE.param}"
   }'`,
       python: `import os
 from weir import Weir
@@ -85,7 +85,7 @@ client = Weir(api_key=os.environ["WEIR_API_KEY"])
 response = client.images.generate(
     model="${m.slug}",
     prompt="${prompt}",
-    size="1024x1024",
+    size="${IMAGE_SIZE.param}",
 )
 print(response.data[0].url)`,
       node: `import Weir from "weir";
@@ -95,7 +95,7 @@ const client = new Weir({ apiKey: process.env.WEIR_API_KEY });
 const response = await client.images.generate({
   model: "${m.slug}",
   prompt: "${prompt}",
-  size: "1024x1024",
+  size: "${IMAGE_SIZE.param}",
 });
 console.log(response.data[0].url);`,
     };
