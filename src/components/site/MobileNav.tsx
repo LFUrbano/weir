@@ -1,15 +1,15 @@
 "use client";
 
-import Link from "next/link";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { primaryCta, siteNav } from "@/data/site";
-import { isActivePath } from "@/lib/nav";
-import { cn } from "@/lib/utils";
-import { Logo } from "./Logo";
-import { StatusDot } from "./StatusDot";
+import { useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+
+const loadSheet = () => import("./MobileNavSheet");
+
+// The sheet (Radix Dialog) is not in any page's first load: it is fetched
+// when "Menu" is touched or focused, and mounted on the first open.
+const MobileNavSheet = dynamic(() => loadSheet().then((m) => m.MobileNavSheet), { ssr: false });
 
 function MenuGlyph() {
   return (
@@ -27,75 +27,34 @@ export function MobileNav() {
   // of setting state in an effect.
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
   if (pathname !== lastPathname) {
     setLastPathname(pathname);
     setOpen(false);
   }
-  // Same-page taps (e.g. the logo while already home) do not change the path.
-  const close = () => setOpen(false);
+  if (open && !mounted) setMounted(true);
+  const trigger = useRef<HTMLButtonElement>(null);
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button variant="ghost" size="sm" className="-mr-2 gap-2 text-fg md:hidden">
-          <MenuGlyph />
-          Menu
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="right" showCloseButton={false} className="gap-0 md:hidden">
-        <div className="flex h-(--header-h) shrink-0 items-center justify-between border-b border-line px-5">
-          <SheetTitle className="sr-only">Site navigation</SheetTitle>
-          <Logo onClick={close} />
-          <SheetClose asChild>
-            <Button variant="ghost" size="sm" className="-mr-2 text-fg">
-              Close
-            </Button>
-          </SheetClose>
-        </div>
-
-        <nav aria-label="Main" className="px-5">
-          <ul>
-            {siteNav.map((item, index) => (
-              <li key={item.href} className="border-b border-line">
-                <Link
-                  href={item.href}
-                  onClick={close}
-                  aria-current={pathname && isActivePath(pathname, item.href) ? "page" : undefined}
-                  className="group flex items-baseline justify-between py-5"
-                >
-                  <span className="font-display text-[1.75rem] leading-none font-semibold tracking-[-0.025em] text-fg">
-                    {item.label}
-                  </span>
-                  <span
-                    aria-hidden="true"
-                    className="label-mono text-fg-2 transition-colors group-hover:text-fg"
-                  >
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <div className="mt-auto flex flex-col gap-5 border-t border-line px-5 pt-6 pb-8">
-          <Link
-            href={primaryCta.href}
-            onClick={close}
-            className={cn(buttonVariants({ size: "lg" }), "w-full")}
-          >
-            {primaryCta.label}
-          </Link>
-          <div className="flex items-center justify-between text-[0.875rem]">
-            <span className="cursor-default text-fg-2 select-none">Sign in</span>
-            <span className="flex items-center gap-2 font-mono text-[0.75rem] text-fg-2">
-              <StatusDot state="ok" />
-              All systems normal
-            </span>
-          </div>
-        </div>
-      </SheetContent>
-    </Sheet>
+    <>
+      <Button
+        ref={trigger}
+        variant="ghost"
+        size="sm"
+        className="-mr-2 gap-2 text-fg md:hidden"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => setOpen(true)}
+        onPointerDown={() => void loadSheet()}
+        onFocus={() => void loadSheet()}
+      >
+        <MenuGlyph />
+        Menu
+      </Button>
+      {mounted && (
+        <MobileNavSheet open={open} onOpenChange={setOpen} pathname={pathname} returnFocusTo={trigger} />
+      )}
+    </>
   );
 }

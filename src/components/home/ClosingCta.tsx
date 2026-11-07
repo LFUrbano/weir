@@ -14,11 +14,11 @@ export function ClosingCta() {
           <div className="col-span-12 lg:col-span-7">
             <h2
               id="closing-title"
-              className="text-[2rem] leading-[1.1] tracking-[-0.02em] text-fg md:text-h2 xl:text-[3.25rem] xl:leading-[1.05]"
+              className="text-h2-sm leading-[1.1] tracking-[-0.02em] text-fg md:text-h2 xl:text-title xl:leading-[1.05]"
             >
               Your first streamed reply is five minutes away.
             </h2>
-            <p className="mt-5 max-w-[34rem] text-[1.0625rem] leading-relaxed text-fg-2">
+            <p className="mt-5 max-w-[34rem] text-lede leading-relaxed text-fg-2">
               Start on shared GPUs with {freeCreditLabel} in credit. When you need capacity of
               your own, an engineer will size it with you.
             </p>

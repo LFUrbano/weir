@@ -75,6 +75,25 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   )
 }
 
+/**
+ * The cell that names its row (a model, a GPU): a <th scope="row">, so a
+ * screen reader announces it with each value in the row. Styled like a body
+ * cell.
+ */
+function TableRowHeader({ className, ...props }: React.ComponentProps<"th">) {
+  return (
+    <th
+      data-slot="table-row-header"
+      scope="row"
+      className={cn(
+        "border-b border-line px-3 text-left align-middle font-normal first:pl-0 last:pr-0",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
 function TableCaption({
   className,
   ...props
@@ -96,5 +115,6 @@ export {
   TableHead,
   TableRow,
   TableCell,
+  TableRowHeader,
   TableCaption,
 }

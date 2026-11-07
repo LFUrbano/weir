@@ -199,7 +199,7 @@ export function HeroTerminal({
           >
             <dt className="label-mono text-fg-2">{s.label}</dt>
             <dd className={cn(
-                "font-mono text-[0.9375rem] leading-none whitespace-nowrap md:text-body md:leading-none",
+                "font-mono text-ui leading-none whitespace-nowrap md:text-body md:leading-none",
                 s.value ? "text-fg" : "text-fg-2",
               )}>
               {s.value ?? "—"}

@@ -1,9 +1,8 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { useForm, useWatch, type Control, type ControllerRenderProps } from "react-hook-form";
+import { useForm, useWatch, type Control, type ControllerRenderProps, type Resolver } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -18,14 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  CONTACT_MESSAGE_MAX,
-  USE_CASES,
-  VOLUMES,
-  contactSchema,
-  useCaseLabels,
-  type ContactInput,
-} from "@/lib/contact-schema";
+import { CONTACT_MESSAGE_MAX, USE_CASES, VOLUMES, contactMessages, useCaseLabels } from "@/lib/contact-fields";
+import type { ContactInput } from "@/lib/contact-schema";
 import { formatCount } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -68,7 +61,7 @@ function VolumeChoice({ field: f }: { field: ControllerRenderProps<ContactInput,
               key={v}
               htmlFor={id}
               className={cn(
-                "relative flex h-11 cursor-pointer items-center justify-center rounded-md border border-line-strong bg-surface font-mono text-[0.875rem] text-fg-2 transition-colors duration-150",
+                "relative flex h-11 cursor-pointer items-center justify-center rounded-md border border-line-strong bg-surface font-mono text-small text-fg-2 transition-colors duration-150",
                 "hover:border-[color-mix(in_oklab,var(--color-line-strong),white_10%)] hover:text-fg",
                 "has-checked:border-amber has-checked:bg-surface-2 has-checked:text-fg",
                 "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-amber",
@@ -101,7 +94,7 @@ function MessageCount({ control }: { control: Control<ContactInput> }) {
   const length = (useWatch({ control, name: "message" }) ?? "").trim().length;
   const over = length > CONTACT_MESSAGE_MAX;
   return (
-    <span data-testid="message-count" className={cn("font-mono text-[0.75rem]", over ? "text-err" : "text-fg-2")}>
+    <span data-testid="message-count" className={cn("font-mono text-caption", over ? "text-err" : "text-fg-2")}>
       {formatCount(length)} / {formatCount(CONTACT_MESSAGE_MAX)}
     </span>
   );
@@ -160,6 +153,34 @@ function Success({ data }: { data: ContactInput }) {
 }
 
 /**
+ * zod and the resolver (~50 KB gzipped) are not needed until the form first
+ * validates, far below the fold: fetch them then (or when the form gets
+ * focus) instead of on every load of the page.
+ */
+let zodResolverPromise: Promise<Resolver<ContactInput>> | null = null;
+
+function loadResolver(): Promise<Resolver<ContactInput>> {
+  zodResolverPromise ??= Promise.all([import("@hookform/resolvers/zod"), import("@/lib/contact-schema")])
+    .then(([{ zodResolver }, { contactSchema }]) => zodResolver(contactSchema) as Resolver<ContactInput>)
+    .catch((error: unknown) => {
+      // A failed download (offline, a flaky network) must not stick: the
+      // next validation tries again.
+      zodResolverPromise = null;
+      throw error;
+    });
+  return zodResolverPromise;
+}
+
+/**
+ * Validates with zod. onSubmit makes sure it has loaded before handing over to
+ * React Hook Form (and re-validation only runs after a submit), so by the time
+ * this runs the download has succeeded. It can't report a load failure
+ * itself: handleSubmit drops errors.root and would treat the form as valid.
+ */
+const lazyZodResolver: Resolver<ContactInput> = async (values, context, options) =>
+  (await loadResolver())(values, context, options);
+
+/**
  * "Talk to an engineer". Validates in the browser with the same zod schema the
  * unit tests check, focuses the first invalid field on submit, and ignores a
  * second submit while the first is "sending". A filled honeypot gets the same
@@ -167,11 +188,13 @@ function Success({ data }: { data: ContactInput }) {
  */
 export function ContactForm({ aside }: { aside?: ReactNode }) {
   const form = useForm<ContactInput>({
-    resolver: zodResolver(contactSchema),
+    resolver: lazyZodResolver,
     defaultValues: { email: "", company: "", message: "", website: "" },
     shouldFocusError: true,
   });
   const [sending, setSending] = useState(false);
+  // The checks could not be downloaded: say so instead of doing nothing.
+  const [loadFailed, setLoadFailed] = useState(false);
   const [sent, setSent] = useState<ContactInput | null>(null);
   // State updates land a render later; the ref stops a double click in between.
   const busy = useRef(false);
@@ -186,17 +209,29 @@ export function ContactForm({ aside }: { aside?: ReactNode }) {
     setSent(data);
   }
 
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
-    if (busy.current) {
-      e.preventDefault();
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (busy.current) return;
+    try {
+      await loadResolver();
+    } catch {
+      setLoadFailed(true);
       return;
     }
-    void form.handleSubmit(onValid)(e);
+    setLoadFailed(false);
+    await form.handleSubmit(onValid)();
   }
 
   const formBody = (
     <Form {...form}>
-      <form data-testid="contact-form" noValidate onSubmit={onSubmit} className="relative grid gap-7">
+      <form
+        data-testid="contact-form"
+        noValidate
+        onSubmit={(e) => void onSubmit(e)}
+        // Warm-up only: a failure here is reported when the form validates.
+        onFocus={() => void loadResolver().catch(() => {})}
+        className="relative grid gap-7"
+      >
         <div className="grid gap-7 sm:grid-cols-2 sm:gap-5">
           <FormField
             control={form.control}
@@ -326,6 +361,11 @@ export function ContactForm({ aside }: { aside?: ReactNode }) {
             {sending ? "Sending…" : "Send request"}
           </Button>
         </div>
+        {loadFailed && (
+          <p data-testid="form-error" role="alert" className="-mt-3 text-small text-err sm:text-right">
+            {contactMessages.load}
+          </p>
+        )}
       </form>
     </Form>
   );

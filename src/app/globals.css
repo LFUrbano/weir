@@ -61,6 +61,40 @@
   --text-code: 0.8125rem;
   --text-code--line-height: 1.6;
 
+  /*
+   * Steps between the styles above, size only: line height and tracking come
+   * from the element (leading-*, tracking-*) or are inherited, so swapping an
+   * arbitrary size for one of these changes nothing on screen. No arbitrary
+   * font size (text-[…]) is allowed in src/ (tests/unit/type-tokens.test.ts).
+   * Unlike the styles above, these steps are not in the Figma file yet.
+   */
+  /* Small text: plain tiny text (label without its caps and tracking), captions, mono meta lines, controls. */
+  --text-micro: 0.6875rem;
+  --text-caption: 0.75rem;
+  --text-meta: 0.8125rem;
+  --text-ui: 0.9375rem;
+  /* Lede paragraphs and accordion questions. */
+  --text-lede: 1.0625rem;
+  /* Docs h3. */
+  --text-h4: 1.1875rem;
+  /* The wordmark next to the logo glyph. */
+  --text-logo: 1.3125rem;
+  /* Mono figures: stats, a model's price, the calculator's monthly cost. */
+  --text-figure-xs: 1.25rem;
+  --text-stat: 1.375rem;
+  --text-price: 1.625rem;
+  --text-figure-sm: 1.875rem;
+  --text-figure: 2.25rem;
+  --text-figure-lg: 2.5rem;
+  /* Mobile menu links. */
+  --text-menu: 1.75rem;
+  /* Section h2 on phones (text-h2 from md). */
+  --text-h2-sm: 2rem;
+  /* Page h1: phones (or text-h2 for long titles), then title from sm; the home hero grows to hero at 2xl. */
+  --text-title-sm: 2.75rem;
+  --text-title: 3.25rem;
+  --text-hero: 3.75rem;
+
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
 
   /* Terminal caret. Off under reduced motion (motion-safe: and the global rule). */
@@ -176,6 +210,8 @@
   text-transform: uppercase;
   font-weight: 450;
   font-variant-ligatures: none;
+  /* Labels carry numbers too (HTTP 404, p50, 24 h): keep their digits aligned. */
+  font-variant-numeric: tabular-nums;
 }
 
 @layer base {

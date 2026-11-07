@@ -64,7 +64,7 @@ export function CodeTabs({
         ))}
       </Tabs>
       {footer ? (
-        <div className="border-t border-line px-4 py-3 font-mono text-[0.8125rem] text-fg-2">
+        <div className="border-t border-line px-4 py-3 font-mono text-meta text-fg-2">
           {footer}
         </div>
       ) : null}

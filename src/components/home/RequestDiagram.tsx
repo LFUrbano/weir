@@ -79,7 +79,7 @@ export function RequestDiagram({ steps }: { steps: RequestStep[] }) {
                 <li
                   key={d}
                   className={cn(
-                    "rounded-md border px-2 py-1 font-mono text-[0.75rem] leading-none transition-colors duration-200",
+                    "rounded-md border px-2 py-1 font-mono text-caption leading-none transition-colors duration-200",
                     "border-line text-fg-2 group-data-[lit=true]:border-line-strong group-data-[lit=true]:text-fg",
                   )}
                 >

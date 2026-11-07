@@ -33,7 +33,7 @@ export function PriceLine({ model }: { model: TokenModel }) {
             <h2
               id="price-title"
               data-testid="price-line"
-              className="text-[2rem] leading-[1.1] tracking-[-0.02em] text-fg md:text-h2 xl:text-[3.25rem] xl:leading-[1.05]"
+              className="text-h2-sm leading-[1.1] tracking-[-0.02em] text-fg md:text-h2 xl:text-title xl:leading-[1.05]"
             >
               1M tokens on {shortName(model)} costs <span className="text-amber">{price}</span>.
             </h2>

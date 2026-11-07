@@ -52,7 +52,7 @@ export function CapacityTable() {
           {company.regions.map((r) => (
             <TableHead key={r} scope="col" className="h-auto py-2.5 text-center max-md:px-1">
               <span className="block">{r}</span>
-              <span className="mt-1 hidden font-sans text-[0.75rem] tracking-normal normal-case md:block">
+              <span className="mt-1 hidden font-sans text-caption tracking-normal normal-case md:block">
                 {regionLocations[r]}
               </span>
             </TableHead>
@@ -64,7 +64,7 @@ export function CapacityTable() {
           <TableRow key={g.id} data-gpu={g.id} className="hover:bg-surface">
             <th scope="row" className={cn(rowHead, "border-b border-line align-middle")}>
               {gpuShortName(g)}
-              <span className="mt-0.5 block font-mono text-[0.8125rem] font-normal whitespace-nowrap text-fg-2 md:hidden">
+              <span className="mt-0.5 block font-mono text-meta font-normal whitespace-nowrap text-fg-2 md:hidden">
                 {g.memoryGb} GB
               </span>
             </th>
@@ -122,7 +122,7 @@ const securityRows: SecurityRow[] = [
     what: (
       <>
         EU traffic can stay in{" "}
-        <span className="font-mono text-[0.8125rem] whitespace-nowrap">{euRegion}</span>
+        <span className="font-mono text-meta whitespace-nowrap">{euRegion}</span>
         {euRegion ? ` (${regionLocations[euRegion]})` : ""}.
       </>
     ),
@@ -161,7 +161,7 @@ export function SecurityTable() {
       <TableBody>
         {securityRows.map((r) => (
           <TableRow key={r.area} className="hover:bg-surface">
-            <th scope="row" className={cn(rowHead, "border-b border-line font-mono text-[0.8125rem] font-normal")}>
+            <th scope="row" className={cn(rowHead, "border-b border-line font-mono text-meta font-normal")}>
               {r.area}
             </th>
             <TableCell className="py-4 align-top text-fg">
@@ -238,9 +238,9 @@ export function SupportTable() {
             <TableCell className="hidden py-4 align-top text-fg md:table-cell">{t.channel}</TableCell>
             <TableCell className={cn(num, "align-top whitespace-normal")}>
               {t.urgent.time}
-              <span className="mt-1 block text-[0.75rem] text-fg-2">{t.urgent.hours}</span>
+              <span className="mt-1 block text-caption text-fg-2">{t.urgent.hours}</span>
             </TableCell>
-            <TableCell className={cn(num, "align-top whitespace-normal max-md:text-[0.8125rem]")}>
+            <TableCell className={cn(num, "align-top whitespace-normal max-md:text-meta")}>
               {t.normal}
             </TableCell>
           </TableRow>

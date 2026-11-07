@@ -13,13 +13,13 @@ export default function NotFound() {
       <div className="grid w-full grid-cols-12 items-center gap-x-6 gap-y-14">
         <div className="col-span-12 lg:col-span-6">
           <p className="label-mono flex items-center gap-2.5 text-fg-2">
-            <StatusDot state="degraded" />
+            <StatusDot state="error" />
             HTTP 404
           </p>
-          <h1 className="mt-6 text-[2.75rem] leading-[1.02] tracking-[-0.03em] text-fg md:text-display">
+          <h1 className="mt-6 text-title-sm leading-[1.02] tracking-[-0.03em] text-fg md:text-display">
             Page not found
           </h1>
-          <p className="mt-6 max-w-[30rem] text-[1.0625rem] leading-relaxed text-fg-2">
+          <p className="mt-6 max-w-[30rem] text-lede leading-relaxed text-fg-2">
             Nothing lives at this address. The page may have moved, or the link has a typo.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">

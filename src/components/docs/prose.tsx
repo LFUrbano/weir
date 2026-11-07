@@ -22,7 +22,7 @@ export function InlineCode({ className, ...props }: ComponentProps<"code">) {
  */
 export function Lede({ children }: { children: ReactNode }) {
   return (
-    <div className="mt-6 [&_p]:max-w-[35rem] [&_p]:text-[1.0625rem] [&_p]:leading-relaxed [&_p]:text-fg-2">
+    <div className="mt-6 [&_p]:max-w-[35rem] [&_p]:text-lede [&_p]:leading-relaxed [&_p]:text-fg-2">
       {children}
     </div>
   );
@@ -56,7 +56,7 @@ export function LinkCards({ items }: { items: readonly LinkCardItem[] }) {
             href={item.href}
             className="group flex h-full flex-col rounded-panel border border-line bg-surface p-5 transition-colors duration-150 hover:border-line-strong hover:bg-surface-2"
           >
-            <span className="flex items-center justify-between gap-3 font-display text-[1.0625rem] font-semibold text-fg">
+            <span className="flex items-center justify-between gap-3 font-display text-lede font-semibold text-fg">
               {item.title}
               <span
                 aria-hidden="true"

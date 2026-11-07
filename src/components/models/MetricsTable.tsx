@@ -27,7 +27,7 @@ export function MetricsTable({
         aria-label="Metrics data table"
         className="mt-4 max-h-80 overflow-y-auto rounded-md border border-line"
       >
-        <table className="w-full border-separate border-spacing-0 font-mono text-[0.8125rem]">
+        <table className="w-full border-separate border-spacing-0 font-mono text-meta">
           <caption className="sr-only">
             Median of each 15-minute step over the last 24 hours, newest first
           </caption>

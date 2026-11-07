@@ -42,6 +42,23 @@ test.describe("site shell", () => {
 
     await page.keyboard.press("Escape");
     await expect(sheet).toBeHidden();
+    // Focus goes back to the Menu button (the sheet has no Radix trigger).
+    await expect(header.getByRole("button", { name: "Menu" })).toBeFocused();
+    await expect(header.getByRole("button", { name: "Menu" })).toHaveAttribute("aria-expanded", "false");
+  });
+
+  test("the mobile menu has an accessible description (no Radix warning)", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile", "mobile navigation only");
+    const warnings: string[] = [];
+    page.on("console", (m) => {
+      if (m.type() === "warning" || m.type() === "error") warnings.push(m.text());
+    });
+    await page.goto("/");
+    await page.getByRole("banner").getByRole("button", { name: "Menu" }).click();
+    const sheet = page.getByRole("dialog");
+    await expect(sheet).toBeVisible();
+    await expect(sheet).toHaveAccessibleDescription("Links to every section of the site.");
+    expect(warnings.filter((w) => /Description|aria-describedby/.test(w))).toEqual([]);
   });
 
   test("mobile nav closes on navigation", async ({ page }, testInfo) => {
@@ -64,6 +81,22 @@ test.describe("site shell", () => {
     await expect(sheet).toBeHidden();
   });
 
+  test("header links prefetch on intent, not on load", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "hover on desktop");
+    const segments: string[] = [];
+    page.on("request", (r) => {
+      const { pathname } = new URL(r.url());
+      if (pathname.endsWith(".txt")) segments.push(pathname);
+    });
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1000);
+    // The header shows Pricing, but nothing on the first screen of the home page fetches it.
+    expect(segments.filter((p) => p.startsWith("/pricing/"))).toEqual([]);
+    await page.getByRole("banner").getByRole("link", { name: "Pricing", exact: true }).hover();
+    await expect.poll(() => segments.filter((p) => p.startsWith("/pricing/")).length).toBeGreaterThan(0);
+  });
+
   test("footer note", async ({ page }) => {
     await page.goto("/");
     const footer = page.getByRole("contentinfo");
@@ -81,6 +114,9 @@ test.describe("site shell", () => {
     await page.goto("/nao-existe/");
     await expect(page.getByText("Page not found")).toBeVisible();
     const main = page.getByRole("main");
+    // The dot next to "HTTP 404" is the error state, not a degraded service.
+    await expect(main.locator('[data-state="error"]')).toHaveCount(1);
+    await expect(main.locator('[data-state="degraded"]')).toHaveCount(0);
     await expect(main.locator('a[href="/"]')).toBeVisible();
   });
 });

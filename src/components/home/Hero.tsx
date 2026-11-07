@@ -26,11 +26,11 @@ export function Hero({ model }: { model: TokenModel }) {
             </p>
             <h1
               id="hero-title"
-              className="mt-6 text-[2.75rem] leading-[1.02] tracking-[-0.03em] text-fg sm:text-[3.25rem] 2xl:text-[3.75rem]"
+              className="mt-6 text-title-sm leading-[1.02] tracking-[-0.03em] text-fg sm:text-title 2xl:text-hero"
             >
               Open models in production, <span className="text-fg-2">billed by the token.</span>
             </h1>
-            <p className="mt-6 max-w-[30rem] text-[1.0625rem] leading-relaxed text-fg-2">
+            <p className="mt-6 max-w-[30rem] text-lede leading-relaxed text-fg-2">
               One API for {models.length} open-weight models. Pay per token on shared GPUs, then
               move to GPUs reserved for you when traffic grows, without changing a line of code.
             </p>

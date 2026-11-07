@@ -51,8 +51,10 @@ describe("formatLatency", () => {
     expect(formatLatency(212)).toBe("212 ms");
     expect(formatLatency(74.4)).toBe("74 ms");
   });
-  it("uses seconds from one second up, trailing zeros stripped", () => {
-    expect(formatLatency(1340)).toBe("1.34 s");
+  it("uses seconds from one second up, one decimal, trailing zero stripped", () => {
+    expect(formatLatency(1340)).toBe("1.3 s");
+    expect(formatLatency(5560)).toBe("5.6 s");
+    expect(formatLatency(1960)).toBe("2 s");
     expect(formatLatency(4200)).toBe("4.2 s");
     expect(formatLatency(2000)).toBe("2 s");
     expect(formatLatency(999.7)).toBe("1 s");

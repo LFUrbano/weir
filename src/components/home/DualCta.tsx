@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { IntentLink } from "@/components/site/IntentLink";
 import { buttonVariants } from "@/components/ui/button";
 import { freeCreditLabel } from "@/data/company";
 import { contactHref, primaryCta } from "@/data/site";
@@ -12,18 +12,18 @@ export function DualCta({ className }: { className?: string }) {
   return (
     <div className={cn("grid grid-cols-1 gap-x-10 gap-y-6 sm:grid-cols-[auto_auto] sm:justify-start", className)}>
       <div>
-        <Link href={primaryCta.href} className={buttonVariants({ size: "lg" })}>
+        <IntentLink href={primaryCta.href} className={buttonVariants({ size: "lg" })}>
           {primaryCta.label}
-        </Link>
+        </IntentLink>
         <p className="mt-3 text-small text-fg-2">
           <span className="block text-fg">For developers</span>
           {freeCreditLabel} in credit, no card
         </p>
       </div>
       <div>
-        <Link href={contactHref} className={buttonVariants({ variant: "outline", size: "lg" })}>
+        <IntentLink href={contactHref} className={buttonVariants({ variant: "outline", size: "lg" })}>
           Talk to an engineer
-        </Link>
+        </IntentLink>
         <p className="mt-3 text-small text-fg-2">
           <span className="block text-fg">For teams at scale</span>
           Dedicated GPUs, SLA, SSO

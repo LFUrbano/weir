@@ -41,7 +41,7 @@ function TabsTrigger({
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "relative inline-flex h-11 items-center justify-center rounded-none border-0 bg-transparent px-4 font-mono text-[0.8125rem] whitespace-nowrap text-fg-2 transition-colors duration-150 select-none hover:text-fg disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-fg",
+        "relative inline-flex h-11 items-center justify-center rounded-none border-0 bg-transparent px-4 font-mono text-meta whitespace-nowrap text-fg-2 transition-colors duration-150 select-none hover:text-fg disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-fg",
         "after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-amber after:opacity-0 after:transition-opacity data-[state=active]:after:opacity-100",
         // Focus ring comes from the global amber :focus-visible; keep it inside the bar.
         "focus-visible:outline-offset-[-4px]",

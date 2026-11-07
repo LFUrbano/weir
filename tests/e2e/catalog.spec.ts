@@ -2,6 +2,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 import { isTokenModel, models } from "../../src/data/models";
 import { blendedPrice } from "../../src/lib/pricing";
 import { collectErrors } from "./errors";
+import { pressMenuShortcut } from "./shortcut";
 
 /** Rows on desktop and cards on phones both carry data-slug; only one set is visible. */
 const rows = (page: Page): Locator => page.locator("[data-slug]").filter({ visible: true });
@@ -133,6 +134,15 @@ test.describe("model catalog", () => {
     await context.close();
   });
 
+  test("the static catalog is hydrated, not rebuilt on the client", async ({ request }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "static HTML, once");
+    const html = await (await request.get("/models/")).text();
+    // "<!--$!-->" marks a Suspense boundary React must render on the client
+    // only (useSearchParams in a static export): ~250 ms of work on a phone.
+    expect(html).not.toContain("<!--$!-->");
+    expect(html.match(/data-slug="/g)).toHaveLength(models.length * 2);
+  });
+
   test("phones get cards and no horizontal scroll", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "mobile", "phone layout only");
     for (const width of [360, 412]) {
@@ -233,7 +243,8 @@ test.describe("model catalog", () => {
 
     // Command menu "Models" page item.
     await typeLlama();
-    await page.keyboard.press("Control+k");
+    await pressMenuShortcut(page);
+    await expect(page.getByRole("combobox", { name: "Search models and pages" })).toBeFocused();
     await page.keyboard.type("models");
     await page.getByRole("dialog", { name: "Search Weir" }).getByRole("option", { name: /^Models/ }).click();
     await expectReset();
@@ -253,12 +264,22 @@ test.describe("model catalog", () => {
 });
 
 test.describe("command menu", () => {
-  for (const shortcut of ["Control+k", "Meta+k"]) {
-    test(`${shortcut} opens it on any page`, async ({ page }) => {
+  for (const { platform, shortcut, other } of [
+    { platform: "Win32", shortcut: "Control+k", other: "Meta+k" },
+    { platform: "MacIntel", shortcut: "Meta+k", other: "Control+k" },
+  ]) {
+    test(`${shortcut} opens it on any page (${platform}), ${other} does not`, async ({ page }) => {
+      await page.addInitScript((p) => {
+        Object.defineProperty(Navigator.prototype, "platform", { get: () => p });
+      }, platform);
       for (const path of ["/", "/models/"]) {
         await page.goto(path);
-        await page.keyboard.press(shortcut);
         const menu = page.getByRole("dialog", { name: "Search Weir" });
+        // On a Mac, Ctrl+K deletes to the end of the line in text fields; it must not open the menu.
+        await page.keyboard.press(other);
+        await page.waitForTimeout(300);
+        await expect(menu).toBeHidden();
+        await page.keyboard.press(shortcut);
         await expect(menu).toBeVisible();
         await page.keyboard.press("Escape");
         await expect(menu).toBeHidden();
@@ -266,9 +287,36 @@ test.describe("command menu", () => {
     });
   }
 
+  test("its code is fetched on intent, not with the page", async ({ page, request }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "hover and keyboard on desktop");
+    const scripts = new Set<string>();
+    page.on("request", (r) => {
+      if (r.resourceType() === "script") scripts.add(r.url());
+    });
+    const menuLoaded = async () => {
+      for (const url of scripts) if ((await (await request.get(url)).text()).includes("cmdk-list")) return true;
+      return false;
+    };
+    await page.goto("/pricing/");
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1500);
+    expect(await menuLoaded()).toBe(false);
+    await page.getByRole("banner").getByRole("button", { name: /Search/ }).hover();
+    await expect.poll(menuLoaded).toBe(true);
+  });
+
+  test("Escape returns focus to the header button that opened it", async ({ page }) => {
+    await page.goto("/");
+    const trigger = page.getByRole("banner").getByRole("button", { name: /Search/ });
+    await trigger.click();
+    await expect(page.getByRole("dialog", { name: "Search Weir" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(trigger).toBeFocused();
+  });
+
   test("typing a model name and Enter opens its page", async ({ page }) => {
     await page.goto("/");
-    await page.keyboard.press("Control+k");
+    await pressMenuShortcut(page);
     const menu = page.getByRole("dialog", { name: "Search Weir" });
     await expect(menu).toBeVisible();
     await expect(menu.getByRole("combobox", { name: "Search models and pages" })).toBeFocused();
@@ -280,7 +328,7 @@ test.describe("command menu", () => {
 
   test("lists the site pages", async ({ page }) => {
     await page.goto("/");
-    await page.keyboard.press("Control+k");
+    await pressMenuShortcut(page);
     const menu = page.getByRole("dialog", { name: "Search Weir" });
     for (const label of ["Models", "Pricing", "Enterprise", "Quickstart"]) {
       await expect(menu.getByRole("option", { name: new RegExp(`^${label}`) })).toBeVisible();
