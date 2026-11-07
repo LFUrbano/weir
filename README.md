@@ -95,7 +95,7 @@ tests/
 
 ## Running it
 
-Requires **Node 22.18 or later**; CI and `.nvmrc` use Node 24. The segment-file fix in the build needs `import.meta.main`, which older versions don't have.
+Requires **Node 22.18+ or 24.2+** (Node 23 and 24.0–24.1 lack `import.meta.main`); CI and `.nvmrc` use Node 24. The segment-file fix in the build needs `import.meta.main`, which older versions don't have.
 
 ```bash
 npm install
