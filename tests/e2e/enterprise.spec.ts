@@ -15,6 +15,8 @@ import { contactMessages } from "../../src/lib/contact-schema";
 import { collectErrors } from "./errors";
 
 const SUCCESS = "Thanks — your request is in.";
+/** What a reader without JavaScript sees under the disabled button. */
+const NO_SCRIPT = "Sending this form needs JavaScript.";
 /** A success text must not promise that a person will answer. */
 const HUMAN_PROMISE =
   /engineer will|we will|we['’]ll|get back to you|reach out|be in touch|contact you|email you|call you|within \d+/i;
@@ -157,6 +159,37 @@ test.describe("enterprise page", () => {
   });
 });
 
+test.describe("contact form without JavaScript", () => {
+  test.use({ javaScriptEnabled: false });
+
+  test("a submit before hydration never puts the form in the URL", async ({ page }) => {
+    const urls: string[] = [];
+    page.on("request", (r) => urls.push(r.url()));
+    await page.goto("/enterprise/");
+    await form(page).scrollIntoViewIfNeeded();
+    await email(page).fill("ana@acme.example");
+    await companyField(page).fill("Acme");
+    await page.getByRole("radio", { name: "10–100B" }).check();
+    await message(page).fill("Moving a support agent off a closed model.");
+
+    // A click, then Enter in a text field (implicit submission).
+    await submit(page).click({ force: true });
+    await page.waitForTimeout(400);
+    await email(page).press("Enter");
+    await page.waitForTimeout(400);
+
+    expect(page.url()).not.toContain("email=");
+    expect(new URL(page.url()).search).toBe("");
+    expect(urls.filter((u) => /[?&](email|company|message)=/.test(u))).toEqual([]);
+    // The button says why it does nothing.
+    await expect(submit(page)).toBeDisabled();
+    // Playwright's text engine skips <noscript>, so the note is located by tag.
+    const note = page.locator("#contact noscript p");
+    await expect(note).toBeVisible();
+    await expect(note).toHaveText(NO_SCRIPT);
+  });
+});
+
 test.describe("contact form", () => {
   test("zod is fetched when the form is first used, not on page load", async ({ page, request }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "once is enough");
@@ -218,6 +251,9 @@ test.describe("contact form", () => {
   });
 
   test("the four required controls say so; the message says optional", async ({ page }) => {
+    // Enabled once hydrated, and the no-script note stays out of sight.
+    await expect(submit(page)).toBeEnabled();
+    await expect(page.locator("#contact noscript p")).toHaveCount(0);
     for (const control of [email(page), companyField(page), volume(page), caseField(page)]) {
       await expect(control).toHaveAttribute("aria-required", "true");
     }

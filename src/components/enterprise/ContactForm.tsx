@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CONTACT_MESSAGE_MAX, USE_CASES, VOLUMES, contactMessages, useCaseLabels } from "@/lib/contact-fields";
 import type { ContactInput } from "@/lib/contact-schema";
 import { formatCount } from "@/lib/format";
+import { useHydrated } from "@/lib/use-location-search";
 import { cn } from "@/lib/utils";
 
 /**
@@ -196,6 +197,11 @@ export function ContactForm({ aside }: { aside?: ReactNode }) {
   // The checks could not be downloaded: say so instead of doing nothing.
   const [loadFailed, setLoadFailed] = useState(false);
   const [sent, setSent] = useState<ContactInput | null>(null);
+  // Before hydration (or with JavaScript off) a native submit would GET this
+  // page with every field in the query string, so the address bar, history and
+  // the host's logs would hold the visitor's details. The button stays disabled
+  // until the handlers are attached, which also blocks submit by Enter.
+  const hydrated = useHydrated();
   // State updates land a render later; the ref stops a double click in between.
   const busy = useRef(false);
 
@@ -227,6 +233,8 @@ export function ContactForm({ aside }: { aside?: ReactNode }) {
       <form
         data-testid="contact-form"
         noValidate
+        // Defense in depth: if a native submit ever happens, nothing goes in the URL.
+        method="post"
         onSubmit={(e) => void onSubmit(e)}
         // Warm-up only: a failure here is reported when the form validates.
         onFocus={() => void loadResolver().catch(() => {})}
@@ -355,12 +363,22 @@ export function ContactForm({ aside }: { aside?: ReactNode }) {
           <Button
             type="submit"
             size="lg"
+            disabled={!hydrated}
+            data-hydrated={hydrated}
             aria-disabled={sending}
-            className="w-full aria-disabled:cursor-progress aria-disabled:opacity-60 sm:w-auto sm:min-w-44"
+            className={cn(
+              "w-full aria-disabled:cursor-progress aria-disabled:opacity-60 sm:w-auto sm:min-w-44",
+              // Hydration is usually too quick to notice: keep the button at full
+              // strength meanwhile instead of flashing it from dim to bright.
+              !hydrated && "disabled:opacity-100",
+            )}
           >
             {sending ? "Sending…" : "Send request"}
           </Button>
         </div>
+        <noscript>
+          <p className="-mt-3 text-small text-fg-2 sm:text-right">Sending this form needs JavaScript.</p>
+        </noscript>
         {loadFailed && (
           <p data-testid="form-error" role="alert" className="-mt-3 text-small text-err sm:text-right">
             {contactMessages.load}
