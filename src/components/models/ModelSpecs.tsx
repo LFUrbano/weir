@@ -23,7 +23,7 @@ function rows(m: Model): Row[] {
     { label: "Tasks", value: m.tasks.join(" · ") },
   ];
   if (m.contextK !== null) {
-    list.push({ label: "Context", value: `${formatContext(m.contextK)} tokens` });
+    list.push({ label: "Served context", value: `${formatContext(m.contextK)} tokens` });
   }
   list.push({ label: "Quantization", value: m.quantization });
   if (m.tokensPerSec !== null) {

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { API_BASE_URL, snippetsFor } from "../../src/components/code/snippets";
+import { install as installCommands } from "../../src/components/docs/quickstart-data";
 import { company, freeCreditLabel, lowerFirst, noCardRequired } from "../../src/data/company";
 import { getModel } from "../../src/data/models";
 import { collectErrors } from "./errors";
@@ -157,9 +158,13 @@ test.describe("quickstart docs", () => {
     // Install: Python and Node tabs.
     const install = step(page, 1).getByTestId("code-panel").first();
     await expect(install.getByRole("tab")).toHaveText(["Python", "Node"]);
-    await expect(install.getByRole("tabpanel").locator("pre")).toHaveText("pip install weir");
+    // Weir's own index on the reserved .example domain: "weir" on PyPI and npm is someone else's.
+    const pre = install.getByRole("tabpanel").locator("pre");
+    await expect(pre).toHaveText(installCommands.python);
+    await expect(pre).toContainText("https://pypi.weir.example/");
     await install.getByRole("tab", { name: "Node" }).click();
-    await expect(install.getByRole("tabpanel").locator("pre")).toHaveText("npm install weir");
+    await expect(install.getByRole("tabpanel").locator("pre")).toHaveText(installCommands.node);
+    await expect(install.getByRole("tabpanel").locator("pre")).toContainText("https://npm.weir.example");
 
     // First call: the same request the model page and the hero show.
     const first = snippetsFor(llama);

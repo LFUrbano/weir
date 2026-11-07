@@ -1,6 +1,7 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { getModel, models, type Model } from "../../src/data/models";
 import { formatLatency } from "../../src/lib/format";
+import { endpointFor, requestShapeLine } from "../../src/lib/model-display";
 import { collectErrors } from "./errors";
 
 function model(slug: string): Model {
@@ -155,7 +156,7 @@ test.describe("model page", () => {
     await page.goto(`/models/${flux.slug}/`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(flux.name);
     await expect(page.getByTestId("model-price")).toContainText("$0.025 / image");
-    await expect(page.getByTestId("model-specs")).not.toContainText("Context");
+    await expect(page.getByTestId("model-specs")).not.toContainText(/context/i);
     await expect(responseChart(page)).toHaveAttribute(
       "aria-label",
       new RegExp(`median ${formatLatency(flux.p50Ms)}`),
@@ -181,6 +182,32 @@ test.describe("model page", () => {
     await expect(responseChart(page)).toHaveCount(1);
     await expect(speedChart(page)).toHaveCount(0);
     await expect(page.getByRole("tabpanel")).toContainText("/v1/embeddings");
+  });
+
+  test("the request section shares a shape only with models on the same endpoint", async ({
+    page,
+  }) => {
+    for (const [m, path] of [
+      [llama, "/v1/chat/completions"],
+      [bge, "/v1/embeddings"],
+      [flux, "/v1/images/generations"],
+    ] as const) {
+      await page.goto(`/models/${m.slug}/`);
+      const band = page.locator("#request");
+      const lede = band.locator("header p").last();
+      await expect(lede, m.slug).toHaveText(requestShapeLine(m));
+      await expect(lede, m.slug).toContainText(path);
+      await expect(band, m.slug).not.toContainText(/every other model on Weir/i);
+      await expect(band, m.slug).toContainText(endpointFor(m));
+    }
+  });
+
+  test("Llama 4 Scout shows the context it is served with", async ({ page }) => {
+    await page.goto("/models/llama-4-scout/");
+    const specs = page.getByTestId("model-specs");
+    await expect(specs).toContainText("Served context");
+    await expect(specs).toContainText("1M tokens");
+    await expect(page.getByRole("main")).not.toContainText("10M");
   });
 
   test("every model has a page and a share image", async ({ request }, testInfo) => {

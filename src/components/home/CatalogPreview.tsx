@@ -29,8 +29,8 @@ export function CatalogPreview() {
     <Section
       id="models"
       eyebrow="Models"
-      title={`${models.length} open models, one request format.`}
-      lede="Switching models is a one-string change. Every price is per million tokens, with no minimums and nothing billed while you are idle."
+      title={`${models.length} open models, one API.`}
+      lede="One key and one SDK for all of them, and switching between models on the same endpoint is a one-string change. Prices here are per million tokens, with no minimums and nothing billed while you are idle."
     >
       <div data-testid="catalog-preview">
         <table className="w-full border-collapse">

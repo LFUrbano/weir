@@ -24,9 +24,14 @@ export const firstCallCost = formatUsd(
   (usage.prompt * model.pricing.input + usage.completion * model.pricing.output) / 1_000_000,
 );
 
+/**
+ * Weir's packages come from its own index. "weir" on PyPI and npm is someone
+ * else's package, and the .example hosts are reserved and never resolve, so a
+ * pasted command can never install a stranger's code.
+ */
 export const install = {
-  python: "pip install weir",
-  node: "npm install weir",
+  python: "pip install --index-url https://pypi.weir.example/simple weir",
+  node: "npm install weir --registry https://npm.weir.example",
 };
 
 export const customBaseUrl = {

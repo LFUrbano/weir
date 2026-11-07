@@ -21,7 +21,10 @@ export interface Model {
   publisher: string;
   tasks: Task[];
   summary: string;
-  /** Context window in thousands of tokens; null for image models. */
+  /**
+   * Context window Weir serves, in thousands of tokens (it can be shorter than
+   * the weights allow, to fit the KV cache on the replica); null for image models.
+   */
   contextK: number | null;
   quantization: "FP8" | "BF16" | "INT4";
   pricing: Pricing;
@@ -85,7 +88,8 @@ export const models: Model[] = [
     tasks: ["chat", "vision"],
     summary:
       "A mixture-of-experts model with a very long context window, useful for reading whole codebases or contract bundles in one request.",
-    contextK: 10000,
+    // The weights allow 10M; 1M is what fits next to them on one H200.
+    contextK: 1000,
     quantization: "FP8",
     pricing: { unit: "tokens", input: 0.18, output: 0.59 },
     p50Ms: 130,

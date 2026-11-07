@@ -7,7 +7,7 @@ import { pageMetadata, pageTitle } from "@/lib/metadata";
 
 export const metadata: Metadata = pageMetadata({
   title: pageTitle("Models"),
-  description: `${models.length} open-weight models for chat, reasoning, code, embeddings, vision and images, with price per 1M tokens, context window, speed and latency for each.`,
+  description: `${models.length} open-weight models for chat, reasoning, code, embeddings, vision and images, with prices per 1M tokens (per image for image models), context window, speed and latency for each.`,
   path: "/models/",
 });
 
@@ -39,8 +39,9 @@ export default function ModelsPage() {
                 Models
               </h1>
               <p className="mt-6 max-w-[36rem] text-lede leading-relaxed text-fg-2">
-                Open-weight models for chat, reasoning, code, embeddings, vision and images, all
-                behind the same request format. Switching models is a one-string change.
+                Open-weight models for chat, reasoning, code, embeddings, vision and images, behind
+                one API. Models on the same endpoint share a request shape, so switching between
+                them is a one-string change.
               </p>
             </div>
             <dl className="col-span-12 hidden border-t border-line md:block lg:col-span-5 lg:col-start-8 xl:col-span-4 xl:col-start-9">

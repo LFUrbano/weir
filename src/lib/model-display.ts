@@ -40,14 +40,28 @@ export function modelKind(m: Model): ModelKind {
   return "chat";
 }
 
-const ENDPOINTS: Record<ModelKind, string> = {
-  chat: "POST /v1/chat/completions",
-  embeddings: "POST /v1/embeddings",
-  image: "POST /v1/images/generations",
+const ENDPOINT_PATHS: Record<ModelKind, string> = {
+  chat: "/v1/chat/completions",
+  embeddings: "/v1/embeddings",
+  image: "/v1/images/generations",
 };
 
+/** "/v1/embeddings". */
+export function endpointPath(m: Model): string {
+  return ENDPOINT_PATHS[modelKind(m)];
+}
+
+/** "POST /v1/embeddings". */
 export function endpointFor(m: Model): string {
-  return ENDPOINTS[modelKind(m)];
+  return `POST ${endpointPath(m)}`;
+}
+
+/**
+ * What a model shares with the others: chat, embedding and image models each
+ * have their own endpoint and body, so the claim stops at the endpoint.
+ */
+export function requestShapeLine(m: Model): string {
+  return `The same request shape as every other model on ${endpointPath(m)}. Switching between them is a change to one string.`;
 }
 
 /**

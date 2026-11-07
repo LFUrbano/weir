@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   allowedDowntimeMinutes,
@@ -15,11 +17,29 @@ import {
   slaLine,
   supportLine,
   supportTiers,
+  trustNotes,
 } from "@/data/company";
 import { getGpu, gpus } from "@/data/gpus";
 import { isDedicatedModel, models } from "@/data/models";
 
 describe("company facts", () => {
+  it("keeps the DPA out of the NDA, and states the report turnaround once", () => {
+    expect(trustNotes.reports).toBe("Reports shared under NDA, usually the same day.");
+    expect(trustNotes.reports).not.toMatch(/DPA/);
+    expect(billingTerms.dpa).toMatch(/available on every plan/);
+    // The turnaround is a promise: it is typed in company.ts and nowhere else.
+    const root = process.cwd();
+    const files = (dir: string): string[] =>
+      readdirSync(dir).flatMap((n) => {
+        const p = join(dir, n);
+        return statSync(p).isDirectory() ? files(p) : /\.(tsx?|mdx)$/.test(n) ? [p] : [];
+      });
+    const typedIn = files(join(root, "src"))
+      .filter((f) => /same day/i.test(readFileSync(f, "utf8")))
+      .map((f) => f.slice(root.length + 1).replaceAll("\\", "/"));
+    expect(typedIn).toEqual(["src/data/company.ts"]);
+  });
+
   it("lists every region a model runs in, and no others", () => {
     const used = new Set(models.flatMap((m) => m.regions));
     expect(new Set(company.regions)).toEqual(used);

@@ -1,6 +1,15 @@
 import { expect, test, type Page } from "@playwright/test";
 import { demoCost, heroDemo } from "../../src/components/home/hero-demo";
-import { company, complianceLine, dataRetention, freeCreditLabel, listAnd, pct } from "../../src/data/company";
+import {
+  billingTerms,
+  company,
+  complianceLine,
+  dataRetention,
+  freeCreditLabel,
+  listAnd,
+  pct,
+  trustNotes,
+} from "../../src/data/company";
 import { customers } from "../../src/data/customers";
 import { gpus } from "../../src/data/gpus";
 import { getModel, isTokenModel, models, type TokenModel } from "../../src/data/models";
@@ -151,6 +160,27 @@ test.describe("home", () => {
     await diagram.scrollIntoViewIfNeeded();
     await page.mouse.wheel(0, 1600);
     for (let i = 0; i < 4; i++) await expect(steps.nth(i)).toHaveAttribute("data-lit", "true");
+  });
+
+  test("request shape is claimed per endpoint, never for every model", async ({ page }) => {
+    await page.goto("/");
+    const preview = page.locator("#models");
+    await expect(preview).not.toContainText(/one request format/i);
+    await expect(preview).not.toContainText(/Every price is per million tokens/i);
+    const app = page.getByTestId("diagram-step").first();
+    await expect(app).toContainText("POST /v1/chat/completions");
+    await expect(app).not.toContainText(new RegExp(`all ${models.length} models`));
+    await expect(page.getByRole("main")).not.toContainText(
+      new RegExp(`same shape for all ${models.length}`),
+    );
+  });
+
+  test("the DPA is available on every plan, not sent under NDA", async ({ page }) => {
+    await page.goto("/");
+    const trust = page.locator("#trust");
+    await expect(trust).not.toContainText(/DPA go(es)? out under NDA|Reports and the DPA/);
+    await expect(trust).toContainText(trustNotes.reports);
+    await expect(trust).toContainText(billingTerms.dpa);
   });
 
   test("two paths: build alone or run at scale", async ({ page }) => {

@@ -9,7 +9,7 @@ import { TrustBand } from "@/components/home/TrustBand";
 import { TwoPaths } from "@/components/home/TwoPaths";
 import { heroDemo } from "@/components/home/hero-demo";
 import { company } from "@/data/company";
-import { getModel, isTokenModel, models, type TokenModel } from "@/data/models";
+import { getModel, isTokenModel, type TokenModel } from "@/data/models";
 import { formatLatency } from "@/lib/format";
 import { HOME_TITLE, pageMetadata, siteDescription } from "@/lib/metadata";
 
@@ -31,7 +31,8 @@ function requestSteps(m: TokenModel): RequestStep[] {
     {
       name: "App",
       stamp: "t+0 ms",
-      sentence: `Your code sends one HTTPS request with a model name and messages, in the same shape for all ${models.length} models.`,
+      sentence:
+        "Your code sends one HTTPS request with a model name and messages, in the same shape for every model on the chat endpoint.",
       detail: ["POST /v1/chat/completions"],
     },
     {

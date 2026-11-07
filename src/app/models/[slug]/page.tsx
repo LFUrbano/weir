@@ -17,7 +17,14 @@ import { contactHref } from "@/data/site";
 import { formatLatency, formatUsd } from "@/lib/format";
 import { pageMetadata, pageTitle } from "@/lib/metadata";
 import { metricsSeries, percentile } from "@/lib/metrics";
-import { BREAK_EVEN_LABEL, endpointFor, formatBreakEven, latencyName, modelPrice } from "@/lib/model-display";
+import {
+  BREAK_EVEN_LABEL,
+  endpointFor,
+  formatBreakEven,
+  latencyName,
+  modelPrice,
+  requestShapeLine,
+} from "@/lib/model-display";
 import { breakEvenMonthlyTokens } from "@/lib/pricing";
 import { similarModels } from "@/lib/similar";
 import { cn } from "@/lib/utils";
@@ -344,7 +351,7 @@ export default async function ModelPage({ params }: PageProps<"/models/[slug]">)
         id="request"
         eyebrow="API"
         title="Make a request"
-        lede="The same request shape as every other model on Weir. Switching models is a change to one string."
+        lede={requestShapeLine(m)}
       >
         <CodePanel
           snippets={snippetsFor(m)}
