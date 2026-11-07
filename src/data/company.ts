@@ -114,7 +114,7 @@ export const supportLine = "A named engineer and a shared Slack channel";
 
 /** Trust notes the home band and the Enterprise page both state. */
 export const trustNotes = {
-  reports: "Reports shared under NDA.",
+  reports: "Reports shared under NDA, usually the same day.",
   auditLogs: "Audit logs for every key.",
   slaCredits: "Measured monthly, with service credits when we miss it.",
 } as const;

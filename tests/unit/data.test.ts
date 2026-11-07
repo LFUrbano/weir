@@ -26,6 +26,14 @@ describe("model data", () => {
     });
   });
 
+  it("serves Llama 4 Scout at a context one H200 replica can hold", () => {
+    // 109B parameters in FP8 leave about 30 GB of an H200's 141 GB for the KV
+    // cache: enough for a 1M-token window, not for the 10M the weights allow.
+    const m = getModel("llama-4-scout");
+    expect(m?.dedicated).toMatchObject({ gpu: "h200", gpusPerReplica: 1 });
+    expect(m?.contextK).toBe(1000);
+  });
+
   it("returns undefined for an unknown slug", () => {
     expect(getModel("nope")).toBeUndefined();
   });

@@ -70,7 +70,7 @@ export function TrustBand() {
       id="trust"
       eyebrow="Trust"
       title="Ready for your security review."
-      lede="The answers procurement asks for, in one place. Reports and the DPA go out under NDA, usually the same day."
+      lede="The answers procurement asks for, in one place, from the audit reports to the DPA."
     >
       <dl className="border-t border-line-strong">
         {rows.map((r) => (
