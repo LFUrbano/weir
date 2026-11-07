@@ -15,7 +15,7 @@ function sourceFiles(dir: string): string[] {
 }
 
 describe("type scale", () => {
-  it("has no arbitrary font size anywhere in src/ (Ruling 20)", () => {
+  it("has no arbitrary font size anywhere in src/: every size is a token", () => {
     // text-[0.8125rem], md:text-[2rem], [&_p]:text-[17px], text-[length:…], text-[clamp(…)]
     const arbitrarySize = /text-\[(?:length:|[\d.]|clamp|calc|min\(|max\(|var\()/;
     const offenders = sourceFiles(join(root, "src")).flatMap((file) =>

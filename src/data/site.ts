@@ -54,8 +54,8 @@ export const fictionNote = "Fictional company. Concept project.";
 
 /**
  * Absolute origin for share images and canonical URLs (Next's metadataBase).
- * The Netlify address is only known after the first deploy (Task 12), so the
- * build reads SITE_URL and falls back to the reserved fictional domain.
+ * The Netlify address is only known after the first deploy, so the build
+ * reads SITE_URL and falls back to the reserved fictional domain.
  */
 export const siteUrl = toSiteUrl(process.env.SITE_URL);
 

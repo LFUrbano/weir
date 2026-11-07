@@ -318,7 +318,7 @@ test.describe("home", () => {
   });
 });
 
-test.describe("home with reduced motion (Review Focus 4)", () => {
+test.describe("home with reduced motion", () => {
   test.beforeEach(async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
   });

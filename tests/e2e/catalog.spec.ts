@@ -77,7 +77,7 @@ test.describe("model catalog", () => {
     expect(rsc.filter((u) => u.includes("/models/index.txt"))).toEqual([]);
   });
 
-  // Review Focus 2: special characters never throw; no result shows a designed empty state.
+  // Special characters never throw; no result shows a designed empty state.
   test("special characters and the empty state", async ({ page }) => {
     const errors = collectErrors(page);
     await page.goto("/models/");
@@ -101,7 +101,7 @@ test.describe("model catalog", () => {
     expect(errors).toEqual([]);
   });
 
-  // Review Focus 3: invalid params fall back to the defaults.
+  // Invalid params fall back to the defaults.
   test("invalid params show every model in name order", async ({ page }) => {
     const errors = collectErrors(page);
     await page.goto("/models/?task=foo&sort=bar");

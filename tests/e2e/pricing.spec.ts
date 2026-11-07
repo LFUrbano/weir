@@ -148,7 +148,7 @@ test.describe("pricing page", () => {
     await expect(inputField(page)).toHaveValue("250,000,000");
   });
 
-  test("Review Focus 1: empty, negative, huge and pasted text never break the result", async ({
+  test("empty, negative, huge and pasted text never break the result", async ({
     page,
   }) => {
     const errors = collectErrors(page);
