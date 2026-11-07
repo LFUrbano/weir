@@ -82,7 +82,7 @@ export function MobileNavSheet({
           >
             {primaryCta.label}
           </Link>
-          <div className="flex items-center justify-between text-small">
+          <div className="flex items-center justify-between text-small leading-normal">
             <span className="cursor-default text-fg-2 select-none">Sign in</span>
             <span className="flex items-center gap-2 font-mono text-caption text-fg-2">
               <StatusDot state="ok" />
