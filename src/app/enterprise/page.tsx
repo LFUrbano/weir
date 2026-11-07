@@ -28,6 +28,7 @@ import {
 } from "@/data/company";
 import { gpuShortName, gpus } from "@/data/gpus";
 import { formatUsd } from "@/lib/format";
+import { pageMetadata, pageTitle } from "@/lib/metadata";
 
 const cheapestGpu = Math.min(...gpus.map((g) => g.hourly));
 const slaPct = pct(company.slaDedicatedPct);
@@ -66,10 +67,11 @@ function ComplianceText(): ReactNode {
   );
 }
 
-export const metadata: Metadata = {
-  title: "Enterprise",
+export const metadata: Metadata = pageMetadata({
+  title: pageTitle("Enterprise"),
   description: `Dedicated GPU replicas (${gpuRegionLine}), a ${slaPct} uptime SLA, ${complianceLine}. Support tiers and a contact form to size your capacity.`,
-};
+  path: "/enterprise/",
+});
 
 const facts = [
   { label: "SLA", value: [slaPct], note: "monthly uptime on dedicated" },

@@ -25,7 +25,7 @@ The dev server runs at http://localhost:3000.
 | Script | What it does |
 | --- | --- |
 | `npm run dev` | Start the dev server |
-| `npm run build` | Build the static site into `out/` |
+| `npm run build` | Build the static site into `out/`, then fix the prefetch file names a Windows build gets wrong (`scripts/fix-segment-files.mjs`) |
 | `npm run lint` | Run ESLint |
 | `npm run typecheck` | Generate Next.js route types and run `tsc` |
 | `npm test` | Run unit tests (Vitest) |
@@ -43,5 +43,7 @@ SITE_URL=https://your-site.netlify.app npm run package
 ```
 
 On Windows PowerShell: `$env:SITE_URL = "https://your-site.netlify.app"; npm run package`.
+
+The same address goes into `sitemap.xml` and `robots.txt`. Netlify reads `public/_headers` (long cache for `/_next/static/*`, security headers) and `public/_redirects` from the zip root.
 
 The first time you run the end-to-end tests, install the browser with `npx playwright install chromium`.

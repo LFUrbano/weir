@@ -21,6 +21,7 @@ import { gpuShortName, gpus } from "@/data/gpus";
 import { contactHref } from "@/data/site";
 import { isTokenModel, models } from "@/data/models";
 import { formatUsd } from "@/lib/format";
+import { pageMetadata, pageTitle } from "@/lib/metadata";
 import { PEAK_FACTOR } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
@@ -28,10 +29,11 @@ const gpuNames = listAnd(gpus.map(gpuShortName));
 const cheapestGpu = Math.min(...gpus.map((g) => g.hourly));
 const cheapestToken = Math.min(...models.filter(isTokenModel).map((m) => m.pricing.input));
 
-export const metadata: Metadata = {
-  title: "Pricing",
+export const metadata: Metadata = pageMetadata({
+  title: pageTitle("Pricing"),
   description: `Serverless prices per 1M tokens for all ${models.length} models, dedicated ${gpuNames} rates per GPU-hour, and a calculator that shows when reserved GPUs cost less than shared ones.`,
-};
+  path: "/pricing/",
+});
 
 const modes = [
   {
