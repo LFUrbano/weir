@@ -116,8 +116,11 @@ test.describe("model page", () => {
     const cta = page.getByRole("link", { name: "Run on dedicated GPUs" });
     await expect(cta).toHaveAttribute("href", "/enterprise/#capacity");
 
-    const similar = page.getByRole("region", { name: "Similar models" }).getByRole("link");
+    const region = page.getByRole("region", { name: "Similar models" });
+    const similar = region.getByRole("link").filter({ hasNotText: /^Compare/ });
     await expect(similar).toHaveCount(3);
+    // Each similar model also has a link to compare it with this one.
+    await expect(region.getByRole("link", { name: /^Compare with / })).toHaveCount(3);
     const slugs = models.map((m) => m.slug);
     for (const href of await similar.evaluateAll((els) => els.map((el) => el.getAttribute("href")))) {
       const slug = href?.match(/^\/models\/([^/]+)\/$/)?.[1];

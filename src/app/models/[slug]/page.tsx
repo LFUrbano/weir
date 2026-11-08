@@ -25,6 +25,7 @@ import {
   modelPrice,
   requestShapeLine,
 } from "@/lib/model-display";
+import { COMPARE_PATH, compareSearch } from "@/lib/compare";
 import { breakEvenMonthlyTokens } from "@/lib/pricing";
 import { similarModels } from "@/lib/similar";
 import { cn } from "@/lib/utils";
@@ -196,9 +197,9 @@ function Similar({ model }: { model: Model }) {
         return (
           <li
             key={s.slug}
-            className="group relative grid grid-cols-1 gap-x-8 gap-y-2 border-b border-line py-4 hover:bg-surface sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:px-3"
+            className="group relative grid grid-cols-[minmax(0,1fr)_auto] gap-x-8 gap-y-2 border-b border-line py-4 hover:bg-surface sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:items-center sm:px-3"
           >
-            <div className="min-w-0">
+            <div className="col-span-2 min-w-0 sm:col-span-1">
               <Link
                 href={`/models/${s.slug}/`}
                 className="font-medium text-fg outline-offset-4 after:absolute after:inset-0 after:content-['']"
@@ -210,7 +211,7 @@ function Similar({ model }: { model: Model }) {
                 <span className="font-mono text-meta"> · {s.tasks.join(" · ")}</span>
               </p>
             </div>
-            <p className="font-mono text-meta whitespace-nowrap text-fg">
+            <p className="col-span-2 font-mono text-meta whitespace-nowrap text-fg sm:col-span-1">
               {price.unit === "image" ? (
                 price.perImage
               ) : (
@@ -229,6 +230,13 @@ function Similar({ model }: { model: Model }) {
                 →
               </span>
             </p>
+            {/* Above the row's stretched link, so it gets its own clicks. */}
+            <Link
+              href={`${COMPARE_PATH}${compareSearch(model.slug, s.slug)}`}
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "relative z-10 justify-self-end")}
+            >
+              Compare<span className="sr-only"> with {s.name}</span>
+            </Link>
           </li>
         );
       })}
