@@ -54,7 +54,7 @@ The comparison page, `/models/compare/`, was designed in Figma first (frame `Com
 | **zod** | The form's schema, the same one the unit tests check. It loads on the form's first use, not on page load. |
 | **next/font** | Funnel Display, Funnel Sans and Azeret Mono, self-hosted at build time. |
 | **lucide-react** | Icons. |
-| **Vitest** | Unit tests for pricing math, formatters, data consistency, the form schema and the repo config. |
+| **Vitest** | Unit tests for pricing math, the comparison rules, formatters, data consistency, the form schema, the repo config and the Lighthouse script helpers. |
 | **Playwright** and **axe-core** | End-to-end flows on desktop and phone viewports, plus accessibility checks on every page. |
 | **GitHub Actions** | Lint, typecheck, unit tests, build and e2e on every pull request. |
 | **archiver** | Zips the build for the Netlify deploy. |
@@ -115,7 +115,7 @@ npm run dev          # http://localhost:3000
 | `npm test` | Unit tests (Vitest). |
 | `npm run test:e2e` | End-to-end tests (Playwright) against `out/`, served on port 4190. Run `npm run build` first. The first time, install the browser with `npx playwright install chromium`. |
 | `npm run package` | Build and zip `out/` into `dist/weir-<YYYY-MM-DD>.zip`. Needs `SITE_URL` (below). |
-| `npm run lighthouse` | Lighthouse (mobile) on the six main pages of `out/`, median of 3 runs each. Run `npm run build` first. See [Performance](#performance). |
+| `npm run lighthouse` | Lighthouse (mobile) on the seven main pages of `out/`, median of 3 runs each. Run `npm run build` first. See [Performance](#performance). |
 
 ### Site address (`SITE_URL`)
 
@@ -131,11 +131,11 @@ In Windows PowerShell: `$env:SITE_URL = "https://your-site.netlify.app"; npm run
 
 ### Performance
 
-Build first, then run Lighthouse on the six main pages:
+Build first, then run Lighthouse on the seven main pages:
 
 ```bash
 npm run build
-npm run lighthouse                          # /, /models/, a model page, /pricing/, /enterprise/, /docs/quickstart/
+npm run lighthouse                          # /, /models/, a model page, /models/compare/, /pricing/, /enterprise/, /docs/quickstart/
 npm run lighthouse -- /models/ /pricing/    # only these pages
 ```
 
@@ -143,7 +143,7 @@ In Git Bash, write the pages without the leading slash (`models/ pricing/`): Git
 
 The script serves `out/` on `127.0.0.1:4195` and runs Lighthouse 12 with its defaults: the mobile preset with simulated throttling, in a visible Chrome window. It runs each page three times, one run at a time, and prints the median of each category with the LCP element, the longest task and the top failing audits. It exits with 1 when a page's median performance is under 95. It is not part of CI, because a shared runner is too noisy to hold a score.
 
-Local scores understate mobile performance. On `127.0.0.1` every script has arrived before the first paint, so Lighthouse counts all the JavaScript toward the largest paint. The reference numbers are taken on the deployed site and will be added here after the deploy.
+Local scores can understate mobile performance. On `127.0.0.1` every script has arrived before the first paint, so Lighthouse counts all the JavaScript toward the largest paint. The reference numbers are taken on the deployed site and will be added here after the deploy.
 
 ## Deploying
 
