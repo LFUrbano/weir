@@ -312,7 +312,10 @@ export function CompareStage() {
         </div>
 
         <p className="mt-6 text-small text-fg-2">
-          <Better note="amber" className="align-middle" /> marks the better number in a row. No mark means a tie, or nothing to rank.
+          <span aria-hidden="true">
+            <Better note="amber" className="align-middle" />
+          </span>
+          <span className="sr-only">A highlighted difference</span> marks the better number in a row. No mark means a tie, or nothing to rank.
         </p>
       </div>
     </section>
