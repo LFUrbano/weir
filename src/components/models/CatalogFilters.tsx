@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDownIcon, SearchIcon } from "lucide-react";
-import { useId } from "react";
+import { useEffect, useId, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import type { Task } from "@/data/models";
 import { MAX_QUERY_LENGTH, SORT_KEYS, TASKS, type SortKey } from "@/lib/catalog";
@@ -57,9 +57,20 @@ export function CatalogFilters({
   const searchId = useId();
   const sortId = useId();
   const inert = !onQueryChange;
+  const block = useRef<HTMLDivElement>(null);
+
+  // The static controls can take focus (and sit under the pointer) before
+  // hydration, when no handler is listening yet. Once onIntent arrives, an
+  // intent already in progress counts, without waiting for a new event.
+  useEffect(() => {
+    const el = block.current;
+    if (!onIntent || !el) return;
+    if (el.contains(document.activeElement) || el.matches(":hover")) onIntent();
+  }, [onIntent]);
 
   return (
     <div
+      ref={block}
       className="flex flex-col gap-4"
       onPointerEnter={onIntent}
       onFocus={onIntent}

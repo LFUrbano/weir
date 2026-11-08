@@ -209,6 +209,21 @@ test.describe("catalog motion", () => {
     expect(await fetchedFeatures(page, scripts)).toBe(true);
   });
 
+  test("focus in the search box before hydration still counts as intent", async ({ page }) => {
+    // Hold the scripts back so the reader gets into the static, read-only box first.
+    await page.route("**/_next/static/chunks/**", async (route) => {
+      await new Promise((r) => setTimeout(r, 1500));
+      await route.continue();
+    });
+    // Not domcontentloaded: that waits for the deferred scripts, so hydration is done by then.
+    await page.goto("/models/", { waitUntil: "commit" });
+    await expect(searchBox(page)).not.toBeEditable();
+    await searchBox(page).focus();
+    await expect(searchBox(page)).toBeEditable();
+    // No new focus or pointer event after hydration: the focus already there is enough.
+    await expect(list(page)).toHaveAttribute("data-motion", "on");
+  });
+
   test("a filter right after the first intent still settles on the right rows", async ({ page }) => {
     const errors = collectErrors(page);
     await page.goto("/models/");

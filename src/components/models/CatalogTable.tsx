@@ -342,9 +342,10 @@ const NO_FEATURES = {} as FeatureBundle;
 
 /**
  * Motion's features once the rows may animate: after the reader shows intent
- * on the controls (wantRowFeatures) and the chunk has loaded, never with
- * reduced motion. Turning reduced motion off mid-session does not fetch the
- * features: rows stay still until the next load, by design.
+ * on the controls (wantRowFeatures) and the chunk has loaded, never while
+ * reduced motion is on. Reduced motion is read live: turning it on mid-session
+ * stops the rows at once; turning it off lets the next intent on the controls
+ * fetch the features (or, if they already loaded, the rows animate again).
  *
  * The bundle is handed to LazyMotion as a plain object from this state, not as
  * LazyMotion's own async loader: that loader is called once on mount and its
