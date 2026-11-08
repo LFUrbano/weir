@@ -1,4 +1,5 @@
-import { REFERENCE_MODEL_SLUG, type TokenModel } from "@/data/models";
+import type { TokenModel } from "@/data/models";
+import { REFERENCE_MODEL_SLUG } from "@/data/reference-model";
 
 /**
  * The call the hero terminal plays back. It is the request in the code panel

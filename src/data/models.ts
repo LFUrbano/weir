@@ -1,4 +1,5 @@
 import type { GpuId } from "@/data/gpus";
+import { REFERENCE_MODEL_SLUG } from "@/data/reference-model";
 
 export type Task = "chat" | "reasoning" | "code" | "embeddings" | "vision" | "image";
 export type Region = "us-east" | "us-west" | "eu-west";
@@ -48,8 +49,7 @@ export function isDedicatedModel(m: Model): m is DedicatedModel {
   return m.dedicated !== null;
 }
 
-/** The model the home, the quickstart and the calculator use as their example. */
-export const REFERENCE_MODEL_SLUG = "llama-3-3-70b";
+export { REFERENCE_MODEL_SLUG };
 
 /** The size every image price is quoted at, and the size the example request asks for. */
 export const IMAGE_SIZE = { label: "1024 × 1024", param: "1024x1024" } as const;
