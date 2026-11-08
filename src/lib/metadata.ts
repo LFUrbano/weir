@@ -25,6 +25,7 @@ export function sitePaths(): string[] {
   return [
     "/",
     "/models/",
+    "/models/compare/",
     ...models.map((m) => `/models/${m.slug}/`),
     "/pricing/",
     "/enterprise/",

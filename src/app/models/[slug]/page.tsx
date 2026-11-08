@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { ReactNode } from "react";
 import { CodePanel } from "@/components/code/CodePanel";
 import { snippetsFor } from "@/components/code/snippets";
 import { MetricsChart, type MetricsChartProps } from "@/components/models/MetricsChart";
 import { MetricsTable } from "@/components/models/MetricsTable";
 import { ModelSpecs } from "@/components/models/ModelSpecs";
+import { Band } from "@/components/site/Band";
 import { StatusDot } from "@/components/site/StatusDot";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -25,6 +25,7 @@ import {
   modelPrice,
   requestShapeLine,
 } from "@/lib/model-display";
+import { COMPARE_PATH, compareSearch } from "@/lib/compare";
 import { breakEvenMonthlyTokens } from "@/lib/pricing";
 import { similarModels } from "@/lib/similar";
 import { cn } from "@/lib/utils";
@@ -51,36 +52,6 @@ export async function generateMetadata({ params }: PageProps<"/models/[slug]">):
     path,
     image: { url: `${path}og.png`, alt: `${m.name} on Weir: price and 24-hour latency` },
   });
-}
-
-/** A documentation-style band: the heading in a narrow column, the content beside it. */
-function Band({
-  id,
-  eyebrow,
-  title,
-  lede,
-  children,
-}: {
-  id: string;
-  eyebrow: string;
-  title: string;
-  lede?: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <section id={id} aria-labelledby={`${id}-title`} className="border-t border-line py-12 md:py-16">
-      <div className="container-site grid grid-cols-12 gap-x-6 gap-y-8">
-        <header className="col-span-12 lg:col-span-3">
-          <p className="label-mono text-fg-2">{eyebrow}</p>
-          <h2 id={`${id}-title`} className="mt-3 text-h3 text-fg">
-            {title}
-          </h2>
-          {lede && <p className="mt-3 max-w-[34rem] text-small text-fg-2">{lede}</p>}
-        </header>
-        <div className="col-span-12 min-w-0 lg:col-span-9">{children}</div>
-      </div>
-    </section>
-  );
 }
 
 function PricePanel({ model }: { model: Model }) {
@@ -226,9 +197,9 @@ function Similar({ model }: { model: Model }) {
         return (
           <li
             key={s.slug}
-            className="group relative grid grid-cols-1 gap-x-8 gap-y-2 border-b border-line py-4 hover:bg-surface sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:px-3"
+            className="group relative grid grid-cols-[minmax(0,1fr)_auto] gap-x-8 gap-y-2 border-b border-line py-4 hover:bg-surface sm:grid-cols-[minmax(0,1fr)_auto_auto_auto] sm:items-center sm:px-3"
           >
-            <div className="min-w-0">
+            <div className="col-span-2 min-w-0 sm:col-span-1">
               <Link
                 href={`/models/${s.slug}/`}
                 className="font-medium text-fg outline-offset-4 after:absolute after:inset-0 after:content-['']"
@@ -240,7 +211,7 @@ function Similar({ model }: { model: Model }) {
                 <span className="font-mono text-meta"> · {s.tasks.join(" · ")}</span>
               </p>
             </div>
-            <p className="font-mono text-meta whitespace-nowrap text-fg">
+            <p className="col-span-2 font-mono text-meta whitespace-nowrap text-fg sm:col-span-1">
               {price.unit === "image" ? (
                 price.perImage
               ) : (
@@ -259,6 +230,13 @@ function Similar({ model }: { model: Model }) {
                 →
               </span>
             </p>
+            {/* Above the row's stretched link, so it gets its own clicks. */}
+            <Link
+              href={`${COMPARE_PATH}${compareSearch(model.slug, s.slug)}`}
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "relative z-10 justify-self-end")}
+            >
+              Compare<span className="sr-only"> with {s.name}</span>
+            </Link>
           </li>
         );
       })}

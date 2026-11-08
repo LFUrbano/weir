@@ -1,5 +1,6 @@
 export type SiteRoute =
   | "/models/"
+  | "/models/compare/"
   | "/pricing/"
   | "/enterprise/"
   | "/enterprise/#contact"
@@ -23,6 +24,7 @@ export const siteNav: NavItem[] = [
 /** Pages the command menu (Cmd+K / Ctrl+K) lists, with the words it also matches. */
 export const commandPages: { label: string; href: SiteRoute; keywords: string[] }[] = [
   { label: "Models", href: "/models/", keywords: ["catalog", "browse"] },
+  { label: "Compare models", href: "/models/compare/", keywords: ["side by side", "versus", "vs"] },
   { label: "Pricing", href: "/pricing/", keywords: ["cost", "calculator", "dedicated"] },
   { label: "Enterprise", href: "/enterprise/", keywords: ["sales", "contact", "sla", "security"] },
   { label: "Quickstart", href: "/docs/quickstart/", keywords: ["docs", "api key", "sdk"] },

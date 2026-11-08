@@ -339,7 +339,7 @@ test.describe("command menu", () => {
     await page.goto("/");
     await pressMenuShortcut(page);
     const menu = page.getByRole("dialog", { name: "Search Weir" });
-    for (const label of ["Models", "Pricing", "Enterprise", "Quickstart"]) {
+    for (const label of ["Models", "Compare models", "Pricing", "Enterprise", "Quickstart"]) {
       await expect(menu.getByRole("option", { name: new RegExp(`^${label}`) })).toBeVisible();
     }
     await page.keyboard.type("pricing");
