@@ -3,7 +3,14 @@
 import { AnimatePresence, LazyMotion } from "motion/react";
 import { create, li as MotionLi } from "motion/react-m";
 import Link from "next/link";
-import { memo, useEffect, useState, type ComponentProps, type ReactNode } from "react";
+import {
+  memo,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type ComponentProps,
+  type ReactNode,
+} from "react";
 import {
   Table,
   TableBody,
@@ -302,13 +309,35 @@ function PhoneCards({ list, task, on, typing }: ListProps) {
 interface ListProps {
   list: Model[];
   task: Task | "all";
-  /** Rows animate (motion features loaded, no reduced motion). */
+  /** Rows animate (motion features loaded, no reduced motion, this layout on screen). */
   on: boolean;
   /** The last change came from the search box: leaving rows go at once. */
   typing: boolean;
 }
 
-/** True once the rows can animate: after hydration, when the features have loaded, never with reduced motion. */
+/** Tailwind's md breakpoint: the table from here up, the cards below. */
+const MD = "(min-width: 48rem)";
+
+function subscribeMd(onChange: () => void) {
+  const mq = window.matchMedia(MD);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+
+/** Whether the table (not the cards) is the layout on screen. */
+function useTableShown(): boolean {
+  return useSyncExternalStore(
+    subscribeMd,
+    () => window.matchMedia(MD).matches,
+    () => false,
+  );
+}
+
+/**
+ * True once the rows can animate: after hydration, when the features have
+ * loaded, never with reduced motion. Turning reduced motion off mid-session
+ * does not fetch the features: rows stay still until the next load, by design.
+ */
 function useRowMotion(): boolean {
   const reduced = usePrefersReducedMotion();
   const [loaded, setLoaded] = useState(false);
@@ -335,6 +364,9 @@ function useRowMotion(): boolean {
  */
 export function CatalogTable({ list, task, sort }: { list: Model[]; task: Task | "all"; sort: SortKey }) {
   const on = useRowMotion();
+  // Only the layout on screen animates: the hidden one's rows get no motion
+  // props, so they run no layout projection and leave at once.
+  const tableShown = useTableShown();
   // A new list with the same task and sort came from the search box.
   const [last, setLast] = useState({ list, task, sort, typing: false });
   if (last.list !== list || last.task !== task || last.sort !== sort) {
@@ -344,8 +376,8 @@ export function CatalogTable({ list, task, sort }: { list: Model[]; task: Task |
 
   return (
     <LazyMotion features={loadRowFeatures}>
-      <DesktopTable list={list} task={task} sort={sort} on={on} typing={typing} />
-      <PhoneCards list={list} task={task} on={on} typing={typing} />
+      <DesktopTable list={list} task={task} sort={sort} on={on && tableShown} typing={typing} />
+      <PhoneCards list={list} task={task} on={on && !tableShown} typing={typing} />
     </LazyMotion>
   );
 }

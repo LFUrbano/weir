@@ -63,6 +63,63 @@ async function stopWatching(page: Page): Promise<Seen> {
   });
 }
 
+/**
+ * Samples, every frame, the visible rows that no longer match the search box
+ * (rows on their way out): how many slugs left, and any caught half faded.
+ */
+async function watchLeavers(page: Page) {
+  const haystacks = Object.fromEntries(
+    models.map((m) => [m.slug, `${m.name} ${m.publisher}`.toLowerCase()]),
+  );
+  await page.evaluate((haystacks) => {
+    const w = window as unknown as { __leavers: Leavers; __watchingLeavers: boolean };
+    const left = new Set<string>();
+    w.__leavers = { frames: 0, left: 0, midFade: [] };
+    w.__watchingLeavers = true;
+    const input = document.querySelector<HTMLInputElement>("input[type=search]");
+    const shown = new Set<string>();
+    const tick = () => {
+      if (!w.__watchingLeavers) return;
+      w.__leavers.frames++;
+      const words = (input?.value ?? "").toLowerCase().split(/\s+/).filter(Boolean);
+      const now = new Set<string>();
+      for (const el of document.querySelectorAll<HTMLElement>("[data-slug]")) {
+        if (!el.checkVisibility()) continue;
+        const slug = el.dataset.slug ?? "";
+        now.add(slug);
+        if (words.every((word) => haystacks[slug]?.includes(word))) continue;
+        const opacity = Number.parseFloat(getComputedStyle(el).opacity);
+        if (opacity > 0 && opacity < 1) w.__leavers.midFade.push(`${slug} at ${opacity.toFixed(2)}`);
+      }
+      for (const slug of shown) if (!now.has(slug)) left.add(slug);
+      shown.clear();
+      for (const slug of now) shown.add(slug);
+      w.__leavers.left = left.size;
+      requestAnimationFrame(tick);
+    };
+    for (const el of document.querySelectorAll<HTMLElement>("[data-slug]")) {
+      if (el.checkVisibility()) shown.add(el.dataset.slug ?? "");
+    }
+    requestAnimationFrame(tick);
+  }, haystacks);
+}
+
+async function stopWatchingLeavers(page: Page): Promise<Leavers> {
+  return page.evaluate(() => {
+    const w = window as unknown as { __leavers: Leavers; __watchingLeavers: boolean };
+    w.__watchingLeavers = false;
+    return w.__leavers;
+  });
+}
+
+interface Leavers {
+  frames: number;
+  /** Distinct rows that left the screen while watching. */
+  left: number;
+  /** Rows that no longer matched the search, seen with 0 < opacity < 1. */
+  midFade: string[];
+}
+
 /** One second after the last change: every row opaque and in place, the count right. */
 async function expectSettled(page: Page, expected: number) {
   await page.waitForTimeout(1000);
@@ -174,14 +231,24 @@ test.describe("catalog motion", () => {
     await expectSettled(page, models.length);
   });
 
-  test("fast typing in the search leaves no ghost rows", async ({ page }) => {
+  test("rows leaving while the search text changes go at once, with no ghost rows", async ({
+    page,
+  }) => {
     await openWithMotion(page);
     const search = page.getByRole("searchbox", { name: "Search models" });
-    await search.pressSequentially("llama", { delay: 15 });
-    for (let i = 0; i < 3; i++) await search.press("Backspace", { delay: 15 });
-    await search.pressSequentially("ma", { delay: 15 });
+    await watchLeavers(page);
+    await search.pressSequentially("llama", { delay: 40 });
+    for (let i = 0; i < 3; i++) await search.press("Backspace", { delay: 40 });
+    await search.pressSequentially("ma", { delay: 40 });
     await search.fill("");
-    await search.pressSequentially("qwen", { delay: 15 });
+    await search.pressSequentially("qwen", { delay: 40 });
+    await page.waitForTimeout(300);
+    const seen = await stopWatchingLeavers(page);
+    expect(seen.frames).toBeGreaterThan(10);
+    // Rows did leave on the way (a fade would show each one for ~10 frames)...
+    expect(seen.left).toBeGreaterThan(0);
+    // ...but none was ever caught half faded.
+    expect(seen.midFade).toEqual([]);
     await expectSettled(page, matching("qwen"));
     for (const row of await rows(page).all()) await expect(row).toContainText(/qwen/i);
   });
