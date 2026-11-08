@@ -46,7 +46,7 @@ The design system and the screens are in Figma: **https://www.figma.com/design/k
 | **Tailwind CSS v4** | Colors, type sizes and radii are CSS tokens in `globals.css`. A unit test rejects any arbitrary font size. |
 | **shadcn/ui on Radix** (`radix-ui`) | Accessible dialog, select, tabs, slider, accordion, sheet and tooltip, restyled with the Weir tokens instead of the defaults. |
 | **cmdk** | The command menu (through shadcn's `Command`). |
-| **Motion** (`motion/react`) | The scroll-linked request diagram on the home page. Other movement is CSS or React state. |
+| **Motion** (`scroll`) | The scroll-linked request diagram on the home page, loaded after hydration. Other movement is CSS or React state. |
 | **MDX** (`@next/mdx`, `remark-gfm`) | The quickstart is prose with live components in it. Its prices and model names come from the same data files as the rest of the site. |
 | **react-hook-form** | Holds the contact form's state without re-rendering the whole form on every keystroke. |
 | **zod** | The form's schema, the same one the unit tests check. It loads on the form's first use, not on page load. |
@@ -73,6 +73,7 @@ public/
 scripts/
   package.mjs                 build and zip for the Netlify deploy
   fix-segment-files.mjs       renames the prefetch files a Windows build gets wrong
+  lighthouse.mjs              mobile Lighthouse on the main pages, median of 3 runs
 src/
   app/                        routes: home, models, models/[slug], pricing, enterprise,
                               docs/quickstart (MDX), 404, sitemap, robots, og.png images
@@ -111,6 +112,7 @@ npm run dev          # http://localhost:3000
 | `npm test` | Unit tests (Vitest). |
 | `npm run test:e2e` | End-to-end tests (Playwright) against `out/`, served on port 4190. Run `npm run build` first. The first time, install the browser with `npx playwright install chromium`. |
 | `npm run package` | Build and zip `out/` into `dist/weir-<YYYY-MM-DD>.zip`. Needs `SITE_URL` (below). |
+| `npm run lighthouse` | Lighthouse (mobile) on the six main pages of `out/`, median of 3 runs each. Run `npm run build` first. See [Performance](#performance). |
 
 ### Site address (`SITE_URL`)
 
@@ -123,6 +125,22 @@ SITE_URL=https://your-site.netlify.app npm run package
 ```
 
 In Windows PowerShell: `$env:SITE_URL = "https://your-site.netlify.app"; npm run package`.
+
+### Performance
+
+Build first, then run Lighthouse on the six main pages:
+
+```bash
+npm run build
+npm run lighthouse                          # /, /models/, a model page, /pricing/, /enterprise/, /docs/quickstart/
+npm run lighthouse -- /models/ /pricing/    # only these pages
+```
+
+In Git Bash, write the pages without the leading slash (`models/ pricing/`): Git Bash turns `/models/` into a Windows path before the script sees it.
+
+The script serves `out/` on `127.0.0.1:4195` and runs Lighthouse 12 with its defaults: the mobile preset with simulated throttling, in a visible Chrome window. It runs each page three times, one run at a time, and prints the median of each category with the LCP element, the longest task and the top failing audits. It exits with 1 when a page's median performance is under 95. It is not part of CI, because a shared runner is too noisy to hold a score.
+
+Local scores understate mobile performance. On `127.0.0.1` every script has arrived before the first paint, so Lighthouse counts all the JavaScript toward the largest paint. The reference numbers are taken on the deployed site and will be added here after the deploy.
 
 ## Deploying
 

@@ -1,7 +1,6 @@
 "use client";
 
-import { useRef, useSyncExternalStore, type CSSProperties } from "react";
-import { useScroll } from "motion/react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 import { cn } from "@/lib/utils";
 
@@ -19,21 +18,35 @@ export interface RequestStep {
  * request at their own pace; nothing moves unless they scroll. Horizontal on
  * large screens, a vertical list on small ones. Server and no-JS render the
  * finished path; reduced motion keeps it that way.
+ *
+ * The scroll tracker (Motion) loads after hydration: the diagram sits below
+ * the fold, so nothing on screen waits for it.
  */
 export function RequestDiagram({ steps }: { steps: RequestStep[] }) {
   const ref = useRef<HTMLOListElement>(null);
   const reduced = usePrefersReducedMotion();
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start 0.75", "end 0.6"],
-  });
+  // 1 (the finished path) until the tracker reports where the list really is.
+  const [scrolled, setScrolled] = useState(1);
 
-  const scrolled = useSyncExternalStore(
-    (onChange) => scrollYProgress.on("change", onChange),
-    // Quantized so React only re-renders when the path visibly moves.
-    () => Math.round(scrollYProgress.get() * 200) / 200,
-    () => 1,
-  );
+  useEffect(() => {
+    const el = ref.current;
+    if (reduced || !el) return;
+    let stop: (() => void) | undefined;
+    let cancelled = false;
+    void import("./request-scroll").then(({ scroll }) => {
+      if (cancelled) return;
+      stop = scroll(
+        // Quantized so React only re-renders when the path visibly moves.
+        (p: number) => setScrolled(Math.round(p * 200) / 200),
+        { target: el, offset: ["start 0.75", "end 0.6"] },
+      );
+    });
+    return () => {
+      cancelled = true;
+      stop?.();
+    };
+  }, [reduced]);
+
   const progress = reduced ? 1 : Math.min(1, Math.max(0, scrolled));
   const segments = steps.length - 1;
 
