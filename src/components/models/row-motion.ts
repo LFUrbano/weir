@@ -24,21 +24,32 @@ export const rowVariants = {
 };
 
 const REDUCED = "(prefers-reduced-motion: reduce)";
+const reduced = () => window.matchMedia(REDUCED).matches;
+
+let wanted: () => void = () => {};
+const intent = new Promise<void>((resolve) => {
+  wanted = resolve;
+});
 let bundle: Promise<FeatureBundle> | undefined;
 
 /**
- * Motion's animation and layout features, fetched when the browser is idle
- * after hydration: the rows render (and hydrate) as plain elements, and
- * nothing moves until the reader filters or sorts. With reduced motion the
- * features are never fetched.
+ * The reader is about to filter or sort (a pointer over the controls, focus
+ * in them, a finger on them): fetch the features now, once. Until then the
+ * page loads and hydrates without them, and nothing is fetched while the
+ * reader only scrolls. Never with reduced motion.
+ */
+export function wantRowFeatures(): void {
+  if (!reduced()) wanted();
+}
+
+/**
+ * Motion's animation and layout features, resolved once wantRowFeatures has
+ * been called and the chunk has loaded. Until then the rows render as plain
+ * elements and filtering or sorting works without animation. With reduced
+ * motion it never resolves and the features are never fetched.
  */
 export function loadRowFeatures(): Promise<FeatureBundle> {
-  if (window.matchMedia(REDUCED).matches) return new Promise(() => {});
-  bundle ??= new Promise<void>((resolve) => {
-    if ("requestIdleCallback" in window) window.requestIdleCallback(() => resolve(), { timeout: 2000 });
-    else setTimeout(resolve, 200);
-  })
-    .then(() => import("./row-motion-features"))
-    .then((m) => m.default);
+  if (reduced()) return new Promise(() => {});
+  bundle ??= intent.then(() => import("./row-motion-features")).then((m) => m.default);
   return bundle;
 }

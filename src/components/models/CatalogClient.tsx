@@ -16,6 +16,7 @@ import {
 import { useHydrated, useLocationSearch } from "@/lib/use-location-search";
 import { CatalogFilters, TASK_LABELS } from "./CatalogFilters";
 import { CatalogTable } from "./CatalogTable";
+import { wantRowFeatures } from "./row-motion";
 
 const CATALOG_PATH = "/models/";
 
@@ -76,10 +77,19 @@ interface CatalogViewProps {
   onQueryChange?: (q: string) => void;
   onTaskChange?: (task: Task | "all") => void;
   onSortChange?: (sort: SortKey) => void;
+  onIntent?: () => void;
   onClear?: () => void;
 }
 
-function CatalogView({ params, query, onQueryChange, onTaskChange, onSortChange, onClear }: CatalogViewProps) {
+function CatalogView({
+  params,
+  query,
+  onQueryChange,
+  onTaskChange,
+  onSortChange,
+  onIntent,
+  onClear,
+}: CatalogViewProps) {
   const filtered = { ...params, q: query };
   const { task, sort } = params;
   const list = useMemo(() => sortModels(filterModels(models, { task, sort, q: query }), sort), [task, sort, query]);
@@ -98,6 +108,7 @@ function CatalogView({ params, query, onQueryChange, onTaskChange, onSortChange,
         onQueryChange={onQueryChange}
         onTaskChange={onTaskChange}
         onSortChange={onSortChange}
+        onIntent={onIntent}
       />
       <p
         data-testid="catalog-count"
@@ -172,6 +183,8 @@ export function CatalogClient() {
       }}
       onTaskChange={(task) => push({ ...current(), task })}
       onSortChange={(sort) => push({ ...current(), sort })}
+      // The rows' motion code loads when the reader reaches for the controls.
+      onIntent={wantRowFeatures}
       onClear={() => {
         setQuery("");
         push(DEFAULT_PARAMS);

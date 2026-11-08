@@ -36,8 +36,7 @@ test.describe("model catalog", () => {
 
   test("sorting by price writes the URL and puts the cheapest model first", async ({ page }) => {
     await page.goto("/models/");
-    await page.getByRole("combobox", { name: "Sort by" }).click();
-    await page.getByRole("option", { name: /^Price/ }).click();
+    await page.getByRole("combobox", { name: "Sort by" }).selectOption("price");
 
     await expect(page).toHaveURL(/[?&]sort=price\b/);
     await expect(rows(page).first()).toHaveAttribute("data-slug", cheapest.slug);
@@ -180,15 +179,13 @@ test.describe("model catalog", () => {
     await page.keyboard.press("Tab");
     const sort = page.getByRole("combobox", { name: "Sort by" });
     await expect(sort).toBeFocused();
-    await page.keyboard.press("Enter");
-    // Radix focuses the checked option once the list is open.
-    await expect(page.getByRole("option", { name: /^Name/ })).toBeFocused();
+    // A closed native select steps through its options with the arrow keys
+    // (Windows and Linux; macOS opens the list instead).
     await page.keyboard.press("ArrowDown");
-    await expect(page.getByRole("option", { name: /^Price/ })).toBeFocused();
+    await expect(page).toHaveURL(/[?&]sort=price\b/);
     await page.keyboard.press("ArrowDown");
-    await expect(page.getByRole("option", { name: /^Speed/ })).toBeFocused();
-    await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/[?&]sort=speed\b/);
+    await expect(sort).toHaveValue("speed");
     await expect(sort).toBeFocused();
 
     await page.keyboard.press("Tab");
@@ -206,6 +203,25 @@ test.describe("model catalog", () => {
     await page.goto("/models/");
     await expect(page.getByTestId("catalog-table")).toBeVisible();
     await expect(page.getByTestId("catalog-cards")).toBeHidden();
+  });
+
+  test("model links prefetch on intent, not as the rows scroll into view", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "hover on desktop");
+    const segments: string[] = [];
+    page.on("request", (r) => {
+      const { pathname } = new URL(r.url());
+      if (pathname.endsWith(".txt")) segments.push(pathname);
+    });
+    await page.goto("/models/");
+    await page.getByTestId("catalog-table").scrollIntoViewIfNeeded();
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1000);
+    const modelPages = () => segments.filter((p) => models.some((m) => p.startsWith(`/models/${m.slug}/`)));
+    expect(modelPages()).toEqual([]);
+    const first = rows(page).first();
+    const slug = await first.getAttribute("data-slug");
+    await first.getByRole("link").hover();
+    await expect.poll(() => modelPages().filter((p) => p.startsWith(`/models/${slug}/`)).length).toBeGreaterThan(0);
   });
 
   test("one header carries the sort; the arrow column is not announced", async ({

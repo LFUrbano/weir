@@ -139,7 +139,7 @@ async function expectSettled(page: Page, expected: number) {
   }
 }
 
-/** A name only Motion's layout features (the chunk fetched after load) contain. */
+/** A name only Motion's layout features (the chunk fetched on intent) contain. */
 const FEATURES_MARKER = "dragSnapToOrigin";
 
 /** Script URLs the page fetched, to check later whether the features chunk was one. */
@@ -158,9 +158,14 @@ async function fetchedFeatures(page: Page, urls: string[]): Promise<boolean> {
   return false;
 }
 
+const searchBox = (page: Page) => page.getByRole("searchbox", { name: "Search models" });
+const sortBy = (page: Page) => page.getByRole("combobox", { name: "Sort by" });
+
+/** Opens the catalog and shows intent (focus in the search box), which loads the motion code. */
 async function openWithMotion(page: Page, path = "/models/") {
   await page.goto(path);
-  await expect(page.getByRole("searchbox", { name: "Search models" })).toBeEditable();
+  await expect(searchBox(page)).toBeEditable();
+  await searchBox(page).focus();
   await expect(list(page)).toHaveAttribute("data-motion", "on");
 }
 
@@ -170,6 +175,8 @@ test.describe("catalog motion", () => {
   }) => {
     await page.goto("/models/");
     await startWatching(page);
+    await expect(searchBox(page)).toBeEditable();
+    await searchBox(page).focus();
     await expect(list(page)).toHaveAttribute("data-motion", "on");
     await page.waitForTimeout(500);
     const seen = await stopWatching(page);
@@ -177,7 +184,7 @@ test.describe("catalog motion", () => {
     expect(seen).toMatchObject({ faded: 0, moved: 0 });
   });
 
-  test("the motion features are fetched after load, not with the page", async ({
+  test("the motion features are not fetched on load, only once the reader reaches for the controls", async ({
     page,
     request,
   }, testInfo) => {
@@ -189,8 +196,30 @@ test.describe("catalog motion", () => {
       expect((await (await request.get(src)).text()).includes(FEATURES_MARKER), src).toBe(false);
     }
     const scripts = recordScripts(page);
-    await openWithMotion(page);
+    await page.goto("/models/");
+    await expect(searchBox(page)).toBeEditable();
+    await page.waitForLoadState("networkidle");
+    // Longer than an idle callback's 2 s timeout: nothing loads them on its own.
+    await page.waitForTimeout(2500);
+    expect(await fetchedFeatures(page, scripts)).toBe(false);
+    await expect(list(page)).not.toHaveAttribute("data-motion", "on");
+
+    await searchBox(page).focus();
+    await expect(list(page)).toHaveAttribute("data-motion", "on");
     expect(await fetchedFeatures(page, scripts)).toBe(true);
+  });
+
+  test("a filter right after the first intent still settles on the right rows", async ({ page }) => {
+    const errors = collectErrors(page);
+    await page.goto("/models/");
+    await expect(searchBox(page)).toBeEditable();
+    // The click is the intent: the rows may or may not animate this time.
+    await taskFilter(page, "Embeddings").click();
+    await expectSettled(page, embeddings);
+    await expect(list(page)).toHaveAttribute("data-motion", "on");
+    await taskFilter(page, "All").click();
+    await expectSettled(page, models.length);
+    expect(errors).toEqual([]);
   });
 
   test("filtering animates rows out and in, then settles on the right rows", async ({ page }) => {
@@ -222,8 +251,7 @@ test.describe("catalog motion", () => {
   test("sorting slides rows to their new places", async ({ page }) => {
     await openWithMotion(page);
     await startWatching(page);
-    await page.getByRole("combobox", { name: "Sort by" }).click();
-    await page.getByRole("option", { name: /^Speed/ }).click();
+    await sortBy(page).selectOption("speed");
     await expect(page).toHaveURL(/[?&]sort=speed\b/);
     await page.waitForTimeout(400);
     const seen = await stopWatching(page);
@@ -235,7 +263,7 @@ test.describe("catalog motion", () => {
     page,
   }) => {
     await openWithMotion(page);
-    const search = page.getByRole("searchbox", { name: "Search models" });
+    const search = searchBox(page);
     await watchLeavers(page);
     await search.pressSequentially("llama", { delay: 40 });
     for (let i = 0; i < 3; i++) await search.press("Backspace", { delay: 40 });
@@ -277,18 +305,22 @@ test.describe("catalog with reduced motion", () => {
   }) => {
     const scripts = recordScripts(page);
     await page.goto("/models/");
-    await expect(page.getByRole("searchbox", { name: "Search models" })).toBeEditable();
+    await expect(searchBox(page)).toBeEditable();
     await startWatching(page);
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(1000);
     await expect(list(page)).not.toHaveAttribute("data-motion", "on");
 
+    // Every kind of intent on the controls: focus, a pointer over them, clicks.
+    await searchBox(page).focus();
+    await sortBy(page).hover();
     await taskFilter(page, "Embeddings").click();
     await expect(rows(page)).toHaveCount(embeddings);
     await taskFilter(page, "All").click();
     await expect(rows(page)).toHaveCount(models.length);
-    await page.getByRole("combobox", { name: "Sort by" }).click();
-    await page.getByRole("option", { name: /^Price/ }).click();
+    await sortBy(page).selectOption("price");
+    await expect(page).toHaveURL(/[?&]sort=price\b/);
+    await page.waitForLoadState("networkidle");
     await page.waitForTimeout(400);
     expect(await stopWatching(page)).toMatchObject({ faded: 0, moved: 0, styled: 0 });
     await expect(list(page)).not.toHaveAttribute("data-motion", "on");
