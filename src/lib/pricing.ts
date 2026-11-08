@@ -27,6 +27,15 @@ export function blendedPrice(m: TokenModel, inputShare: number): number {
   return m.pricing.input * share + m.pricing.output * (1 - share);
 }
 
+/**
+ * The input share every page assumes when a model has no traffic of its own:
+ * embeddings bill input only (1), chat splits evenly (0.5). One rule, so the
+ * model page, the pricing tables and the comparison agree on break-even.
+ */
+export function defaultInputShare(m: Model): number {
+  return m.tasks.includes("embeddings") ? 1 : 0.5;
+}
+
 /** Serverless cost in USD for a month with the given input and output token counts. */
 export function serverlessMonthlyCost(
   m: TokenModel,

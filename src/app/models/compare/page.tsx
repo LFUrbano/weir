@@ -8,7 +8,7 @@ import { Band } from "@/components/site/Band";
 import { buttonVariants } from "@/components/ui/button";
 import { getModel, type Model } from "@/data/models";
 import { primaryCta } from "@/data/site";
-import { COMPARE_PATH, DEFAULT_PAIR, compareSearch } from "@/lib/compare";
+import { COMMON_PAIRS, COMPARE_PATH, DEFAULT_PAIR, compareSearch } from "@/lib/compare";
 import { pageMetadata, pageTitle } from "@/lib/metadata";
 import { shortModelName } from "@/lib/model-display";
 
@@ -26,13 +26,6 @@ export const metadata: Metadata = pageMetadata({
   description: `${defaultA} and ${defaultB} side by side, or any two models of one kind: price, latency, decode speed, context, dedicated GPUs and the one-line change between them.`,
   path: COMPARE_PATH,
 });
-
-/** Pairs people ask about, each in one family or one price band. */
-const COMMON_PAIRS: [string, string][] = [
-  [DEFAULT_PAIR.a, DEFAULT_PAIR.b],
-  ["deepseek-v3-1", "qwen3-235b-a22b"],
-  ["llama-4-scout", "llama-4-maverick"],
-];
 
 export default function ComparePage() {
   return (

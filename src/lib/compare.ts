@@ -1,5 +1,5 @@
-import { snippetsFor } from "@/components/code/snippets";
 import { getGpu, gpuShortName } from "@/data/gpus";
+import { REFERENCE_MODEL_SLUG } from "@/data/reference-model";
 import { IMAGE_SIZE, getModel, isDedicatedModel, isTokenModel, models, type Model } from "@/data/models";
 import {
   formatContext,
@@ -12,16 +12,24 @@ import {
   NOT_APPLICABLE,
   formatBreakEven,
   modelKind,
+  modelSpeed,
   shortModelName,
 } from "@/lib/model-display";
-import { blendedPrice, breakEvenMonthlyTokens } from "@/lib/pricing";
+import { blendedPrice, breakEvenMonthlyTokens, defaultInputShare } from "@/lib/pricing";
 import { similarModels } from "@/lib/similar";
 
 /** Where the comparison page lives. */
 export const COMPARE_PATH = "/models/compare/";
 
 /** The pair /models/compare/ shows with no query, and in its static HTML. */
-export const DEFAULT_PAIR = { a: "llama-3-3-70b", b: "qwen3-32b" } as const;
+export const DEFAULT_PAIR = { a: REFERENCE_MODEL_SLUG, b: "qwen3-32b" } as const;
+
+/** Pairs people ask about, each in one family or one price band; the page links to them. */
+export const COMMON_PAIRS: readonly (readonly [string, string])[] = [
+  [DEFAULT_PAIR.a, DEFAULT_PAIR.b],
+  ["deepseek-v3-1", "qwen3-235b-a22b"],
+  ["llama-4-scout", "llama-4-maverick"],
+];
 
 export type ComparePair = { a: Model; b: Model };
 
@@ -119,8 +127,7 @@ function plainRow(label: string, a: string, b: string): CompareRow {
 
 /** Serverless USD per 1M tokens as one number: embeddings bill input only, chat blends 50/50. */
 function unitTokenPrice(m: Model): number {
-  if (!isTokenModel(m)) return 0;
-  return modelKind(m) === "embeddings" ? m.pricing.input : blendedPrice(m, 0.5);
+  return isTokenModel(m) ? blendedPrice(m, defaultInputShare(m)) : 0;
 }
 
 function priceGroup(a: Model, b: Model): CompareGroup {
@@ -168,8 +175,6 @@ function priceGroup(a: Model, b: Model): CompareGroup {
   return { id: "price", title: "Price · serverless, USD per 1M tokens", rows };
 }
 
-const speedLabel = (m: Model) => `${Math.round(m.tokensPerSec ?? 0)} tok/s`;
-
 function speedGroup(a: Model, b: Model): CompareGroup {
   const chat = modelKind(a) === "chat";
   const rows: CompareRow[] = [
@@ -183,8 +188,8 @@ function speedGroup(a: Model, b: Model): CompareGroup {
   if (chat && a.tokensPerSec !== null && b.tokensPerSec !== null) {
     rows.push({
       label: "Decode speed, one request",
-      a: speedLabel(a),
-      b: speedLabel(b),
+      a: modelSpeed(a),
+      b: modelSpeed(b),
       ...higherIsBetter(a.tokensPerSec, b.tokensPerSec, "faster"),
     });
   }
@@ -217,13 +222,11 @@ function dedicatedFacts(m: Model): Dedicated | null {
   const { gpu, gpusPerReplica, replicaTokensPerSec } = m.dedicated;
   const g = getGpu(gpu);
   const rate = gpusPerReplica * g.hourly;
-  // Embeddings bill input only, so their break-even uses the input price as is.
-  const share = modelKind(m) === "embeddings" ? 1 : 0.5;
   return {
     rate,
     replica: `${gpusPerReplica}× ${gpuShortName(g)} · ${formatUsd(rate)} / hour`,
     peak: replicaTokensPerSec,
-    breakEven: breakEvenMonthlyTokens(m, share),
+    breakEven: breakEvenMonthlyTokens(m, defaultInputShare(m)),
   };
 }
 
@@ -322,12 +325,12 @@ export function volumeSummary(a: Model, b: Model, volume: number): string {
 export type DiffLine = { type: "same" | "removed" | "added"; text: string };
 
 /**
- * The curl request for A turned into B's, line by line. Models of one kind
+ * One curl request turned into another, line by line. Models of one kind
  * share the body, so only the "model" line changes.
  */
-export function requestDiff(a: Model, b: Model): DiffLine[] {
-  const from = snippetsFor(a).curl.split("\n");
-  const to = snippetsFor(b).curl.split("\n");
+export function requestDiff(fromCurl: string, toCurl: string): DiffLine[] {
+  const from = fromCurl.split("\n");
+  const to = toCurl.split("\n");
   const out: DiffLine[] = [];
   for (let i = 0; i < Math.max(from.length, to.length); i++) {
     const x = from[i];

@@ -13,7 +13,7 @@ Last updated 2026-11-07. The code is the source of truth: when a token changes i
 | --------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | **Foundations** | The token sheet (frame `Foundations`, node `3:9`): colors, radii, spacing and the type scale.                             |
 | **Components**  | The board `Weir / Components` (node `10:23`) with every component below, each next to the source file it mirrors.         |
-| **Screens**     | The frame `Screens` (node `10:22`): the six pages captured from the static build at 1440 px, and the home page at 390 px. |
+| **Screens**     | The frame `Screens` (node `10:22`): the six pages captured from the static build at 1440 px, and the home page at 390 px. The Compare page was designed here first: frame `32:18`, with its local components board `32:2` and design note `32:364`. |
 
 ### Components
 
@@ -62,8 +62,7 @@ Link: https://www.figma.com/design/kOGHETj4K8DtaJiyTHReaz?node-id=32-18
 
 The mark is the `live` badge: amber text and border on a translucent amber fill. Below
 1024 px the row label moves above the two values, which stay side by side; below 768 px
-the cards stack. The
-page as built, next to the frame, is in [`docs/pr/feat-compare-models/`](pr/feat-compare-models/).
+the cards stack. The page as built, next to the frame, is in [`docs/pr/feat-compare-models/`](pr/feat-compare-models/).
 
 ## Variables and the CSS tokens
 

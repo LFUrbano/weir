@@ -26,7 +26,7 @@ import {
   requestShapeLine,
 } from "@/lib/model-display";
 import { COMPARE_PATH, compareSearch } from "@/lib/compare";
-import { breakEvenMonthlyTokens } from "@/lib/pricing";
+import { breakEvenMonthlyTokens, defaultInputShare } from "@/lib/pricing";
 import { similarModels } from "@/lib/similar";
 import { cn } from "@/lib/utils";
 
@@ -152,7 +152,7 @@ function Dedicated({ model }: { model: Model }) {
   }
   const { gpu, gpusPerReplica, replicaTokensPerSec } = model.dedicated;
   const g = getGpu(gpu);
-  const breakEven = breakEvenMonthlyTokens(model, 0.5);
+  const breakEven = breakEvenMonthlyTokens(model, defaultInputShare(model));
   const facts = [
     { label: "Replica", value: `${gpusPerReplica}× ${gpuShortName(g)}` },
     { label: "Replica rate", value: `${formatUsd(gpusPerReplica * g.hourly)} / hour` },
