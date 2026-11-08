@@ -9,6 +9,7 @@ import { models } from "../../src/data/models";
 const pages = [
   { path: "/", title: "Weir · Open models in production" },
   { path: "/models/", title: "Models · Weir" },
+  { path: "/models/compare/", title: "Compare models · Weir" },
   ...models.map((m) => ({ path: `/models/${m.slug}/`, title: `${m.name} · Weir` })),
   { path: "/pricing/", title: "Pricing · Weir" },
   { path: "/enterprise/", title: "Enterprise · Weir" },

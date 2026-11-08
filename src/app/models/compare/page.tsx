@@ -23,7 +23,7 @@ const defaultB = shortModelName(model(DEFAULT_PAIR.b));
 
 export const metadata: Metadata = pageMetadata({
   title: pageTitle("Compare models"),
-  description: `${defaultA} and ${defaultB} side by side, or any two models of one kind: price per 1M tokens, latency, decode speed, context, dedicated GPUs and the one-line change between them.`,
+  description: `${defaultA} and ${defaultB} side by side, or any two models of one kind: price, latency, decode speed, context, dedicated GPUs and the one-line change between them.`,
   path: COMPARE_PATH,
 });
 
