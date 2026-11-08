@@ -21,12 +21,20 @@ export interface RequestStep {
  *
  * The scroll tracker (Motion) loads after hydration: the diagram sits below
  * the fold, so nothing on screen waits for it.
+ *
+ * The colors fade only once the tracker has placed the path. Its first report
+ * moves the path from the finished state to where the list really is (on load,
+ * below the fold: nothing lit), and fading that move started some seventy color
+ * transitions at once, off screen, which cost a phone a long task right after
+ * hydration.
  */
 export function RequestDiagram({ steps }: { steps: RequestStep[] }) {
   const ref = useRef<HTMLOListElement>(null);
   const reduced = usePrefersReducedMotion();
-  // 1 (the finished path) until the tracker reports where the list really is.
-  const [scrolled, setScrolled] = useState(1);
+  // null (the finished path) until the tracker reports where the list really is.
+  const [scrolled, setScrolled] = useState<number | null>(null);
+  const placed = scrolled !== null;
+  const [fade, setFade] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
@@ -47,7 +55,22 @@ export function RequestDiagram({ steps }: { steps: RequestStep[] }) {
     };
   }, [reduced]);
 
-  const progress = reduced ? 1 : Math.min(1, Math.max(0, scrolled));
+  useEffect(() => {
+    if (!placed || fade) return;
+    // The path is placed in the DOM. Let a frame style it without transitions,
+    // then turn them on for the reader's scrolling.
+    let second = 0;
+    const first = requestAnimationFrame(() => {
+      second = requestAnimationFrame(() => setFade(true));
+    });
+    return () => {
+      cancelAnimationFrame(first);
+      cancelAnimationFrame(second);
+    };
+  }, [placed, fade]);
+
+  const progress = reduced || scrolled === null ? 1 : Math.min(1, Math.max(0, scrolled));
+  const fadeColors = fade && "transition-colors duration-200";
   const segments = steps.length - 1;
 
   return (
@@ -80,9 +103,17 @@ export function RequestDiagram({ steps }: { steps: RequestStep[] }) {
             ) : null}
             <span
               aria-hidden="true"
-              className="absolute top-0 left-0 size-[11px] border border-line-strong bg-canvas transition-colors duration-200 group-data-[lit=true]:border-amber group-data-[lit=true]:bg-amber"
+              className={cn(
+                "absolute top-0 left-0 size-[11px] border border-line-strong bg-canvas group-data-[lit=true]:border-amber group-data-[lit=true]:bg-amber",
+                fadeColors,
+              )}
             />
-            <div className="label-mono -mt-px text-fg-2 normal-case transition-colors duration-200 group-data-[lit=true]:text-amber lg:mt-0">
+            <div
+              className={cn(
+                "label-mono -mt-px text-fg-2 normal-case group-data-[lit=true]:text-amber lg:mt-0",
+                fadeColors,
+              )}
+            >
               {step.stamp}
             </div>
             <h3 className="mt-4 text-h3 text-fg">{step.name}</h3>
@@ -92,8 +123,9 @@ export function RequestDiagram({ steps }: { steps: RequestStep[] }) {
                 <li
                   key={d}
                   className={cn(
-                    "rounded-md border px-2 py-1 font-mono text-caption leading-none transition-colors duration-200",
+                    "rounded-md border px-2 py-1 font-mono text-caption leading-none",
                     "border-line text-fg-2 group-data-[lit=true]:border-line-strong group-data-[lit=true]:text-fg",
+                    fadeColors,
                   )}
                 >
                   {d}
