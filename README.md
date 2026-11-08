@@ -128,25 +128,19 @@ In Windows PowerShell: `$env:SITE_URL = "https://your-site.netlify.app"; npm run
 
 ### Performance
 
-`npm run lighthouse` serves `out/` on `127.0.0.1:4195` and runs Lighthouse 12 with its defaults (mobile preset, simulated throttling, a visible Chrome window) three times on each page, one run at a time. It prints the median of each category, the LCP element, the longest task and the top failing audits, and exits with 1 when a page's median performance is under 95. To measure only some pages, pass them: `npm run lighthouse -- /models/ /pricing/` (in Git Bash, drop the leading slash: `models/ pricing/`). It is not in CI: a shared runner is too noisy to hold a score.
+Build first, then run Lighthouse on the six main pages:
 
-Measured on 2026-11-07 (Windows 11, Chrome 156, Lighthouse 12.8.2), median of 3 runs:
+```bash
+npm run build
+npm run lighthouse                          # /, /models/, a model page, /pricing/, /enterprise/, /docs/quickstart/
+npm run lighthouse -- /models/ /pricing/    # only these pages
+```
 
-| Page | Performance | Accessibility | Best practices | SEO | LCP | TBT | CLS |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `/` | 83 | 100 | 100 | 100 | 3.2 s | 420 ms | 0 |
-| `/models/` | 88 | 100 | 100 | 100 | 2.9 s | 304 ms | 0 |
-| `/models/llama-3-3-70b/` | 87 | 100 | 100 | 100 | 2.9 s | 348 ms | 0 |
-| `/pricing/` | 84 | 100 | 100 | 100 | 3.1 s | 415 ms | 0 |
-| `/enterprise/` | 81 | 100 | 100 | 100 | 3.3 s | 459 ms | 0 |
-| `/docs/quickstart/` | 89 | 100 | 100 | 100 | 2.9 s | 287 ms | 0 |
+In Git Bash, write the pages without the leading slash (`models/ pricing/`): Git Bash turns `/models/` into a Windows path before the script sees it.
 
-On mobile, two things hold performance under 95, and both come from the framework more than from the pages:
+The script serves `out/` on `127.0.0.1:4195` and runs Lighthouse 12 with its defaults: the mobile preset with simulated throttling, in a visible Chrome window. It runs each page three times, one run at a time, and prints the median of each category with the LCP element, the longest task and the top failing audits. It exits with 1 when a page's median performance is under 95. It is not part of CI, because a shared runner is too noisy to hold a score.
 
-- **LCP counts all the JavaScript.** Every page's LCP element is text (a heading or the lede), and the page paints it in about 0.3 s unthrottled. But on `127.0.0.1` every script has finished downloading before that first frame reaches the screen, so Lighthouse's simulation treats all of them as needed for it and replays them over its throttled 1.6 Mbps link. React DOM and the Next.js router alone are about 113 KB compressed, of the 160 to 205 KB a page loads. With the scripts taken out of the page, the same home page scores 100 with a 1.5 s LCP.
-- **TBT is React starting up.** The longest task on every page is React DOM evaluating and starting hydration (250 to 330 ms at Lighthouse's 4x CPU slowdown).
-
-Headless Chrome scores a few points lower on the same build on Windows: it renders with a software GPU at a lower CPU priority, so the script leaves Chrome visible.
+Local scores understate mobile performance. On `127.0.0.1` every script has arrived before the first paint, so Lighthouse counts all the JavaScript toward the largest paint. The reference numbers are taken on the deployed site and will be added here after the deploy.
 
 ## Deploying
 
