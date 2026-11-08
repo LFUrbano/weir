@@ -46,7 +46,7 @@ The design system and the screens are in Figma: **https://www.figma.com/design/k
 | **Tailwind CSS v4** | Colors, type sizes and radii are CSS tokens in `globals.css`. A unit test rejects any arbitrary font size. |
 | **shadcn/ui on Radix** (`radix-ui`) | Accessible dialog, select, tabs, slider, accordion, sheet and tooltip, restyled with the Weir tokens instead of the defaults. |
 | **cmdk** | The command menu (through shadcn's `Command`). |
-| **Motion** (`motion/react`) | The scroll-linked request diagram on the home page. Other movement is CSS or React state. |
+| **Motion** (`scroll`) | The scroll-linked request diagram on the home page, loaded after hydration. Other movement is CSS or React state. |
 | **MDX** (`@next/mdx`, `remark-gfm`) | The quickstart is prose with live components in it. Its prices and model names come from the same data files as the rest of the site. |
 | **react-hook-form** | Holds the contact form's state without re-rendering the whole form on every keystroke. |
 | **zod** | The form's schema, the same one the unit tests check. It loads on the form's first use, not on page load. |
@@ -73,6 +73,7 @@ public/
 scripts/
   package.mjs                 build and zip for the Netlify deploy
   fix-segment-files.mjs       renames the prefetch files a Windows build gets wrong
+  lighthouse.mjs              mobile Lighthouse on the main pages, median of 3 runs
 src/
   app/                        routes: home, models, models/[slug], pricing, enterprise,
                               docs/quickstart (MDX), 404, sitemap, robots, og.png images
@@ -111,6 +112,7 @@ npm run dev          # http://localhost:3000
 | `npm test` | Unit tests (Vitest). |
 | `npm run test:e2e` | End-to-end tests (Playwright) against `out/`, served on port 4190. Run `npm run build` first. The first time, install the browser with `npx playwright install chromium`. |
 | `npm run package` | Build and zip `out/` into `dist/weir-<YYYY-MM-DD>.zip`. Needs `SITE_URL` (below). |
+| `npm run lighthouse` | Lighthouse (mobile) on the six main pages of `out/`, median of 3 runs each. Run `npm run build` first. See [Performance](#performance). |
 
 ### Site address (`SITE_URL`)
 
@@ -123,6 +125,28 @@ SITE_URL=https://your-site.netlify.app npm run package
 ```
 
 In Windows PowerShell: `$env:SITE_URL = "https://your-site.netlify.app"; npm run package`.
+
+### Performance
+
+`npm run lighthouse` serves `out/` on `127.0.0.1:4195` and runs Lighthouse 12 with its defaults (mobile preset, simulated throttling, a visible Chrome window) three times on each page, one run at a time. It prints the median of each category, the LCP element, the longest task and the top failing audits, and exits with 1 when a page's median performance is under 95. To measure only some pages, pass them: `npm run lighthouse -- /models/ /pricing/` (in Git Bash, drop the leading slash: `models/ pricing/`). It is not in CI: a shared runner is too noisy to hold a score.
+
+Measured on 2026-11-07 (Windows 11, Chrome 156, Lighthouse 12.8.2), median of 3 runs:
+
+| Page | Performance | Accessibility | Best practices | SEO | LCP | TBT | CLS |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `/` | 83 | 100 | 100 | 100 | 3.2 s | 420 ms | 0 |
+| `/models/` | 88 | 100 | 100 | 100 | 2.9 s | 304 ms | 0 |
+| `/models/llama-3-3-70b/` | 87 | 100 | 100 | 100 | 2.9 s | 348 ms | 0 |
+| `/pricing/` | 84 | 100 | 100 | 100 | 3.1 s | 415 ms | 0 |
+| `/enterprise/` | 81 | 100 | 100 | 100 | 3.3 s | 459 ms | 0 |
+| `/docs/quickstart/` | 89 | 100 | 100 | 100 | 2.9 s | 287 ms | 0 |
+
+On mobile, two things hold performance under 95, and both come from the framework more than from the pages:
+
+- **LCP counts all the JavaScript.** Every page's LCP element is text (a heading or the lede), and the page paints it in about 0.3 s unthrottled. But on `127.0.0.1` every script has finished downloading before that first frame reaches the screen, so Lighthouse's simulation treats all of them as needed for it and replays them over its throttled 1.6 Mbps link. React DOM and the Next.js router alone are about 113 KB compressed, of the 160 to 205 KB a page loads. With the scripts taken out of the page, the same home page scores 100 with a 1.5 s LCP.
+- **TBT is React starting up.** The longest task on every page is React DOM evaluating and starting hydration (250 to 330 ms at Lighthouse's 4x CPU slowdown).
+
+Headless Chrome scores a few points lower on the same build on Windows: it renders with a software GPU at a lower CPU priority, so the script leaves Chrome visible.
 
 ## Deploying
 
