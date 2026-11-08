@@ -17,6 +17,9 @@ import {
 import { blendedPrice, breakEvenMonthlyTokens } from "@/lib/pricing";
 import { similarModels } from "@/lib/similar";
 
+/** Where the comparison page lives. */
+export const COMPARE_PATH = "/models/compare/";
+
 /** The pair /models/compare/ shows with no query, and in its static HTML. */
 export const DEFAULT_PAIR = { a: "llama-3-3-70b", b: "qwen3-32b" } as const;
 

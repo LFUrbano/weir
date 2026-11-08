@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 const RESET_MS = 2000;
 
 /** Clipboard API first; a hidden textarea for insecure contexts and old browsers. */
-async function copyText(text: string): Promise<boolean> {
+export async function copyText(text: string): Promise<boolean> {
   try {
     if (navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(text);

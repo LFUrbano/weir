@@ -11,10 +11,17 @@ describe("site paths", () => {
   it("lists every page once, with a trailing slash", () => {
     const paths = sitePaths();
     expect(paths).toEqual(
-      expect.arrayContaining(["/", "/models/", "/pricing/", "/enterprise/", "/docs/quickstart/"]),
+      expect.arrayContaining([
+        "/",
+        "/models/",
+        "/models/compare/",
+        "/pricing/",
+        "/enterprise/",
+        "/docs/quickstart/",
+      ]),
     );
     for (const m of models) expect(paths).toContain(`/models/${m.slug}/`);
-    expect(paths).toHaveLength(5 + models.length);
+    expect(paths).toHaveLength(6 + models.length);
     expect(new Set(paths).size).toBe(paths.length);
     for (const p of paths) expect(p).toMatch(/^\/([a-z0-9-]+\/)*$/);
   });

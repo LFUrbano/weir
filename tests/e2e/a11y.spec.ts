@@ -4,7 +4,15 @@ import { expect, test } from "@playwright/test";
 /** One rule set for every axe run in this file. */
 const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-practice"];
 
-const pages = ["/", "/models/", "/models/llama-3-3-70b/", "/pricing/", "/enterprise/", "/docs/quickstart/"];
+const pages = [
+  "/",
+  "/models/",
+  "/models/compare/",
+  "/models/llama-3-3-70b/",
+  "/pricing/",
+  "/enterprise/",
+  "/docs/quickstart/",
+];
 
 /** Final state of every animation, so axe judges the colors a reader ends up seeing. */
 test.use({ reducedMotion: "reduce" });

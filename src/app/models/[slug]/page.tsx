@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { ReactNode } from "react";
 import { CodePanel } from "@/components/code/CodePanel";
 import { snippetsFor } from "@/components/code/snippets";
 import { MetricsChart, type MetricsChartProps } from "@/components/models/MetricsChart";
 import { MetricsTable } from "@/components/models/MetricsTable";
 import { ModelSpecs } from "@/components/models/ModelSpecs";
+import { Band } from "@/components/site/Band";
 import { StatusDot } from "@/components/site/StatusDot";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -51,36 +51,6 @@ export async function generateMetadata({ params }: PageProps<"/models/[slug]">):
     path,
     image: { url: `${path}og.png`, alt: `${m.name} on Weir: price and 24-hour latency` },
   });
-}
-
-/** A documentation-style band: the heading in a narrow column, the content beside it. */
-function Band({
-  id,
-  eyebrow,
-  title,
-  lede,
-  children,
-}: {
-  id: string;
-  eyebrow: string;
-  title: string;
-  lede?: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <section id={id} aria-labelledby={`${id}-title`} className="border-t border-line py-12 md:py-16">
-      <div className="container-site grid grid-cols-12 gap-x-6 gap-y-8">
-        <header className="col-span-12 lg:col-span-3">
-          <p className="label-mono text-fg-2">{eyebrow}</p>
-          <h2 id={`${id}-title`} className="mt-3 text-h3 text-fg">
-            {title}
-          </h2>
-          {lede && <p className="mt-3 max-w-[34rem] text-small text-fg-2">{lede}</p>}
-        </header>
-        <div className="col-span-12 min-w-0 lg:col-span-9">{children}</div>
-      </div>
-    </section>
-  );
 }
 
 function PricePanel({ model }: { model: Model }) {
