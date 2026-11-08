@@ -3,6 +3,7 @@
 import { highlight, type Token } from "@/components/code/highlight";
 import { snippetsFor } from "@/components/code/snippets";
 import { requestDiff, type DiffLine } from "@/lib/compare";
+import { shortModelName } from "@/lib/model-display";
 import { cn } from "@/lib/utils";
 import { useComparePair } from "./use-compare-pair";
 
@@ -38,9 +39,11 @@ const LINE: Record<DiffLine["type"], { sign: string; label: string; className: s
  */
 export function RequestDiff() {
   const { a, b } = useComparePair();
-  const diff = requestDiff(a, b);
-  const from = highlightedLines(snippetsFor(a).curl);
-  const to = highlightedLines(snippetsFor(b).curl);
+  const fromCurl = snippetsFor(a).curl;
+  const toCurl = snippetsFor(b).curl;
+  const diff = requestDiff(fromCurl, toCurl);
+  const from = highlightedLines(fromCurl);
+  const to = highlightedLines(toCurl);
   const changed = diff.filter((l) => l.type === "added").length;
 
   let ia = 0;
@@ -66,7 +69,7 @@ export function RequestDiff() {
       {/* tabIndex: a region that scrolls sideways has to be reachable by keyboard. */}
       <div
         role="region"
-        aria-label={`Request for ${a.slug}, changed to ${b.slug}`}
+        aria-label={`Request for ${shortModelName(a)}, changed to ${shortModelName(b)}`}
         tabIndex={0}
         className="overflow-x-auto focus-visible:outline-offset-[-3px]"
       >

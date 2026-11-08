@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getModel, models, type Model } from "@/data/models";
 import {
+  COMMON_PAIRS,
   DEFAULT_PAIR,
   compareRows,
   compareSearch,
@@ -13,6 +14,7 @@ import {
   type CompareGroup,
   type CompareRow,
 } from "@/lib/compare";
+import { snippetsFor } from "@/components/code/snippets";
 import { modelKind } from "@/lib/model-display";
 
 const model = (slug: string): Model => {
@@ -38,6 +40,20 @@ const labels = (groups: CompareGroup[], id: CompareGroup["id"]) =>
 describe("compareSearch", () => {
   it("writes both slugs in a fixed order", () => {
     expect(compareSearch("llama-3-3-70b", "qwen3-32b")).toBe("?a=llama-3-3-70b&b=qwen3-32b");
+  });
+});
+
+describe("COMMON_PAIRS", () => {
+  it("names two different models of one kind in every pair", () => {
+    expect(COMMON_PAIRS.length).toBeGreaterThan(0);
+    for (const [a, b] of COMMON_PAIRS) {
+      expect(a).not.toBe(b);
+      expect(modelKind(model(a))).toBe(modelKind(model(b)));
+    }
+  });
+
+  it("starts with the default pair", () => {
+    expect(COMMON_PAIRS[0]).toEqual([DEFAULT_PAIR.a, DEFAULT_PAIR.b]);
   });
 });
 
@@ -324,7 +340,7 @@ describe("volume presets and summary", () => {
 
 describe("requestDiff", () => {
   it("changes only the model line, removed then added", () => {
-    const lines = requestDiff(llama, qwen);
+    const lines = requestDiff(snippetsFor(llama).curl, snippetsFor(qwen).curl);
     const changed = lines.filter((l) => l.type !== "same");
     expect(changed).toEqual([
       { type: "removed", text: '    "model": "llama-3-3-70b",' },
@@ -335,7 +351,7 @@ describe("requestDiff", () => {
   });
 
   it("uses the endpoint of the pair's kind", () => {
-    const lines = requestDiff(model("bge-m3"), model("nomic-embed-text-v1-5"));
+    const lines = requestDiff(snippetsFor(model("bge-m3")).curl, snippetsFor(model("nomic-embed-text-v1-5")).curl);
     expect(lines[0].text).toBe("curl https://api.weir.example/v1/embeddings \\");
     expect(lines.filter((l) => l.type !== "same")).toHaveLength(2);
   });

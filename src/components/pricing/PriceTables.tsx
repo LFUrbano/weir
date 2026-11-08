@@ -14,7 +14,7 @@ import { getGpu, gpuShortName, gpus, type Gpu } from "@/data/gpus";
 import { IMAGE_SIZE, isDedicatedModel, isTokenModel, models, type Model } from "@/data/models";
 import { formatCount, formatPerImage, formatUsd } from "@/lib/format";
 import { BREAK_EVEN_LABEL, BREAK_EVEN_NOTE, formatBreakEven, modelPrice } from "@/lib/model-display";
-import { HOURS_PER_MONTH, breakEvenMonthlyTokens, dedicatedMonthlyCost } from "@/lib/pricing";
+import { HOURS_PER_MONTH, breakEvenMonthlyTokens, dedicatedMonthlyCost, defaultInputShare } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 
 /*
@@ -275,7 +275,7 @@ export function ReplicaTable() {
       <TableBody>
         {dedicatedModels.map((m) => {
           const g = getGpu(m.dedicated.gpu);
-          const breakEven = breakEvenMonthlyTokens(m, 0.5);
+          const breakEven = breakEvenMonthlyTokens(m, defaultInputShare(m));
           return (
             <TableRow key={m.slug} data-slug={m.slug} className="hover:bg-surface">
               <TableRowHeader className={nameCell}>

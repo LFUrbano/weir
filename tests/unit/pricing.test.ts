@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getModel, isDedicatedModel, isTokenModel } from "@/data/models";
+import { getModel, isDedicatedModel, isTokenModel, models } from "@/data/models";
 import {
   MAX_MONTHLY_TOKENS,
   blendedPrice,
@@ -7,6 +7,7 @@ import {
   clampMonthlyTokens,
   compareMonthly,
   dedicatedMonthlyCost,
+  defaultInputShare,
   replicasNeeded,
   serverlessMonthlyCost,
 } from "@/lib/pricing";
@@ -94,6 +95,21 @@ describe("pricing", () => {
     expect(replicasNeeded(llama, NaN)).toBe(1);
     expect(replicasNeeded(llama, -1)).toBe(1);
     expect(replicasNeeded(llama, -Infinity)).toBe(1);
+  });
+});
+
+describe("defaultInputShare", () => {
+  it("is 1 for embeddings, which bill input only", () => {
+    const bge = getModel("bge-m3");
+    if (!bge) throw new Error("no bge-m3");
+    expect(defaultInputShare(bge)).toBe(1);
+  });
+
+  it("is an even split for chat and image models", () => {
+    expect(defaultInputShare(llama)).toBe(0.5);
+    const image = models.find((m) => m.pricing.unit === "image");
+    if (!image) throw new Error("no image model");
+    expect(defaultInputShare(image)).toBe(0.5);
   });
 });
 
