@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_PATHS,
   LIGHTHOUSE,
+  assertSafePath,
   diagnosticsOf,
   formatTable,
   median,
@@ -82,6 +83,20 @@ describe("normalizePath", () => {
   });
 });
 
+describe("assertSafePath", () => {
+  it("accepts the paths of the static export", () => {
+    for (const p of ["/", "/models/", "/models/compare/", "/og.png", "/docs/quickstart/"]) {
+      expect(assertSafePath(p)).toBe(p);
+    }
+  });
+
+  it("rejects anything a shell would read", () => {
+    for (const p of ['/models/"; echo hi', "/a b/", "/a&b/", "/$(id)/", "/a|b/", "/a?b=1"]) {
+      expect(() => assertSafePath(p)).toThrow(/is not a page path/);
+    }
+  });
+});
+
 describe("summarize", () => {
   it("takes each category's median and the diagnostics of the median performance run", () => {
     const s = summarize([
@@ -112,11 +127,12 @@ describe("formatTable", () => {
 });
 
 describe("lighthouse script config", () => {
-  it("measures the six main pages by default", () => {
+  it("measures the seven main pages by default", () => {
     expect(DEFAULT_PATHS).toEqual([
       "/",
       "/models/",
       "/models/llama-3-3-70b/",
+      "/models/compare/",
       "/pricing/",
       "/enterprise/",
       "/docs/quickstart/",

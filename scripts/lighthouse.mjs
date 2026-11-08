@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
  * Lighthouse on the production build, with the default mobile preset.
  *
  *   npm run build
- *   npm run lighthouse                          # the six main pages
+ *   npm run lighthouse                          # the seven main pages
  *   npm run lighthouse -- /models/ /pricing/    # only these
  *
  * Serves out/ on 127.0.0.1, runs Lighthouse three times per page (one run at a
@@ -26,6 +26,7 @@ export const DEFAULT_PATHS = [
   "/",
   "/models/",
   "/models/llama-3-3-70b/",
+  "/models/compare/",
   "/pricing/",
   "/enterprise/",
   "/docs/quickstart/",
@@ -52,6 +53,18 @@ export function normalizePath(path) {
   const last = p.split("/").pop() ?? "";
   if (!p.endsWith("/") && !last.includes(".")) p += "/";
   return p;
+}
+
+/**
+ * Paths go into a shell command line (npx is a .cmd on Windows), so only
+ * letters, digits, "_", "-", "." and "/" are accepted. Returns the path, or
+ * throws with a message that says what to change.
+ */
+export function assertSafePath(path) {
+  if (!/^[\w\-./]+$/.test(path)) {
+    throw new Error(`"${path}" is not a page path; use only letters, digits, "-", "_", "." and "/" (for example /models/)`);
+  }
+  return path;
 }
 
 /** Category scores of one report, 0-100. */
@@ -201,6 +214,7 @@ function runLighthouse(url, outputPath) {
       process.stderr.write(result.stderr);
       throw new Error(`lighthouse failed on ${url} (exit ${result.status})`);
     }
+    process.stderr.write(`lighthouse: run failed on ${url} (exit ${result.status}), retrying\n`);
   }
 }
 
@@ -218,7 +232,7 @@ async function main() {
     console.error(`lighthouse: "${mangled}" is a Windows path; in Git Bash write the page without the leading slash (models/) or set MSYS_NO_PATHCONV=1`);
     process.exit(1);
   }
-  const paths = (args.length ? args : DEFAULT_PATHS).map(normalizePath);
+  const paths = (args.length ? args : DEFAULT_PATHS).map((a) => assertSafePath(normalizePath(a)));
   const origin = `http://${HOST}:${PORT}`;
   if (await isUp(origin)) {
     console.error(`lighthouse: something already listens on ${origin}; stop it first`);
