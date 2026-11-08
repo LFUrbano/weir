@@ -50,6 +50,14 @@ for (const path of pages) {
           }
         }
       }).observe({ type: "layout-shift", buffered: true });
+      // Heights of the text blocks in the fallbacks, to name the one that rewrapped.
+      document.addEventListener("DOMContentLoaded", () =>
+        requestAnimationFrame(() => {
+          (window as unknown as { __before: number[] }).__before = [
+            ...document.querySelectorAll("body *"),
+          ].map((el) => el.getBoundingClientRect().height);
+        }),
+      );
     });
     await page.route(/\.woff2$/, async (route) => {
       await new Promise((resolve) => setTimeout(resolve, FONT_DELAY_MS));
@@ -72,6 +80,22 @@ for (const path of pages) {
       return {
         shift: (window as unknown as { __shift: number }).__shift,
         moved: (window as unknown as { __moved: string[] }).__moved,
+        rewrapped: (() => {
+          const before = (window as unknown as { __before?: number[] }).__before ?? [];
+          return [...document.querySelectorAll("body *")]
+            .map((el, i) => ({ el, from: before[i], to: el.getBoundingClientRect().height }))
+            .filter(
+              ({ el, from, to }) =>
+                from !== undefined &&
+                Math.abs(to - from) >= 5 &&
+                [...el.childNodes].some((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim()),
+            )
+            .slice(0, 6)
+            .map(
+              ({ el, from, to }) =>
+                `${el.tagName} (${getComputedStyle(el).fontFamily.split(",")[0]}) ${Math.round(from!)}->${Math.round(to)} "${el.textContent?.trim().slice(0, 40)}"`,
+            );
+        })(),
         firstPaint: performance.getEntriesByName("first-contentful-paint")[0]?.startTime ?? Infinity,
         firstFont: Math.min(...fontEnds),
         webFonts: ["Funnel Display", "Funnel Sans", "Azeret Mono"].filter((f) =>
@@ -91,6 +115,9 @@ for (const path of pages) {
     expect(result.firstPaint).toBeLessThan(result.firstFont);
     expect(result.webFonts).toEqual(["Funnel Display", "Funnel Sans", "Azeret Mono"]);
     expect(result.unmatchedFallbacks, "no local font matched these fallbacks").toEqual([]);
-    expect(result.shift, `moved: ${result.moved.join("; ")}`).toBeLessThan(0.01);
+    expect(
+      result.shift,
+      `rewrapped: ${result.rewrapped.join("; ")} | moved: ${result.moved.join("; ")}`,
+    ).toBeLessThan(0.01);
   });
 }
