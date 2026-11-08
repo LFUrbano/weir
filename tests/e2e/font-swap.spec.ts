@@ -27,6 +27,12 @@ const pages = [
 
 const FONT_DELAY_MS = 1000;
 
+// Chromium on Linux hints glyphs to whole-pixel widths, which no phone or
+// desktop browser the site targets does, so a line could wrap there and
+// nowhere else. Without hinting it measures text like they do (other
+// platforms ignore the switch).
+test.use({ launchOptions: { args: ["--font-render-hinting=none"] } });
+
 for (const path of pages) {
   test(`no layout shift when the fonts swap in on ${path}`, async ({ page }) => {
     await page.addInitScript(() => {
