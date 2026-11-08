@@ -30,11 +30,25 @@ const FONT_DELAY_MS = 1000;
 for (const path of pages) {
   test(`no layout shift when the fonts swap in on ${path}`, async ({ page }) => {
     await page.addInitScript(() => {
-      const w = window as unknown as { __shift: number };
+      type Rect = { y: number; height: number };
+      type Shift = { value: number; sources: { node?: Node | null; previousRect: Rect; currentRect: Rect }[] };
+      const w = window as unknown as { __shift: number; __moved: string[] };
       w.__shift = 0;
+      w.__moved = [];
       // No input happens in this test, so every shift counts.
       new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) w.__shift += (entry as unknown as { value: number }).value;
+        for (const entry of list.getEntries() as unknown as Shift[]) {
+          w.__shift += entry.value;
+          // What moved, for the failure message: "P.lede y 702->730 h 82->82".
+          for (const s of entry.sources) {
+            const el = s.node instanceof Element ? s.node : s.node?.parentElement;
+            const name = el ? `${el.tagName}.${[...el.classList].slice(0, 3).join(".")}` : "?";
+            const r = (n: number) => Math.round(n);
+            w.__moved.push(
+              `${name} y ${r(s.previousRect.y)}->${r(s.currentRect.y)} h ${r(s.previousRect.height)}->${r(s.currentRect.height)}`,
+            );
+          }
+        }
       }).observe({ type: "layout-shift", buffered: true });
     });
     await page.route(/\.woff2$/, async (route) => {
@@ -57,6 +71,7 @@ for (const path of pages) {
         .map((e) => (e as PerformanceResourceTiming).responseEnd);
       return {
         shift: (window as unknown as { __shift: number }).__shift,
+        moved: (window as unknown as { __moved: string[] }).__moved,
         firstPaint: performance.getEntriesByName("first-contentful-paint")[0]?.startTime ?? Infinity,
         firstFont: Math.min(...fontEnds),
         webFonts: ["Funnel Display", "Funnel Sans", "Azeret Mono"].filter((f) =>
@@ -76,6 +91,6 @@ for (const path of pages) {
     expect(result.firstPaint).toBeLessThan(result.firstFont);
     expect(result.webFonts).toEqual(["Funnel Display", "Funnel Sans", "Azeret Mono"]);
     expect(result.unmatchedFallbacks, "no local font matched these fallbacks").toEqual([]);
-    expect(result.shift).toBeLessThan(0.01);
+    expect(result.shift, `moved: ${result.moved.join("; ")}`).toBeLessThan(0.01);
   });
 }
