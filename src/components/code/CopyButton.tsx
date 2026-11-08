@@ -5,7 +5,8 @@ import { Check, Copy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const RESET_MS = 2000;
+/** How long "Copied" stays on screen, here and on the comparison page's Copy link. */
+export const COPY_RESET_MS = 2000;
 
 /** Clipboard API first; a hidden textarea for insecure contexts and old browsers. */
 export async function copyText(text: string): Promise<boolean> {
@@ -55,7 +56,7 @@ export function CopyButton({
     const ok = await copyText(text);
     setState(ok ? "copied" : "failed");
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => setState("idle"), RESET_MS);
+    timer.current = setTimeout(() => setState("idle"), COPY_RESET_MS);
   }
 
   const label = state === "copied" ? "Copied" : state === "failed" ? "Copy failed" : "Copy";

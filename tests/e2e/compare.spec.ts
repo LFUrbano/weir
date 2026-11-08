@@ -34,6 +34,8 @@ test.describe("compare page without JavaScript", () => {
     await expect(picker(page, "B")).toContainText(qwen.name);
     await expect(cells(page, "Input").b).toContainText("$0.30");
     await expect(cells(page, "Input").b).toContainText("44% less");
+    // Break-even is a threshold, not ranked.
+    await expect(cells(page, "Break-even vs serverless").b).toHaveText("4.54B tok/mo");
     await expect(page.getByTestId("volume-summary")).toHaveText("Qwen3 32B costs $230 less a month at 1B tokens.");
     await expect(page.getByTestId("request-diff")).toContainText('"model": "qwen3-32b"');
   });
@@ -77,6 +79,30 @@ test.describe("compare page", () => {
     await expect(cells(page, "Input").b).not.toContainText("less");
     await page.goBack();
     await expect(picker(page, "A")).toContainText(llama.name);
+  });
+
+  test("changing A to another kind brings a B of that kind", async ({ page }) => {
+    await page.goto(PATH);
+    await ready(page);
+    await picker(page, "A").click();
+    await page.getByRole("option", { name: "BGE-M3" }).click();
+
+    await expect(page).toHaveURL(/\?a=bge-m3&b=[a-z0-9-]+$/);
+    const b = page.url().match(/[?&]b=([^&]+)/)![1];
+    expect(modelKind(getModel(b)!)).toBe("embeddings");
+    expect(b).not.toBe("bge-m3");
+    await expect(picker(page, "A")).toContainText("BGE-M3");
+    await expect(picker(page, "B")).toContainText(getModel(b)!.name);
+    await expect(page.getByTestId("compare-group-price").getByRole("rowheader")).toHaveText(["Input"]);
+  });
+
+  test("picking B's model as A swaps the two", async ({ page }) => {
+    await page.goto(PATH);
+    await ready(page);
+    await picker(page, "A").click();
+    await page.getByRole("option", { name: qwen.name, exact: true }).click();
+    await expect(page).toHaveURL(/\?a=qwen3-32b&b=llama-3-3-70b$/);
+    await expect(picker(page, "B")).toContainText(llama.name);
   });
 
   test("a pair of two kinds in the URL is corrected to one kind", async ({ page }) => {

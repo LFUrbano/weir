@@ -258,9 +258,8 @@ function dedicatedGroup(a: Model, b: Model): CompareGroup {
         label: "Break-even vs serverless",
         a: breakEven(da),
         b: breakEven(db),
-        ...(both && da.breakEven !== null && db.breakEven !== null
-          ? lowerIsBetter(da.breakEven, db.breakEven)
-          : NO_MARK),
+        // A threshold, not a quality: neither side is better for having a lower one.
+        ...NO_MARK,
       },
     ],
   };
@@ -268,9 +267,9 @@ function dedicatedGroup(a: Model, b: Model): CompareGroup {
 
 /**
  * Every row of the comparison table, in the order the page shows them, with
- * the better value marked. Lower is better for prices, latency, the replica
- * rate and break-even; higher for decode speed and peak throughput. Capacity
- * rows (context, quantization, tasks, regions) are facts, never marked.
+ * the better value marked. Lower is better for prices, latency and the replica
+ * rate; higher for decode speed and peak throughput. Capacity rows (context,
+ * quantization, tasks, regions) and break-even are facts, never marked.
  */
 export function compareRows(a: Model, b: Model): CompareGroup[] {
   return [priceGroup(a, b), speedGroup(a, b), capacityGroup(a, b), dedicatedGroup(a, b)];

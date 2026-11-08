@@ -164,7 +164,7 @@ describe("compareRows, default pair", () => {
     for (const r of groups.find((g) => g.id === "capacity")!.rows) expect(r.better).toBeNull();
   });
 
-  it("dedicated: replica rate, peak throughput and break-even", () => {
+  it("dedicated: replica rate and peak throughput are marked, break-even is not", () => {
     expect(row(groups, "Replica")).toMatchObject({
       a: "2× H100 · $4.98 / hour",
       b: "1× H100 · $2.49 / hour",
@@ -177,11 +177,12 @@ describe("compareRows, default pair", () => {
       better: "a",
       note: "20% more",
     });
+    // Break-even is a threshold, not a quality: never marked.
     expect(row(groups, "Break-even vs serverless")).toMatchObject({
       a: "5.77B tok/mo",
       b: "4.54B tok/mo",
-      better: "b",
-      note: "21% less",
+      better: null,
+      note: null,
     });
   });
 

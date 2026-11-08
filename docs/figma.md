@@ -56,12 +56,13 @@ above, and built after the design was approved.
 | `32:2`   | Board with the screen's local components                                                                            | —                                                                                            |
 | `32:4`   | Select trigger (model picker in each card)                                                                          | `src/components/ui/select.tsx`, used in `CompareStage.tsx`                                   |
 | `32:8`   | Compare row: label, value A, value B, the amber mark on the better value                                            | `GroupTable` in `CompareStage.tsx`, rows from `compareRows()` in `src/lib/compare.ts`        |
-| `32:364` | Design note for the screen                                                                                          | The rules in `compareRows()`: lower wins for prices, latency, replica rate and break-even; higher for speed and throughput |
+| `32:364` | Design note for the screen                                                                                          | The rules in `compareRows()`: lower wins for prices, latency and replica rate; higher for speed and throughput; capacity and break-even are not ranked |
 
 Link: https://www.figma.com/design/kOGHETj4K8DtaJiyTHReaz?node-id=32-18
 
-The mark is the `live` badge (amber text and border) on an 8% amber fill. Below 768 px the
-row label moves above the two values, which stay side by side, and the cards stack. The
+The mark is the `live` badge: amber text and border on a translucent amber fill. Below
+1024 px the row label moves above the two values, which stay side by side; below 768 px
+the cards stack. The
 page as built, next to the frame, is in [`docs/pr/feat-compare-models/`](pr/feat-compare-models/).
 
 ## Variables and the CSS tokens

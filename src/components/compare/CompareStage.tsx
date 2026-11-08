@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
-import { copyText } from "@/components/code/CopyButton";
+import { COPY_RESET_MS, copyText } from "@/components/code/CopyButton";
 import { StatusDot } from "@/components/site/StatusDot";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,8 +41,6 @@ const KINDS: ModelKind[] = ["chat", "embeddings", "image"];
 
 /** Three columns from lg: the row label, then A and B under their cards. */
 const columns = "lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)_minmax(0,3fr)]";
-
-const RESET_MS = 2000;
 
 function meta(m: Model): string {
   const parts = [`by ${m.publisher}`, m.quantization];
@@ -126,7 +124,10 @@ function ModelCard({
           ))}
           {model.dedicated && (
             <li>
-              <Badge variant="live">dedicated</Badge>
+              <Badge variant="live">
+                <span aria-hidden="true" className="size-1.5 rounded-full bg-amber" />
+                dedicated
+              </Badge>
             </li>
           )}
         </ul>
@@ -150,7 +151,7 @@ function ModelCard({
 /** The amber mark on the better value, with how much better. */
 function Better({ note, className }: { note: string; className?: string }) {
   return (
-    <Badge variant="live" className={cn("bg-amber/8", className)}>
+    <Badge variant="live" className={className}>
       {note}
     </Badge>
   );
@@ -244,7 +245,7 @@ export function CompareStage() {
     const ok = await copyText(window.location.href);
     setCopied(ok ? "copied" : "failed");
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => setCopied("idle"), RESET_MS);
+    timer.current = setTimeout(() => setCopied("idle"), COPY_RESET_MS);
   }
 
   const groups = compareRows(a, b);
@@ -293,7 +294,8 @@ export function CompareStage() {
             side="a"
             model={a}
             other={b}
-            onChange={hydrated ? (slug) => pushPair(slug, b.slug) : undefined}
+            // Picking B's model as A swaps the two, rather than replacing B.
+            onChange={hydrated ? (slug) => pushPair(slug, slug === b.slug ? a.slug : b.slug) : undefined}
           />
           <ModelCard
             side="b"
@@ -310,7 +312,7 @@ export function CompareStage() {
         </div>
 
         <p className="mt-6 text-small text-fg-2">
-          <Better note="amber" className="align-middle" /> marks the better number in each row. No mark means they tie.
+          <Better note="amber" className="align-middle" /> marks the better number in a row. No mark means a tie, or nothing to rank.
         </p>
       </div>
     </section>
