@@ -13,8 +13,9 @@
  * on the swap (e2e: font-swap.spec.ts). Sizes were measured against the
  * site's own text on all seven main pages, 360 to 1440 px wide.
  *
- * - Sans: Roboto (Android, and many desktops) has Funnel Sans's proportions,
- *   so 100.8% wraps like it everywhere measured. Arial, the next choice
+ * - Sans: Roboto (Android, and many desktops) has Funnel Sans's proportions:
+ *   every size from 100.5 to 101.6% wrapped like it on every page and width
+ *   measured, and 101.1% sits in the middle. Arial, the next choice
  *   (macOS, iOS, Windows, Linux as Liberation Sans or Arimo), has wider
  *   capitals and narrower lowercase than Funnel Sans, so no single size
  *   matches every line; 100.2% is its median. next/font's 101.13% set the
@@ -33,9 +34,9 @@
   font-family: "Funnel Sans Fallback";
   src: local("Roboto"), local("Roboto Regular"), local("Roboto-Regular");
   font-weight: 100 900;
-  size-adjust: 100.8%;
-  ascent-override: 99.21%;
-  descent-override: 24.8%;
+  size-adjust: 101.1%;
+  ascent-override: 98.91%;
+  descent-override: 24.73%;
   line-gap-override: 0%;
 }
 
