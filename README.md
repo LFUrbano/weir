@@ -35,6 +35,8 @@ The design system and the screens are in Figma: **https://www.figma.com/design/k
 
 [`docs/figma.md`](docs/figma.md) maps each Figma page, component and variable to its source in the code. The code is the source of truth: the Figma variables mirror the tokens in `src/app/globals.css`.
 
+The comparison page, `/models/compare/`, was designed in Figma first (frame `Compare models / 1440`, [node `32:18`](https://www.figma.com/design/kOGHETj4K8DtaJiyTHReaz?node-id=32-18)) and built from that frame. It puts two models of one kind side by side, marks the better value in each row, estimates both monthly bills and shows the one line that changes in the request. The pair lives in the URL (`?a=llama-3-3-70b&b=qwen3-32b`), so a comparison can be shared, and each model page links to it from its similar models.
+
 ![Figma component board](docs/pr/docs-figma-design-system/components-board.png)
 
 ## Stack
@@ -75,10 +77,11 @@ scripts/
   fix-segment-files.mjs       renames the prefetch files a Windows build gets wrong
   lighthouse.mjs              mobile Lighthouse on the main pages, median of 3 runs
 src/
-  app/                        routes: home, models, models/[slug], pricing, enterprise,
+  app/                        routes: home, models, models/compare, models/[slug], pricing, enterprise,
                               docs/quickstart (MDX), 404, sitemap, robots, og.png images
   components/
     code/                     code panel, tabs, copy button, highlighter, request snippets
+    compare/                  comparison page: model cards, table, monthly estimate, request diff
     docs/                     docs layout, numbered steps, table of contents
     enterprise/               contact form, procurement tables
     home/                     hero terminal, request diagram, catalog preview, trust band
