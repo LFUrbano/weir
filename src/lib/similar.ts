@@ -1,4 +1,5 @@
 import { models as allModels, isTokenModel, type Model } from "@/data/models";
+import { compareNames } from "@/lib/catalog";
 import { blendedPrice } from "@/lib/pricing";
 
 /** One comparable price per model: 50/50 blended per 1M tokens, or per image. */
@@ -34,7 +35,7 @@ export function similarModels(m: Model, limit = 3, pool: readonly Model[] = allM
         a.main - b.main ||
         b.shared - a.shared ||
         a.distance - b.distance ||
-        a.c.name.localeCompare(b.c.name),
+        compareNames(a.c.name, b.c.name),
     )
     .slice(0, limit)
     .map((s) => s.c);

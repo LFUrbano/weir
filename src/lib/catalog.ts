@@ -42,8 +42,22 @@ export function filterModels(list: Model[], p: CatalogParams): Model[] {
   });
 }
 
+/**
+ * Orders two model names the way the catalog lists them: letters without
+ * regard to case, ties by the original string. Plain code-unit comparison, not
+ * `localeCompare`, because the first collator call initialises ICU, a cost of
+ * tens of milliseconds on the main thread. It gives the same order as
+ * `localeCompare("en")` for every model name (checked in the tests).
+ */
+export function compareNames(a: string, b: string): number {
+  const x = a.toLowerCase();
+  const y = b.toLowerCase();
+  if (x !== y) return x < y ? -1 : 1;
+  return a === b ? 0 : a < b ? -1 : 1;
+}
+
 function byName(a: Model, b: Model): number {
-  return a.name.localeCompare(b.name);
+  return compareNames(a.name, b.name);
 }
 
 /** Descending by value, nulls last, ties by name. */

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isTokenModel, models } from "@/data/models";
 import {
+  compareNames,
   filterModels,
   parseCatalogParams,
   sortModels,
@@ -63,7 +64,7 @@ describe("sortModels", () => {
   });
   it("sorts by name", () => {
     const names = sortModels(models, "name").map((m) => m.name);
-    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, "en")));
   });
   it("sorts by blended price ascending with image models last", () => {
     const sorted = sortModels(models, "price");
@@ -109,5 +110,27 @@ describe("toSearchString", () => {
   it("round-trips through parseCatalogParams", () => {
     const p = { q: "c++ (beta)", task: "vision", sort: "speed" } as const;
     expect(parseCatalogParams(new URLSearchParams(toSearchString(p)))).toEqual(p);
+  });
+});
+
+describe("compareNames", () => {
+  const names = models.map((m) => m.name);
+
+  it("lists the model names in the same order as localeCompare('en')", () => {
+    expect([...names].sort(compareNames)).toEqual([...names].sort((a, b) => a.localeCompare(b, "en")));
+  });
+  it("agrees with localeCompare('en') on every pair of model names", () => {
+    for (const a of names) {
+      for (const b of names) {
+        expect(Math.sign(compareNames(a, b)), `${a} vs ${b}`).toBe(Math.sign(a.localeCompare(b, "en")));
+      }
+    }
+  });
+  it("ignores case and breaks ties by the original string", () => {
+    expect(compareNames("alpha", "Beta")).toBeLessThan(0);
+    expect(compareNames("Beta", "alpha")).toBeGreaterThan(0);
+    expect(compareNames("Same", "Same")).toBe(0);
+    expect(compareNames("same", "SAME")).not.toBe(0);
+    expect(Math.sign(compareNames("same", "SAME"))).toBe(-Math.sign(compareNames("SAME", "same")));
   });
 });
