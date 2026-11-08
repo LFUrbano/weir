@@ -6,6 +6,84 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
+ * Fallback faces shown until the web fonts arrive. layout.tsx turns off
+ * next/font's own, which put Arial behind all three faces. On a real network
+ * the first frame can paint before the fonts land, so each fallback is sized
+ * to wrap text onto the same lines as its web font and the page does not move
+ * on the swap (e2e: font-swap.spec.ts). Sizes were measured against the
+ * site's own text on all seven main pages, 360 to 1440 px wide.
+ *
+ * - Sans: Roboto (Android, and many desktops) has Funnel Sans's proportions,
+ *   so 100.8% wraps like it everywhere measured. Arial, the next choice
+ *   (macOS, iOS, Windows, Linux as Liberation Sans or Arimo), has wider
+ *   capitals and narrower lowercase than Funnel Sans, so no single size
+ *   matches every line; 100.2% is its median. next/font's 101.13% set the
+ *   enterprise hero paragraph on six lines instead of five on a 412 px phone.
+ * - Display: headings are set at 500 to 600, which Arial Bold matches at
+ *   100.1% and Roboto at 107%.
+ * - Mono: a monospace font, every glyph 0.6em wide; Azeret Mono's are 0.65em,
+ *   so 108.33% makes every line exactly as wide. Arial, a proportional font,
+ *   was 7 to 60% off and pushed labels and table cells onto extra lines.
+ *
+ * Each face spans every weight so the browser never fakes a bold (that would
+ * change its widths). ascent and descent overrides are the web font's metrics
+ * divided by size-adjust, as next/font computes them.
+ */
+@font-face {
+  font-family: "Funnel Sans Fallback";
+  src: local("Roboto"), local("Roboto Regular"), local("Roboto-Regular");
+  font-weight: 100 900;
+  size-adjust: 100.8%;
+  ascent-override: 99.21%;
+  descent-override: 24.8%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Funnel Sans Fallback Arial";
+  src: local("Arial"), local("ArialMT"), local("Helvetica"), local("Liberation Sans"), local("Arimo");
+  font-weight: 100 900;
+  size-adjust: 100.2%;
+  ascent-override: 99.8%;
+  descent-override: 24.95%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Funnel Display Fallback";
+  src:
+    local("Arial Bold"), local("Arial-BoldMT"), local("Helvetica Bold"), local("Liberation Sans Bold"),
+    local("Arimo Bold");
+  font-weight: 100 900;
+  size-adjust: 100.1%;
+  ascent-override: 99.9%;
+  descent-override: 24.98%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Funnel Display Fallback Roboto";
+  src: local("Roboto"), local("Roboto Regular"), local("Roboto-Regular");
+  font-weight: 100 900;
+  size-adjust: 107%;
+  ascent-override: 93.46%;
+  descent-override: 23.36%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Azeret Mono Fallback";
+  src:
+    local("Courier New"), local("CourierNewPSMT"), local("Liberation Mono"), local("Cousine"), local("Roboto Mono"),
+    local("Droid Sans Mono");
+  font-weight: 100 900;
+  size-adjust: 108.33%;
+  ascent-override: 86.49%;
+  descent-override: 21.23%;
+  line-gap-override: 0%;
+}
+
+/*
  * Weir tokens. These literal values are the source of truth and are mirrored
  * one to one in the Figma file (collections "Weir / Color" and "Weir / Tokens").
  *

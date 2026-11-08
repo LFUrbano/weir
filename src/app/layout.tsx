@@ -7,22 +7,32 @@ import { siteUrl } from "@/data/site";
 import { HOME_TITLE, SITE_NAME, pageTitle, siteDescription, siteShareImage } from "@/lib/metadata";
 import "./globals.css";
 
+/*
+ * Each face's fallback (shown until it loads) is an @font-face in globals.css,
+ * sized to wrap like the web font so the swap does not move the page.
+ */
 const funnelDisplay = Funnel_Display({
   variable: "--font-funnel-display",
   subsets: ["latin"],
   display: "swap",
+  adjustFontFallback: false,
+  fallback: ["'Funnel Display Fallback'", "'Funnel Display Fallback Roboto'"],
 });
 
 const funnelSans = Funnel_Sans({
   variable: "--font-funnel-sans",
   subsets: ["latin"],
   display: "swap",
+  adjustFontFallback: false,
+  fallback: ["'Funnel Sans Fallback'", "'Funnel Sans Fallback Arial'"],
 });
 
 const azeretMono = Azeret_Mono({
   variable: "--font-azeret-mono",
   subsets: ["latin"],
   display: "swap",
+  adjustFontFallback: false,
+  fallback: ["'Azeret Mono Fallback'"],
 });
 
 /**
