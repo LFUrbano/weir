@@ -8,31 +8,28 @@ import { HOME_TITLE, SITE_NAME, pageTitle, siteDescription, siteShareImage } fro
 import "./globals.css";
 
 /*
- * Each face's fallback (shown until it loads) is an @font-face in globals.css,
- * sized to wrap like the web font so the swap does not move the page.
+ * display: optional, with the preloads next/font adds: Chrome holds the first
+ * render briefly for a preloaded font, and a font that still misses it is not
+ * swapped in later, so text never rewraps and moves the page (a swap did:
+ * CLS 0.15 on /enterprise/). The next load gets the font from the cache.
+ * e2e: font-swap.spec.ts.
  */
 const funnelDisplay = Funnel_Display({
   variable: "--font-funnel-display",
   subsets: ["latin"],
-  display: "swap",
-  adjustFontFallback: false,
-  fallback: ["'Funnel Display Fallback'", "'Funnel Display Fallback Roboto'"],
+  display: "optional",
 });
 
 const funnelSans = Funnel_Sans({
   variable: "--font-funnel-sans",
   subsets: ["latin"],
-  display: "swap",
-  adjustFontFallback: false,
-  fallback: ["'Funnel Sans Fallback'", "'Funnel Sans Fallback Arial'"],
+  display: "optional",
 });
 
 const azeretMono = Azeret_Mono({
   variable: "--font-azeret-mono",
   subsets: ["latin"],
-  display: "swap",
-  adjustFontFallback: false,
-  fallback: ["'Azeret Mono Fallback'"],
+  display: "optional",
 });
 
 /**

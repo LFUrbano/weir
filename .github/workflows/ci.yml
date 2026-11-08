@@ -47,16 +47,6 @@ jobs:
           else
             npx playwright install-deps chromium
           fi
-      # font-swap.spec.ts checks the page does not move when the web fonts
-      # replace their fallbacks. Android phones fall back to Roboto, which the
-      # runner lacks: install the file Google Fonts ships, pinned and checked.
-      - name: Install Roboto for the font-swap e2e
-        run: |
-          mkdir -p ~/.local/share/fonts
-          curl -sSfL -o ~/.local/share/fonts/Roboto.ttf "https://raw.githubusercontent.com/google/fonts/1c627bfa375fc51cf86fabeca4f6e08a95f0aa5c/ofl/roboto/Roboto%5Bwdth,wght%5D.ttf"
-          echo "d7598e12c5dbef095ff8272cfc55da0250bd07fbdecbac8a530b9b277872a134  $HOME/.local/share/fonts/Roboto.ttf" | sha256sum -c -
-          fc-cache -f ~/.local/share/fonts
-          fc-list : family | grep -i -E "roboto|liberation|arimo|cousine" | sort -u || true
       - run: npm run build
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4
