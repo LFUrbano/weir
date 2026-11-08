@@ -1,5 +1,16 @@
+"use client";
+
+import { AnimatePresence, LazyMotion } from "motion/react";
+import { create, li as MotionLi } from "motion/react-m";
 import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
+import {
+  memo,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type ComponentProps,
+  type ReactNode,
+} from "react";
 import {
   Table,
   TableBody,
@@ -13,8 +24,29 @@ import type { Model, Task } from "@/data/models";
 import type { SortKey } from "@/lib/catalog";
 import { formatContext, formatLatency } from "@/lib/format";
 import { modelPrice, modelSpeed } from "@/lib/model-display";
+import { usePrefersReducedMotion } from "@/lib/use-reduced-motion";
 import { cn } from "@/lib/utils";
+import { loadRowFeatures, ROW_ENTER, ROW_MOVE, rowVariants } from "./row-motion";
 import { numCell } from "./table-styles";
+
+const MotionRow = create(TableRow);
+
+/**
+ * Props for one animated row. Without motion (static HTML, hydration, before
+ * the features load, reduced motion) a row gets none, so it renders as a
+ * plain element with no inline style.
+ */
+function rowMotion(on: boolean) {
+  if (!on) return {};
+  return {
+    layout: "position" as const,
+    variants: rowVariants,
+    initial: "hidden",
+    animate: "shown",
+    exit: "gone",
+    transition: { ...ROW_ENTER, layout: ROW_MOVE },
+  };
+}
 
 const href = (m: Model) => `/models/${m.slug}/` as const;
 
@@ -99,9 +131,49 @@ function PriceCells({ model }: { model: Model }) {
   );
 }
 
-function DesktopTable({ list, task, sort }: { list: Model[]; task: Task | "all"; sort: SortKey }) {
+/** One row's cells; memoized so turning motion on does not render them again. */
+const DesktopCells = memo(function DesktopCells({ model: m, task }: { model: Model; task: Task | "all" }) {
   return (
-    <Table data-testid="catalog-table" className="hidden md:table">
+    <>
+      <TableRowHeader className="py-4 pr-3">
+        <Link
+          href={href(m)}
+          className="font-medium text-fg outline-offset-4 after:absolute after:inset-0 after:content-['']"
+        >
+          {m.name}
+        </Link>
+        <span className="mt-1 block text-small text-fg-2">
+          {m.publisher}
+          <span className="font-mono text-meta lg:hidden">
+            {" · "}
+            <Tasks model={m} active={task} />
+          </span>
+        </span>
+      </TableRowHeader>
+      <TableCell className="hidden font-mono text-meta text-fg-2 lg:table-cell">
+        <Tasks model={m} active={task} />
+      </TableCell>
+      <TableCell className={cn(numCell, m.contextK === null && "text-fg-2")}>
+        {formatContext(m.contextK)}
+      </TableCell>
+      <PriceCells model={m} />
+      <TableCell className={cn(numCell, "whitespace-nowrap", m.tokensPerSec === null && "text-fg-2")}>
+        {modelSpeed(m)}
+      </TableCell>
+      <TableCell className={cn(numCell, "whitespace-nowrap")}>{formatLatency(m.p50Ms)}</TableCell>
+      <TableCell
+        aria-hidden="true"
+        className="hidden pl-3 text-right font-mono text-fg-2 transition-[color,translate] duration-150 group-hover:translate-x-0.5 group-hover:text-fg lg:table-cell"
+      >
+        →
+      </TableCell>
+    </>
+  );
+});
+
+function DesktopTable({ list, task, sort, on, typing }: ListProps & { sort: SortKey }) {
+  return (
+    <Table data-testid="catalog-table" data-motion={on ? "on" : undefined} className="hidden md:table">
       <caption className="sr-only">
         Models with price, context window, decode speed and median time to first token
       </caption>
@@ -133,47 +205,19 @@ function DesktopTable({ list, task, sort }: { list: Model[]; task: Task | "all";
         </TableRow>
       </TableHeader>
       <TableBody>
-        {list.map((m) => (
-          <TableRow
-            key={m.slug}
-            data-slug={m.slug}
-            data-tasks={m.tasks.join(" ")}
-            className="group relative hover:bg-surface"
-          >
-            <TableRowHeader className="py-4 pr-3">
-              <Link
-                href={href(m)}
-                className="font-medium text-fg outline-offset-4 after:absolute after:inset-0 after:content-['']"
-              >
-                {m.name}
-              </Link>
-              <span className="mt-1 block text-small text-fg-2">
-                {m.publisher}
-                <span className="font-mono text-meta lg:hidden">
-                  {" · "}
-                  <Tasks model={m} active={task} />
-                </span>
-              </span>
-            </TableRowHeader>
-            <TableCell className="hidden font-mono text-meta text-fg-2 lg:table-cell">
-              <Tasks model={m} active={task} />
-            </TableCell>
-            <TableCell className={cn(numCell, m.contextK === null && "text-fg-2")}>
-              {formatContext(m.contextK)}
-            </TableCell>
-            <PriceCells model={m} />
-            <TableCell className={cn(numCell, "whitespace-nowrap", m.tokensPerSec === null && "text-fg-2")}>
-              {modelSpeed(m)}
-            </TableCell>
-            <TableCell className={cn(numCell, "whitespace-nowrap")}>{formatLatency(m.p50Ms)}</TableCell>
-            <TableCell
-              aria-hidden="true"
-              className="hidden pl-3 text-right font-mono text-fg-2 transition-[color,translate] duration-150 group-hover:translate-x-0.5 group-hover:text-fg lg:table-cell"
+        <AnimatePresence initial={false} custom={typing}>
+          {list.map((m) => (
+            <MotionRow
+              key={m.slug}
+              data-slug={m.slug}
+              data-tasks={m.tasks.join(" ")}
+              className="group relative hover:bg-surface"
+              {...rowMotion(on)}
             >
-              →
-            </TableCell>
-          </TableRow>
-        ))}
+              <DesktopCells model={m} task={task} />
+            </MotionRow>
+          ))}
+        </AnimatePresence>
       </TableBody>
     </Table>
   );
@@ -195,64 +239,145 @@ function Spec({ label, value, className }: { label: string; value: string; class
   );
 }
 
-function PhoneCards({ list, task }: { list: Model[]; task: Task | "all" }) {
+/** One card's content; memoized so turning motion on does not render it again. */
+const PhoneCard = memo(function PhoneCard({ model: m, task }: { model: Model; task: Task | "all" }) {
+  const price = modelPrice(m);
   return (
-    <ul data-testid="catalog-cards" aria-label="Models" className="border-t border-line-strong md:hidden">
-      {list.map((m) => {
-        const price = modelPrice(m);
-        return (
-          <li
+    <>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <Link
+            href={href(m)}
+            className="font-medium text-fg outline-offset-4 after:absolute after:inset-0 after:content-['']"
+          >
+            {m.name}
+          </Link>
+          <p className="mt-1 text-small text-fg-2">
+            {m.publisher}
+            <span className="font-mono text-meta">
+              {" · "}
+              <Tasks model={m} active={task} />
+            </span>
+          </p>
+        </div>
+        <span aria-hidden="true" className="font-mono text-fg-2">
+          →
+        </span>
+      </div>
+      <dl className="mt-4 grid grid-cols-3 gap-x-4 gap-y-4">
+        {price.unit === "image" ? (
+          <Spec label="Price" value={price.perImage} className="col-span-2" />
+        ) : (
+          <>
+            <Spec label="Input / 1M" value={price.input} />
+            <Spec label="Output / 1M" value={price.output} />
+          </>
+        )}
+        <Spec label="p50" value={formatLatency(m.p50Ms)} />
+        <Spec label="Context" value={formatContext(m.contextK)} />
+        <Spec label="Speed" value={modelSpeed(m)} />
+      </dl>
+    </>
+  );
+});
+
+function PhoneCards({ list, task, on, typing }: ListProps) {
+  return (
+    <ul
+      data-testid="catalog-cards"
+      data-motion={on ? "on" : undefined}
+      aria-label="Models"
+      className="border-t border-line-strong md:hidden"
+    >
+      <AnimatePresence initial={false} custom={typing}>
+        {list.map((m) => (
+          <MotionLi
             key={m.slug}
             data-slug={m.slug}
             data-tasks={m.tasks.join(" ")}
             className="group relative border-b border-line py-5"
+            {...rowMotion(on)}
           >
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <Link
-                  href={href(m)}
-                  className="font-medium text-fg outline-offset-4 after:absolute after:inset-0 after:content-['']"
-                >
-                  {m.name}
-                </Link>
-                <p className="mt-1 text-small text-fg-2">
-                  {m.publisher}
-                  <span className="font-mono text-meta">
-                    {" · "}
-                    <Tasks model={m} active={task} />
-                  </span>
-                </p>
-              </div>
-              <span aria-hidden="true" className="font-mono text-fg-2">
-                →
-              </span>
-            </div>
-            <dl className="mt-4 grid grid-cols-3 gap-x-4 gap-y-4">
-              {price.unit === "image" ? (
-                <Spec label="Price" value={price.perImage} className="col-span-2" />
-              ) : (
-                <>
-                  <Spec label="Input / 1M" value={price.input} />
-                  <Spec label="Output / 1M" value={price.output} />
-                </>
-              )}
-              <Spec label="p50" value={formatLatency(m.p50Ms)} />
-              <Spec label="Context" value={formatContext(m.contextK)} />
-              <Spec label="Speed" value={modelSpeed(m)} />
-            </dl>
-          </li>
-        );
-      })}
+            <PhoneCard model={m} task={task} />
+          </MotionLi>
+        ))}
+      </AnimatePresence>
     </ul>
   );
 }
 
-/** The catalog list: a table from md up, one card per model on phones. */
+interface ListProps {
+  list: Model[];
+  task: Task | "all";
+  /** Rows animate (motion features loaded, no reduced motion, this layout on screen). */
+  on: boolean;
+  /** The last change came from the search box: leaving rows go at once. */
+  typing: boolean;
+}
+
+/** Tailwind's md breakpoint: the table from here up, the cards below. */
+const MD = "(min-width: 48rem)";
+
+function subscribeMd(onChange: () => void) {
+  const mq = window.matchMedia(MD);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+
+/** Whether the table (not the cards) is the layout on screen. */
+function useTableShown(): boolean {
+  return useSyncExternalStore(
+    subscribeMd,
+    () => window.matchMedia(MD).matches,
+    () => false,
+  );
+}
+
+/**
+ * True once the rows can animate: after hydration, when the features have
+ * loaded, never with reduced motion. Turning reduced motion off mid-session
+ * does not fetch the features: rows stay still until the next load, by design.
+ */
+function useRowMotion(): boolean {
+  const reduced = usePrefersReducedMotion();
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    if (reduced) return;
+    let live = true;
+    void loadRowFeatures().then(() => {
+      if (live) setLoaded(true);
+    });
+    return () => {
+      live = false;
+    };
+  }, [reduced]);
+  return loaded && !reduced;
+}
+
+/**
+ * The catalog list: a table from md up, one card per model on phones.
+ *
+ * When the list is filtered or sorted, rows that leave fade out, rows that
+ * join rise in, and the rest slide to their new places. The static HTML and
+ * hydration render plain rows (nothing animates on load); Motion's features
+ * load once the browser is idle, and never with reduced motion.
+ */
 export function CatalogTable({ list, task, sort }: { list: Model[]; task: Task | "all"; sort: SortKey }) {
+  const on = useRowMotion();
+  // Only the layout on screen animates: the hidden one's rows get no motion
+  // props, so they run no layout projection and leave at once.
+  const tableShown = useTableShown();
+  // A new list with the same task and sort came from the search box.
+  const [last, setLast] = useState({ list, task, sort, typing: false });
+  if (last.list !== list || last.task !== task || last.sort !== sort) {
+    setLast({ list, task, sort, typing: last.task === task && last.sort === sort });
+  }
+  const { typing } = last;
+
   return (
-    <>
-      <DesktopTable list={list} task={task} sort={sort} />
-      <PhoneCards list={list} task={task} />
-    </>
+    <LazyMotion features={loadRowFeatures}>
+      <DesktopTable list={list} task={task} sort={sort} on={on && tableShown} typing={typing} />
+      <PhoneCards list={list} task={task} on={on && !tableShown} typing={typing} />
+    </LazyMotion>
   );
 }

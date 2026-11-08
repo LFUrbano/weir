@@ -52,6 +52,8 @@ test.describe("model catalog", () => {
     await page.goBack();
     await expect(page).toHaveURL(/[?&]task=code\b/);
     await expect(taskFilter(page, "Code")).toHaveAttribute("aria-pressed", "true");
+    // Rows that leave fade out first: wait for them to go before reading the list.
+    await expect(rows(page)).toHaveCount(models.filter((m) => m.tasks.includes("code")).length);
     for (const row of await rows(page).all()) {
       await expect(row).toHaveAttribute("data-tasks", /\bcode\b/);
     }

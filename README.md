@@ -46,7 +46,7 @@ The design system and the screens are in Figma: **https://www.figma.com/design/k
 | **Tailwind CSS v4** | Colors, type sizes and radii are CSS tokens in `globals.css`. A unit test rejects any arbitrary font size. |
 | **shadcn/ui on Radix** (`radix-ui`) | Accessible dialog, select, tabs, slider, accordion, sheet and tooltip, restyled with the Weir tokens instead of the defaults. |
 | **cmdk** | The command menu (through shadcn's `Command`). |
-| **Motion** (`scroll`) | The scroll-linked request diagram on the home page, loaded after hydration. Other movement is CSS or React state. |
+| **Motion** (`scroll`, `LazyMotion`) | The scroll-linked request diagram on the home page, and the catalog rows that fade and slide when the list is filtered or sorted. Both load their Motion features after hydration, and neither moves with reduced motion. Other movement is CSS or React state. |
 | **MDX** (`@next/mdx`, `remark-gfm`) | The quickstart is prose with live components in it. Its prices and model names come from the same data files as the rest of the site. |
 | **react-hook-form** | Holds the contact form's state without re-rendering the whole form on every keystroke. |
 | **zod** | The form's schema, the same one the unit tests check. It loads on the form's first use, not on page load. |
