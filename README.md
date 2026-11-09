@@ -2,6 +2,8 @@
 
 Weir is a fictional AI-inference company in San Francisco. It serves open-weight models on shared GPUs, billed per token, and on dedicated GPUs, billed by the hour. This repository is its marketing site and docs.
 
+**Live:** [weir-inference.netlify.app](https://weir-inference.netlify.app)
+
 It is a concept project. The company, its customers, prices, benchmarks and phone numbers are all invented. The domains end in `.example`, and nothing on the site can be bought or called. The footer of every page says so.
 
 ![Home page: the hero and a live request in the terminal](docs/pr/feat-home/hero-done-1440.png)
@@ -48,7 +50,7 @@ The comparison page, `/models/compare/`, was designed in Figma first (frame `Com
 | **Tailwind CSS v4** | Colors, type sizes and radii are CSS tokens in `globals.css`. A unit test rejects any arbitrary font size. |
 | **shadcn/ui on Radix** (`radix-ui`) | Accessible dialog, select, tabs, slider, accordion, sheet and tooltip, restyled with the Weir tokens instead of the defaults. |
 | **cmdk** | The command menu (through shadcn's `Command`). |
-| **Motion** (`scroll`, `LazyMotion`) | The scroll-linked request diagram on the home page, and the catalog rows that fade and slide when the list is filtered or sorted. Both load their Motion features after hydration, and neither moves with reduced motion. Other movement is CSS or React state. |
+| **Motion** (`scroll`, `LazyMotion`) | The scroll-linked request diagram on the home page, and the catalog rows that fade and slide when the list is filtered or sorted. The diagram loads its Motion code after hydration; the catalog loads Motion's features the first time the reader points at, focuses or touches the filters. Neither moves with reduced motion. Other movement is CSS or React state. |
 | **MDX** (`@next/mdx`, `remark-gfm`) | The quickstart is prose with live components in it. Its prices and model names come from the same data files as the rest of the site. |
 | **react-hook-form** | Holds the contact form's state without re-rendering the whole form on every keystroke. |
 | **zod** | The form's schema, the same one the unit tests check. It loads on the form's first use, not on page load. |
@@ -143,7 +145,29 @@ In Git Bash, write the pages without the leading slash (`models/ pricing/`): Git
 
 The script serves `out/` on `127.0.0.1:4195` and runs Lighthouse 12 with its defaults: the mobile preset with simulated throttling, in a visible Chrome window. It runs each page three times, one run at a time, and prints the median of each category with the LCP element, the longest task and the top failing audits. It exits with 1 when a page's median performance is under 95. It is not part of CI, because a shared runner is too noisy to hold a score.
 
-Local scores can understate mobile performance. On `127.0.0.1` every script has arrived before the first paint, so Lighthouse counts all the JavaScript toward the largest paint. The reference numbers are taken on the deployed site and will be added here after the deploy.
+Local scores can understate mobile performance. On `127.0.0.1` every script has arrived before the first paint, so Lighthouse counts all the JavaScript toward the largest paint. The reference numbers come from the deployed site.
+
+PageSpeed Insights on the live site, 8 November 2026 (Lighthouse on Google's servers, one run per page):
+
+| Page | Mobile | Desktop | Mobile TBT | Mobile LCP |
+|---|---|---|---|---|
+| `/` | 98 | 100 | 0 ms | 1.4 s |
+| `/models/` | 100 | 100 | 0 ms | 0.9 s |
+| `/models/compare/` | 100 | 100 | 60 ms | 0.9 s |
+| `/models/llama-3-3-70b/` | 100 | 100 | 10 ms | 1.1 s |
+| `/pricing/` | 100 | 100 | 20 ms | 1.0 s |
+| `/enterprise/` | 100 | 100 | 0 ms | 0.9 s |
+| `/docs/quickstart/` | 100 | 100 | 10 ms | 1.0 s |
+
+Accessibility, best practices and SEO score 100 on every page, on both form factors.
+
+What moved the mobile scores, found with CPU profiles of a throttled phone rather than guessed:
+
+- **No ICU on load.** The first `Intl.NumberFormat` costs about 80 ms on a mid-range phone, and the first `localeCompare` shares that start-up. Prices and counts are formatted with plain arithmetic (a unit test checks the output against `Intl` on about 29,000 values), and names sort with a plain comparison.
+- **A native `<select>` for the catalog's sort order.** Radix Select cost more at hydration than the 24 rows of the catalog together. The native control looks the same closed and is better on phones.
+- **Motion when it's needed.** The catalog rows fetch Motion's features on the first intent on the filters, not at load. The request diagram doesn't run its color transitions while it places itself off screen.
+- **Lighter code tabs**, and model links that prefetch on intent instead of on view (the catalog used to prefetch 15 model pages on its first screen).
+- **No late font swap.** The three fonts use `display: optional`, so text never rewraps after the first paint (`/enterprise/` had a layout shift of 0.15 before).
 
 ## Deploying
 
@@ -154,7 +178,7 @@ The site is deployed by hand, as a zip, to Netlify:
 
 Nothing runs on Netlify's side. `_headers` (a long cache for `/_next/static/*`, plus `nosniff`, Referrer-Policy, Permissions-Policy and framing protection) and `_redirects` sit at the root of the zip, and Netlify reads them from there.
 
-Live site: TODO, added after the first deploy.
+Live site: [weir-inference.netlify.app](https://weir-inference.netlify.app).
 
 ## How it was built
 
