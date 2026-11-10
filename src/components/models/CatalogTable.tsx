@@ -1,16 +1,17 @@
 "use client";
 
-import { AnimatePresence, LazyMotion } from "motion/react";
+import { AnimatePresence, LazyMotion, type FeatureBundle } from "motion/react";
 import { create, li as MotionLi } from "motion/react-m";
-import Link from "next/link";
 import {
   memo,
+  startTransition,
   useEffect,
   useState,
   useSyncExternalStore,
   type ComponentProps,
   type ReactNode,
 } from "react";
+import { IntentLink } from "@/components/site/IntentLink";
 import {
   Table,
   TableBody,
@@ -136,12 +137,12 @@ const DesktopCells = memo(function DesktopCells({ model: m, task }: { model: Mod
   return (
     <>
       <TableRowHeader className="py-4 pr-3">
-        <Link
+        <IntentLink
           href={href(m)}
           className="font-medium text-fg outline-offset-4 after:absolute after:inset-0 after:content-['']"
         >
           {m.name}
-        </Link>
+        </IntentLink>
         <span className="mt-1 block text-small text-fg-2">
           {m.publisher}
           <span className="font-mono text-meta lg:hidden">
@@ -246,12 +247,12 @@ const PhoneCard = memo(function PhoneCard({ model: m, task }: { model: Model; ta
     <>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <Link
+          <IntentLink
             href={href(m)}
             className="font-medium text-fg outline-offset-4 after:absolute after:inset-0 after:content-['']"
           >
             {m.name}
-          </Link>
+          </IntentLink>
           <p className="mt-1 text-small text-fg-2">
             {m.publisher}
             <span className="font-mono text-meta">
@@ -334,24 +335,38 @@ function useTableShown(): boolean {
 }
 
 /**
- * True once the rows can animate: after hydration, when the features have
- * loaded, never with reduced motion. Turning reduced motion off mid-session
- * does not fetch the features: rows stay still until the next load, by design.
+ * What LazyMotion gets until the features load: no renderer, so the rows
+ * render as plain elements.
  */
-function useRowMotion(): boolean {
+const NO_FEATURES = {} as FeatureBundle;
+
+/**
+ * Motion's features once the rows may animate: after the reader shows intent
+ * on the controls (wantRowFeatures) and the chunk has loaded, never while
+ * reduced motion is on. Reduced motion is read live: turning it on mid-session
+ * stops the rows at once; turning it off lets the next intent on the controls
+ * fetch the features (or, if they already loaded, the rows animate again).
+ *
+ * The bundle is handed to LazyMotion as a plain object from this state, not as
+ * LazyMotion's own async loader: that loader is called once on mount and its
+ * result lands in a render React cannot interrupt. Here the switch is one
+ * transition, so the rows becoming motion elements renders in slices and
+ * yields to the reader's input.
+ */
+function useRowFeatures(): FeatureBundle | null {
   const reduced = usePrefersReducedMotion();
-  const [loaded, setLoaded] = useState(false);
+  const [features, setFeatures] = useState<FeatureBundle | null>(null);
   useEffect(() => {
     if (reduced) return;
     let live = true;
-    void loadRowFeatures().then(() => {
-      if (live) setLoaded(true);
+    void loadRowFeatures().then((loaded) => {
+      if (live) startTransition(() => setFeatures(loaded));
     });
     return () => {
       live = false;
     };
   }, [reduced]);
-  return loaded && !reduced;
+  return reduced ? null : features;
 }
 
 /**
@@ -360,10 +375,11 @@ function useRowMotion(): boolean {
  * When the list is filtered or sorted, rows that leave fade out, rows that
  * join rise in, and the rest slide to their new places. The static HTML and
  * hydration render plain rows (nothing animates on load); Motion's features
- * load once the browser is idle, and never with reduced motion.
+ * load on the reader's first intent on the controls, never with reduced motion.
  */
 export function CatalogTable({ list, task, sort }: { list: Model[]; task: Task | "all"; sort: SortKey }) {
-  const on = useRowMotion();
+  const features = useRowFeatures();
+  const on = features !== null;
   // Only the layout on screen animates: the hidden one's rows get no motion
   // props, so they run no layout projection and leave at once.
   const tableShown = useTableShown();
@@ -375,7 +391,7 @@ export function CatalogTable({ list, task, sort }: { list: Model[]; task: Task |
   const { typing } = last;
 
   return (
-    <LazyMotion features={loadRowFeatures}>
+    <LazyMotion features={features ?? NO_FEATURES}>
       <DesktopTable list={list} task={task} sort={sort} on={on && tableShown} typing={typing} />
       <PhoneCards list={list} task={task} on={on && !tableShown} typing={typing} />
     </LazyMotion>

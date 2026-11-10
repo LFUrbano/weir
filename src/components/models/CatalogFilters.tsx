@@ -1,9 +1,8 @@
 "use client";
 
-import { SearchIcon } from "lucide-react";
-import { useId } from "react";
+import { ChevronDownIcon, SearchIcon } from "lucide-react";
+import { useEffect, useId, useRef } from "react";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Task } from "@/data/models";
 import { MAX_QUERY_LENGTH, SORT_KEYS, TASKS, type SortKey } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
@@ -35,6 +34,11 @@ export interface CatalogFiltersProps {
   onQueryChange?: (q: string) => void;
   onTaskChange?: (task: Task | "all") => void;
   onSortChange?: (sort: SortKey) => void;
+  /**
+   * The first sign the reader is about to use the controls: a pointer over
+   * them, focus inside them, a finger on them. Called on each such event.
+   */
+  onIntent?: () => void;
 }
 
 const chip =
@@ -48,13 +52,30 @@ export function CatalogFilters({
   onQueryChange,
   onTaskChange,
   onSortChange,
+  onIntent,
 }: CatalogFiltersProps) {
   const searchId = useId();
   const sortId = useId();
   const inert = !onQueryChange;
+  const block = useRef<HTMLDivElement>(null);
+
+  // The static controls can take focus (and sit under the pointer) before
+  // hydration, when no handler is listening yet. Once onIntent arrives, an
+  // intent already in progress counts, without waiting for a new event.
+  useEffect(() => {
+    const el = block.current;
+    if (!onIntent || !el) return;
+    if (el.contains(document.activeElement) || el.matches(":hover")) onIntent();
+  }, [onIntent]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div
+      ref={block}
+      className="flex flex-col gap-4"
+      onPointerEnter={onIntent}
+      onFocus={onIntent}
+      onTouchStart={onIntent}
+    >
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="relative w-full md:max-w-[26rem]">
           <label htmlFor={searchId} className="sr-only">
@@ -80,35 +101,38 @@ export function CatalogFilters({
         </div>
 
         <div className="flex items-center gap-3">
-          <span id={sortId} className="label-mono shrink-0 text-fg-2">
+          <label htmlFor={sortId} className="label-mono shrink-0 text-fg-2">
             Sort by
-          </span>
-          <Select
-            value={sort}
-            disabled={inert}
-            onValueChange={(v) => {
-              const next = SORT_KEYS.find((k) => k === v);
-              if (next) onSortChange?.(next);
-            }}
-          >
-            <SelectTrigger
-              aria-labelledby={sortId}
+          </label>
+          {/* A native select: the same look as the other select triggers, closed,
+              and the platform's own list when open (a sheet on phones). */}
+          <div className="relative w-full md:w-[13.5rem]">
+            <select
+              id={sortId}
+              value={sort}
+              disabled={inert}
+              onChange={(e) => {
+                const next = SORT_KEYS.find((k) => k === e.target.value);
+                if (next) onSortChange?.(next);
+              }}
               className={cn(
-                "h-10 w-full md:w-[13.5rem]",
+                "h-9 w-full appearance-none rounded-md border border-line-strong bg-surface pr-8.5 pl-3 text-small text-fg transition-colors duration-150 hover:border-[color-mix(in_oklab,var(--color-line-strong),white_10%)] hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50",
                 // Inert only until hydration: keep it looking ready so nothing flashes.
                 inert && "disabled:cursor-default disabled:opacity-100",
               )}
             >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent position="popper" align="end">
               {SORT_KEYS.map((k) => (
-                <SelectItem key={k} value={k}>
+                <option key={k} value={k}>
                   {SORT_LABELS[k]}
-                </SelectItem>
+                </option>
               ))}
-            </SelectContent>
-          </Select>
+            </select>
+            {/* 11px from the edge, like the trigger's icon: its 10px padding plus the border. */}
+            <ChevronDownIcon
+              aria-hidden="true"
+              className="pointer-events-none absolute top-1/2 right-2.75 size-4 -translate-y-1/2 text-fg-2"
+            />
+          </div>
         </div>
       </div>
 
