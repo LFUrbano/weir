@@ -186,8 +186,6 @@ The site was built in small pull requests. Each one uses the template in [`.gith
 
 I built it with Claude Code as a pair programmer, and the commits carry its `Co-Authored-By` trailer.
 
-**Case study:** TODO, a link to the write-up on lfurbano.com once it is published.
-
 ## License
 
 All rights reserved. The code is public to read as a portfolio piece, not licensed for reuse. The fonts in `assets/fonts/` are under the SIL Open Font License, and their license texts sit next to them.
