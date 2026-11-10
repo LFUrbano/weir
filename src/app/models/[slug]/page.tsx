@@ -14,7 +14,7 @@ import { company, pct } from "@/data/company";
 import { getGpu, gpuShortName } from "@/data/gpus";
 import { IMAGE_SIZE, getModel, isDedicatedModel, models, type Model } from "@/data/models";
 import { contactHref } from "@/data/site";
-import { formatLatency, formatUsd } from "@/lib/format";
+import { formatCount, formatLatency, formatUsd } from "@/lib/format";
 import { pageMetadata, pageTitle } from "@/lib/metadata";
 import { metricsSeries, percentile } from "@/lib/metrics";
 import {
@@ -156,7 +156,7 @@ function Dedicated({ model }: { model: Model }) {
   const facts = [
     { label: "Replica", value: `${gpusPerReplica}× ${gpuShortName(g)}` },
     { label: "Replica rate", value: `${formatUsd(gpusPerReplica * g.hourly)} / hour` },
-    { label: "Peak throughput", value: `${replicaTokensPerSec.toLocaleString("en-US")} tok/s` },
+    { label: "Peak throughput", value: `${formatCount(replicaTokensPerSec)} tok/s` },
     ...(breakEven !== null ? [{ label: BREAK_EVEN_LABEL, value: formatBreakEven(breakEven) }] : []),
   ];
   return (

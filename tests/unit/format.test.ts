@@ -7,6 +7,7 @@ import {
   formatTokens,
   formatUsd,
 } from "@/lib/format";
+import { formatMonthly } from "@/lib/compare";
 
 describe("formatUsd", () => {
   it("uses two decimals and thousands separators from one cent up", () => {
@@ -102,5 +103,88 @@ describe("formatCount", () => {
 
   it("never prints NaN, Infinity or a negative", () => {
     for (const v of [NaN, Infinity, -Infinity, -5, 0]) expect(formatCount(v)).toBe("0");
+  });
+});
+
+describe("equivalence with Intl.NumberFormat", () => {
+  // The formatters used to be Intl.NumberFormat("en-US"). Node has Intl, so the
+  // old implementation stays here as the reference and every value must match.
+  const refUsd = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const refUsdSmall = new Intl.NumberFormat("en-US", { maximumSignificantDigits: 2 });
+  const refWhole = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+
+  const expectedUsd = (v: number): string => {
+    if (!Number.isFinite(v) || v <= 0) return "$0.00";
+    if (v >= 0.01) return `$${refUsd.format(v)}`;
+    return `$${refUsdSmall.format(v)}`;
+  };
+  const expectedCount = (v: number): string => {
+    if (!Number.isFinite(v) || v <= 0) return "0";
+    return refWhole.format(Math.round(v));
+  };
+  const expectedMonthly = (v: number): string => {
+    if (Number.isFinite(v) && v >= 100) return `$${refWhole.format(Math.round(v))}`;
+    return expectedUsd(v);
+  };
+
+  // A small seeded generator (mulberry32), so a failure reproduces.
+  function seeded(seed: number): () => number {
+    let a = seed;
+    return () => {
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  const edge = [
+    0, -0, -1, -0.5, -1234.5, NaN, Infinity, -Infinity, 1e-9, 1e-7, 0.000004, 0.00041, 0.0049, 0.005, 0.0099,
+    0.01, 0.015, 0.125, 0.995, 1, 1.005, 9.995, 68.4, 99.995, 99.5, 100, 100.4, 100.5, 999.995, 999.5, 1000,
+    1234.565, 3635.4, 1e6, 123456789.5, 1e11, 1e15, 1e21, 1.5e21, 1e22, 5e-324, 2 ** 53, Number.MAX_SAFE_INTEGER,
+    Number.MAX_VALUE, 0.0000095, 0.0000099, 0.00000995, 0.0099999, 0.00995, 0.0095, 0.00999, 0.009951,
+  ];
+
+  // 5,000 values from 1e-8 to 1e12, from a fixed seed.
+  const random: number[] = [];
+  const next = seeded(20261108);
+  for (let i = 0; i < 5000; i += 1) {
+    const scale = 10 ** (-8 + Math.floor(next() * 21));
+    random.push(next() * 10 * scale);
+  }
+  // Ties and near-ties: thousandths and halves of a cent are where rounding rules show.
+  const ties: number[] = [];
+  for (let k = 0; k <= 4000; k += 1) ties.push(k / 1000, k / 200, k * 0.005, k + 0.5, 100 + k / 8);
+  const small: number[] = [];
+  for (let k = 1; k <= 1000; k += 1) small.push(k * 1e-5, k * 1e-6, k * 1.5e-7, k * 5e-8);
+
+  const all = [...edge, ...random, ...ties, ...small];
+
+  it("formatUsd gives the same text as Intl for every value", () => {
+    for (const v of all) expect(formatUsd(v), `formatUsd(${v})`).toBe(expectedUsd(v));
+  });
+
+  it("formatCount gives the same text as Intl for every value", () => {
+    for (const v of all) expect(formatCount(v), `formatCount(${v})`).toBe(expectedCount(v));
+  });
+
+  it("formatMonthly gives the same text as Intl for every value", () => {
+    for (const v of all) expect(formatMonthly(v), `formatMonthly(${v})`).toBe(expectedMonthly(v));
+  });
+
+  it("never prints an exponent", () => {
+    for (const v of all) {
+      expect(formatUsd(v)).not.toMatch(/e/i);
+      expect(formatCount(v)).not.toMatch(/e/i);
+    }
+  });
+
+  it("rounds the shortest decimal, like Intl, not the binary value", () => {
+    expect(formatUsd(1.005)).toBe("$1.01");
+    expect(formatUsd(0.995)).toBe("$1.00");
+    expect(formatUsd(9.995)).toBe("$10.00");
+    expect(formatUsd(999.995)).toBe("$1,000.00");
+    expect(formatUsd(0.0099999)).toBe("$0.01");
+    expect(formatUsd(0.00995)).toBe("$0.01");
   });
 });

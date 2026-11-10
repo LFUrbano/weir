@@ -1,8 +1,10 @@
 import { getGpu, gpuShortName } from "@/data/gpus";
 import { REFERENCE_MODEL_SLUG } from "@/data/reference-model";
 import { IMAGE_SIZE, getModel, isDedicatedModel, isTokenModel, models, type Model } from "@/data/models";
+import { compareNames } from "@/lib/catalog";
 import {
   formatContext,
+  formatCount,
   formatLatency,
   formatPerImage,
   formatTokens,
@@ -49,7 +51,7 @@ function fallbackB(a: Model): Model {
   const sameKind = (m: Model) => m.slug !== a.slug && modelKind(m) === kind;
   const similar = similarModels(a, models.length).find(sameKind);
   if (similar) return similar;
-  const byName = models.filter(sameKind).sort((x, y) => x.name.localeCompare(y.name));
+  const byName = models.filter(sameKind).sort((x, y) => compareNames(x.name, y.name));
   if (byName.length === 0) throw new Error(`No model to compare with ${a.slug}`);
   return byName[0];
 }
@@ -237,7 +239,7 @@ function dedicatedGroup(a: Model, b: Model): CompareGroup {
   if (!da && !db) {
     return { id: "dedicated", title, rows: [plainRow("Replica", SHARED_POOL_ONLY, SHARED_POOL_ONLY)] };
   }
-  const peak = (d: Dedicated | null) => (d ? `${d.peak.toLocaleString("en-US")} tok/s` : NOT_APPLICABLE);
+  const peak = (d: Dedicated | null) => (d ? `${formatCount(d.peak)} tok/s` : NOT_APPLICABLE);
   const breakEven = (d: Dedicated | null) =>
     d?.breakEven != null ? formatBreakEven(d.breakEven) : NOT_APPLICABLE;
   const both = da && db;
@@ -302,11 +304,9 @@ export function volumeLabel(m: Model, volume: number): string {
   return `${formatTokens(volume)} ${volumePresets(m).unit}`;
 }
 
-const wholeDollars = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
-
 /** A monthly amount: whole dollars from $100 ("$2,300"), cents below ("$4.50"). */
 export function formatMonthly(v: number): string {
-  if (Number.isFinite(v) && v >= 100) return `$${wholeDollars.format(Math.round(v))}`;
+  if (Number.isFinite(v) && v >= 100) return `$${formatCount(v)}`;
   return formatUsd(v);
 }
 
