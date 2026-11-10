@@ -162,6 +162,41 @@ test.describe("home", () => {
     for (let i = 0; i < 4; i++) await expect(steps.nth(i)).toHaveAttribute("data-lit", "true");
   });
 
+  test("request diagram: no color transitions on load, the fade turns on once the path is placed", async ({
+    page,
+  }) => {
+    // Count every transition that starts inside the diagram, from the first byte.
+    await page.addInitScript(() => {
+      const w = window as unknown as { __diagramTransitions: number };
+      w.__diagramTransitions = 0;
+      document.addEventListener(
+        "transitionrun",
+        (e) => {
+          if ((e.target as Element).closest?.('[data-testid="diagram-progress"]')) w.__diagramTransitions++;
+        },
+        true,
+      );
+    });
+    const transitions = () =>
+      page.evaluate(() => (window as unknown as { __diagramTransitions: number }).__diagramTransitions);
+
+    await page.goto("/");
+    const diagram = page.getByTestId("diagram-progress");
+    const chip = page.getByTestId("diagram-step").first().locator("ul li").first();
+    // The server renders the finished path; the tracker then places it (below the fold: unlit).
+    await expect(diagram).toHaveAttribute("data-progress", "0.00");
+    await expect(page.getByTestId("diagram-step").nth(3)).toHaveAttribute("data-lit", "false");
+    // Placed without a fade, and the fade is on for what comes next.
+    await expect.poll(() => chip.evaluate((el) => getComputedStyle(el).transitionDuration)).toBe("0.2s");
+    expect(await transitions()).toBe(0);
+
+    // Scrolling through it lights the steps, with the fade.
+    await page.getByTestId("request-diagram").scrollIntoViewIfNeeded();
+    await page.mouse.wheel(0, 1600);
+    await expect(page.getByTestId("diagram-step").nth(3)).toHaveAttribute("data-lit", "true");
+    await expect.poll(transitions).toBeGreaterThan(0);
+  });
+
   test("request shape is claimed per endpoint, never for every model", async ({ page }) => {
     await page.goto("/");
     const preview = page.locator("#models");

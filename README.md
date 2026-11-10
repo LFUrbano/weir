@@ -46,7 +46,7 @@ The comparison page, `/models/compare/`, was designed in Figma first (frame `Com
 | **Next.js 16** (App Router, `output: 'export'`) | Server components render every page to HTML at build time, so the site ships as static files and needs no server. |
 | **React 19** and **TypeScript** (strict) | Types tie the data files to every page that reads them, so a renamed field fails the build. |
 | **Tailwind CSS v4** | Colors, type sizes and radii are CSS tokens in `globals.css`. A unit test rejects any arbitrary font size. |
-| **shadcn/ui on Radix** (`radix-ui`) | Accessible dialog, select, tabs, slider, accordion, sheet and tooltip, restyled with the Weir tokens instead of the defaults. |
+| **shadcn/ui on Radix** (`radix-ui`) | Accessible dialog, select, slider, accordion, sheet and tooltip, restyled with the Weir tokens instead of the defaults. The code panels' tabs are a small component of their own with the ARIA tabs pattern: Radix Tabs cost a phone too much at hydration. |
 | **cmdk** | The command menu (through shadcn's `Command`). |
 | **Motion** (`scroll`, `LazyMotion`) | The scroll-linked request diagram on the home page, and the catalog rows that fade and slide when the list is filtered or sorted. Both load their Motion features after hydration, and neither moves with reduced motion. Other movement is CSS or React state. |
 | **MDX** (`@next/mdx`, `remark-gfm`) | The quickstart is prose with live components in it. Its prices and model names come from the same data files as the rest of the site. |

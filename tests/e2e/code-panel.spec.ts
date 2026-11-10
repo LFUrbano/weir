@@ -51,6 +51,27 @@ test.describe("code panel", () => {
     );
   });
 
+  test("arrows loop, Home and End jump, and only the selected tab is in the tab order", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const tab = (name: string) => page.getByTestId("hero-terminal").getByRole("tab", { name });
+    await tab("curl").focus();
+    await page.keyboard.press("ArrowLeft");
+    await expect(tab("Node")).toBeFocused();
+    await expect(tab("Node")).toHaveAttribute("aria-selected", "true");
+    await page.keyboard.press("ArrowRight");
+    await expect(tab("curl")).toHaveAttribute("aria-selected", "true");
+    await page.keyboard.press("End");
+    await expect(tab("Node")).toHaveAttribute("aria-selected", "true");
+    await page.keyboard.press("Home");
+    await expect(tab("curl")).toHaveAttribute("aria-selected", "true");
+    await expect(tab("curl")).toHaveAttribute("tabindex", "0");
+    await expect(tab("Python")).toHaveAttribute("tabindex", "-1");
+    await expect(tab("Node")).toHaveAttribute("tabindex", "-1");
+    expect(await visibleSnippet(page)).toBe(snippets.curl);
+  });
+
   test("copies exactly the visible snippet and confirms it", async ({ page }) => {
     await page.goto("/");
     for (const name of ["curl", "Python", "Node"]) {
